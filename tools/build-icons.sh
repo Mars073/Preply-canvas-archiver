@@ -1,28 +1,34 @@
 #!/usr/bin/env bash
-# Regenere src/icons.js depuis assets/phosphor/*.svg.
+# Regenerates src/icons.js from assets/phosphor/*.svg.
 #
-# Les fichiers Phosphor portent fill="#000000" en dur. On extrait les traces et
-# on les re-emet avec fill="currentColor", pour que chaque icone prenne la
-# couleur de son bouton. Generation par script et non recopie a la main : sur
-# des traces de plusieurs centaines de caracteres, une faute de frappe est
-# invisible et indebogable.
+# Phosphor files carry a hardcoded fill="#000000". The paths are extracted here
+# and re-emitted with fill="currentColor", so every icon takes the colour of its
+# button. Generated rather than hand-copied: on paths several hundred characters
+# long, a typo is invisible and undebuggable.
 #
-# Usage, depuis la racine du projet :  bash tools/build-icons.sh
+# Usage, from the project root:  bash tools/build-icons.sh
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
 {
 printf '%s\n' "/**"
-printf '%s\n' " * Icones Phosphor, generees depuis icons/*.svg."
+printf '%s
+' " * Phosphor Icons, generated from assets/phosphor/*.svg."
+printf '%s
+' " *"
+printf '%s
+' " * Icon paths: Copyright (c) 2023 Phosphor Icons, MIT licensed."
+printf '%s
+' " * Full notice in THIRD-PARTY.md at the repository root."
 printf '%s\n' " *"
-printf '%s\n' " * NE PAS EDITER A LA MAIN : relancer tools/build-icons.sh apres avoir ajoute"
-printf '%s\n' " * ou remplace un fichier dans assets/phosphor/."
+printf '%s\n' " * DO NOT EDIT BY HAND: rerun tools/build-icons.sh after adding or replacing"
+printf '%s\n' " * a file in assets/phosphor/."
 printf '%s\n' " */"
 printf '%s\n' ""
 printf '%s\n' "const ICON_NS = 'http://www.w3.org/2000/svg';"
 printf '%s\n' ""
-printf '%s\n' "/** @type {Record<string, string>} nom Phosphor -> attribut d du path. */"
+printf '%s\n' "/** @type {Record<string, string>} Phosphor name -> the path d attribute. */"
 printf '%s\n' "const ICON_PATHS = {"
 for f in assets/phosphor/*.svg; do
   name=$(basename "$f" .svg)
@@ -32,11 +38,11 @@ done
 printf '%s\n' "};"
 printf '%s\n' ""
 printf '%s\n' "/**"
-printf '%s\n' " * Construit une icone inline, decorative."
+printf '%s\n' " * Builds an inline, decorative icon."
 printf '%s\n' " *"
-printf '%s\n' " * @param {string} name - cle de ICON_PATHS."
+printf '%s\n' " * @param {string} name - key of ICON_PATHS."
 printf '%s\n' " * @returns {SVGSVGElement}"
-printf '%s\n' " * @throws {RangeError} si le nom ne correspond a aucune icone."
+printf '%s\n' " * @throws {RangeError} when the name matches no icon."
 printf '%s\n' " */"
 printf '%s\n' "function icon(name) {"
 printf '%s\n' "  const d = ICON_PATHS[name];"
@@ -56,10 +62,10 @@ printf '%s\n' "  return svg;"
 printf '%s\n' "}"
 printf '%s\n' ""
 printf '%s\n' "/**"
-printf '%s\n' " * Insere les icones des elements portant data-icon, sans doublon."
+printf '%s\n' " * Fills in the icons of every element carrying data-icon, without duplicates."
 printf '%s\n' " *"
-printf '%s\n' " * Le balisage declare le nom, le script fournit le trace : aucun SVG n est"
-printf '%s\n' " * recopie dans viewer.html."
+printf '%s\n' " * Markup declares the name, the script supplies the path: no SVG is copied"
+printf '%s\n' " * into viewer.html."
 printf '%s\n' " *"
 printf '%s\n' " * @param {ParentNode} [root=document]"
 printf '%s\n' " * @returns {void}"
@@ -76,4 +82,4 @@ printf '%s\n' "  }"
 printf '%s\n' "}"
 } > src/icons.js
 
-printf 'icons.js regenere : %s icones\n' "$(ls assets/phosphor/*.svg | wc -l)"
+printf 'src/icons.js regenerated: %s icons\n' "$(ls assets/phosphor/*.svg | wc -l)"

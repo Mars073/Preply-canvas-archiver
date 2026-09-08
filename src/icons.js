@@ -1,13 +1,16 @@
 /**
- * Icones Phosphor, generees depuis icons/*.svg.
+ * Phosphor Icons, generated from assets/phosphor/*.svg.
  *
- * NE PAS EDITER A LA MAIN : relancer tools/build-icons.sh apres avoir ajoute
- * ou remplace un fichier dans assets/phosphor/.
+ * Icon paths: Copyright (c) 2023 Phosphor Icons, MIT licensed.
+ * Full notice in THIRD-PARTY.md at the repository root.
+ *
+ * DO NOT EDIT BY HAND: rerun tools/build-icons.sh after adding or replacing
+ * a file in assets/phosphor/.
  */
 
 const ICON_NS = 'http://www.w3.org/2000/svg';
 
-/** @type {Record<string, string>} nom Phosphor -> attribut d du path. */
+/** @type {Record<string, string>} Phosphor name -> the path d attribute. */
 const ICON_PATHS = {
   'caret-left': 'M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z',
   'caret-right': 'M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z',
@@ -25,11 +28,11 @@ const ICON_PATHS = {
 };
 
 /**
- * Construit une icone inline, decorative.
+ * Builds an inline, decorative icon.
  *
- * @param {string} name - cle de ICON_PATHS.
+ * @param {string} name - key of ICON_PATHS.
  * @returns {SVGSVGElement}
- * @throws {RangeError} si le nom ne correspond a aucune icone.
+ * @throws {RangeError} when the name matches no icon.
  */
 function icon(name) {
   const d = ICON_PATHS[name];
@@ -49,10 +52,10 @@ function icon(name) {
 }
 
 /**
- * Insere les icones des elements portant data-icon, sans doublon.
+ * Fills in the icons of every element carrying data-icon, without duplicates.
  *
- * Le balisage declare le nom, le script fournit le trace : aucun SVG n est
- * recopie dans viewer.html.
+ * Markup declares the name, the script supplies the path: no SVG is copied
+ * into viewer.html.
  *
  * @param {ParentNode} [root=document]
  * @returns {void}

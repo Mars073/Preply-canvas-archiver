@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Assemble les paquets Firefox et Chrome dans dist/.
+# Builds the Firefox and Chrome packages into dist/.
 #
-# Le seul traitement est le choix du manifeste : les deux navigateurs exigent un
-# fichier nomme manifest.json, et leurs manifestes divergent sur trois points
-# (background scripts vs service_worker, icones SVG vs PNG, cle gecko). Le reste
-# de src/ est copie tel quel — aucun bundler, aucune transformation.
+# The only processing is picking a manifest: both browsers require a file named
+# manifest.json, and the two manifests diverge on three points (background
+# scripts vs service_worker, SVG vs PNG icons, the gecko key). Everything else
+# in src/ is copied verbatim — no bundler, no transformation.
 #
-# Usage, depuis la racine du projet :  bash tools/package.sh
+# Usage, from the project root:  bash tools/package.sh
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -19,7 +19,8 @@ for target in firefox chrome; do
   rm -rf "$out"
   mkdir -p "$out"
 
-  # Tout src/ sauf les manifestes, qui sont poses ensuite sous leur nom final.
+  # All of src/ except the Chrome manifest, laid down afterwards under its final
+  # name, and the type declarations, which are for the editor only.
   for entry in src/*; do
     case "$(basename "$entry")" in
       manifest.chrome.json|globals.d.ts) continue ;;
@@ -28,10 +29,17 @@ for target in firefox chrome; do
   done
   if [ "$target" = chrome ]; then cp src/manifest.chrome.json "$out/manifest.json"; fi
 
-  # Les deux paquets embarquent SVG et PNG. Les PNG sont inutiles a Firefox et
-  # pesent 23 Ko : on accepte ce surplus pour garder un chemin de build unique,
-  # et parce que logo.svg sert de favicon au viewer dans les deux navigateurs.
-  echo "  $out prêt ($(find "$out" -type f | wc -l) fichiers)"
+  # Legal notices travel with the package, not only with the repository. The MIT
+  # licence of the embedded icon paths requires its notice to accompany every
+  # copy, and a published .xpi or .crx is a copy. LICENSE is copied when it
+  # exists — the project has not chosen one yet.
+  cp THIRD-PARTY.md "$out/"
+  [ -f LICENSE ] && cp LICENSE "$out/"
+
+  # Both packages carry the SVG and the PNGs. The PNGs are useless to Firefox
+  # and weigh 23 KB: that surplus buys a single build path, and logo.svg is the
+  # viewer's favicon in both browsers anyway.
+  echo "  $out ready ($(find "$out" -type f | wc -l) files)"
 
   archive="dist/preply-canvas-archiver-$target-$VERSION.zip"
   rm -f "$archive"
@@ -39,11 +47,11 @@ for target in firefox chrome; do
     (cd "$out" && zip -qr "../../$archive" .)
     echo "  $archive"
   elif command -v powershell.exe >/dev/null 2>&1; then
-    # Repli Windows : pas de zip dans Git Bash, mais Compress-Archive existe.
+    # Windows fallback: Git Bash ships no zip, but Compress-Archive exists.
     MSYS_NO_PATHCONV=1 powershell.exe -NoProfile -Command \
       "Compress-Archive -Path '$out/*' -DestinationPath '$archive' -Force" >/dev/null
     echo "  $archive"
   else
-    echo "  (pas de zip disponible : le dossier $out est prêt à charger tel quel)"
+    echo "  (no zip available: the $out folder is ready to load as-is)"
   fi
 done

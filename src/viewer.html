@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <title>Canvas Backup — archives</title>
-<!-- Chemin relatif au paquet de l'extension : aucune declaration dans
-     web_accessible_resources n'est necessaire, la page est du meme paquet. -->
+<!-- Path relative to the extension package: no web_accessible_resources entry
+     is needed, since the page belongs to that same package. -->
 <link rel="icon" type="image/svg+xml" href="logo.svg">
 <style>
-  /* Figtree, la fonte de l'editeur Preply. SIL Open Font License (google/fonts,
-     repertoire ofl/figtree), donc redistribuable avec l'extension.
-     Tant que fonts/Figtree-variable.woff2 est absent, la pile de repli
-     s'applique silencieusement (un 404 dans la console, sans consequence). */
+  /* Figtree, the typeface of Preply's editor. SIL Open Font License
+     (google/fonts, ofl/figtree), so redistributable with the extension.
+     While fonts/Figtree-variable.woff2 is missing the fallback stack applies
+     silently — one 404 in the console, no other consequence. */
   @font-face{
     font-family:"Figtree";
     src:url("fonts/Figtree-variable.woff2") format("woff2");
@@ -19,8 +19,8 @@
     font-display:swap;
   }
 
-  /* Palette Preply, extraite de leurs design tokens (preply-recon-1.json).
-     Valeurs exactes de leur rampe, pas un relevé approximatif. */
+  /* Preply palette, extracted from their design tokens (preply-recon-1.json).
+     Their exact ramp, not an approximation read off a screenshot. */
   :root{
     --bg:#f4f4f8; --panel:#fff; --line:#dcdce5; --line-soft:#ebebf1;
     --ink:#121117; --ink-2:#4d4c5c; --ink-3:#6a697c;
@@ -29,19 +29,19 @@
     --danger:#c9160d; --danger-line:#fdc2be; --ok:#067560;
     --radius:10px; --radius-lg:18px; --radius-btn:10px;
     --gap:12px;
-    /* Deux couches : un contact net au ras de la carte, une diffusion large et
-       tres pale pour le detachement. Une seule ombre donnerait soit un halo
-       sale, soit un bord dur. */
+    /* Two layers: a tight contact shadow at the edge of the card, and a wide,
+       very pale one for detachment. A single shadow gives either a dirty halo
+       or a hard edge. */
     --shadow:0 1px 2px rgba(18,17,23,.04), 0 10px 28px rgba(18,17,23,.06);
     --doc-width:1089px; --doc-pad-x:52px;
   }
   *{box-sizing:border-box}
-  /* Un selecteur d'id (#topbar{display:flex}) bat la regle UA [hidden]{display:none}.
-     Sans ceci, tout element masque par JS reste visible. */
+  /* An id selector (#topbar{display:flex}) beats the UA [hidden]{display:none}
+     rule. Without this, anything hidden from JS stays on screen. */
   [hidden]{display:none !important}
   html,body{height:100%}
-  /* Les colonnes ne se touchent plus : elles flottent dans une gouttiere.
-     Les separations passent donc par le vide, plus par des filets. */
+  /* The columns no longer touch: they float in a gutter, so separation comes
+     from empty space rather than from rules. */
   body{
     margin:0; display:grid; grid-template-columns:264px 300px 1fr;
     padding:var(--gap); gap:var(--gap);
@@ -49,20 +49,20 @@
     font:14px/1.55 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     -webkit-user-select:none; user-select:none;
   }
-  /* Mode focus : les deux panneaux de navigation cedent la place au document,
-     qui est le produit. Une fois la page choisie, ils sont secondaires. */
+  /* Focus mode: both navigation panels give way to the document, which is the
+     product. Once a page is chosen they are secondary. */
   body.focus{grid-template-columns:1fr}
   body.focus #classrooms, body.focus #pages{display:none}
 
   button{font:inherit;color:inherit}
   :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 
-  /* Reserve aux lecteurs d'ecran : jamais display:none, qui les exclurait aussi. */
+  /* Screen readers only: never display:none, which would hide it from them too. */
   .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;
     overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
 
-  /* Lien d'evitement : la navigation compte des dizaines de boutons avant le
-     document. Hors focus il est masque visuellement, jamais retire du DOM. */
+  /* Skip link: navigation holds dozens of buttons before the document. Hidden
+     visually when unfocused, never removed from the DOM. */
   .skip{position:absolute;left:var(--gap);top:var(--gap);z-index:100;
     transform:translateY(-200%);
     padding:10px 16px;border-radius:var(--radius-btn);
@@ -71,8 +71,8 @@
 
   ul{list-style:none;margin:0;padding:0}
 
-  /* ---------- colonne 1 : salles de classe ---------- */
-  /* Carte : filet clair pour le contour, ombre pour le detachement. */
+  /* ---------- column 1: classrooms ---------- */
+  /* Card: a light rule for the outline, a shadow for the detachment. */
   .card{background:var(--panel);border:1px solid var(--line-soft);
     border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden}
 
@@ -80,29 +80,29 @@
   .col-head{padding:16px 16px 10px;border-bottom:1px solid var(--line-soft)}
   .col-head h2{margin:0;font-size:13px;font-weight:650;letter-spacing:.01em}
   .col-head .sub{margin:2px 0 0;font-size:11.5px;color:var(--ink-3)}
-  /* Colonne flex plutot que des marges sur les <li> : le gap ne s'applique
-     qu'entre les elements, donc pas de marge orpheline en fin de liste. */
+  /* A flex column rather than margins on the <li>: gap only applies between
+     items, so no orphan margin is left at the end of the list. */
   .col-body{flex:1;overflow-y:auto;padding:8px;
     display:flex;flex-direction:column;gap:4px}
 
   .room{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
     padding:10px;border:0;border-radius:var(--radius);background:transparent;cursor:pointer}
   .room:hover{background:var(--bg)}
-  /* aria-current n'est pose que sur l'element courant : « false » sur tous les
-     autres est valide mais verbeux a la lecture vocale. */
+  /* aria-current is set on the current item only: "false" everywhere else is
+     valid but verbose when spoken. */
   .room[aria-current]{background:var(--accent-soft)}
   .room .av{flex:0 0 auto;width:48px;height:48px;border-radius:50%;overflow:hidden;
     background:var(--accent);color:#fff;display:grid;place-items:center;
     font-size:18px;font-weight:600}
-  /* Une photo remplace l initiale : le fond rose ne doit plus transparaitre. */
+  /* A photo replaces the initial: the pink ground must not show through. */
   .room .av.has-img{background:none}
   .room .av img{width:100%;height:100%;object-fit:cover;display:block}
   .room .nm{min-width:0}
   .room .nm b{display:block;font-weight:600;font-size:13.5px;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .room .nm span{font-size:11.5px;color:var(--ink-3)}
-  /* Un peu plus petit que les icones de boutons : c'est un indicateur de
-     direction, pas une action. */
+  /* Slightly smaller than button icons: this points a direction, it is not an
+     action. */
   .room .chev{margin-left:auto;display:flex;color:var(--ink-3)}
   .room .chev .icon{width:14px;height:14px}
 
@@ -115,7 +115,7 @@
   #repo:hover{color:var(--ink);background:var(--bg)}
   #repo .icon{width:18px;height:18px}
 
-  /* ---------- colonne 2 : pages ---------- */
+  /* ---------- column 2: pages ---------- */
   #pages{display:flex;flex-direction:column}
   #filter{width:100%;margin-top:8px;padding:7px 11px;border:1px solid var(--line);
     border-radius:var(--radius-btn);background:var(--bg);font:inherit;font-size:12.5px;
@@ -129,53 +129,53 @@
   .page .tx b{display:block;font-weight:550;font-size:13px;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .page .tx span{font-size:11.5px;color:var(--ink-3)}
-  /* Extrait de recherche : deux lignes maxi, occurrence surlignee. */
+  /* Search excerpt: two lines at most, the match highlighted. */
   .page .tx .hit{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
     overflow:hidden;color:var(--ink-2)}
-  /* Jaune et non rose : le rose signale la selection. Un terme trouve dans une
-     ligne selectionnee disparaissait, et les deux sens se confondaient. */
+  /* Yellow, not pink: pink signals selection. A match inside a selected row
+     used to vanish, and the two meanings blurred into one. */
   .page .tx .hit strong{font-weight:700;color:var(--ink);
     background:#ffe875;border-radius:3px;box-shadow:0 0 0 2px #ffe875}
   .empty-filter{margin:0;padding:10px;color:var(--ink-3);font-size:12.5px}
 
-  /* ---------- colonne 3 : document ---------- */
-  /* Le plan de travail deborde de la goutiere basse : le document defile
-     jusqu'au bord de la fenetre, alors que les cartes de gauche gardent leur
-     marge. Sans ca, le defilement s'arrete sur une bande vide de 12 px. */
+  /* ---------- column 3: document ---------- */
+  /* The work surface overflows the bottom gutter: the document scrolls to the
+     window edge while the cards on the left keep their margin. Without it,
+     scrolling stops on a 12 px empty band. */
   #main{display:flex;flex-direction:column;overflow:hidden;position:relative;
     margin-bottom:calc(-1 * var(--gap))}
-  /* La colonne de droite n'est pas une carte : c'est le plan de travail, sur
-     lequel la feuille du document flotte. Eviter la carte dans la carte. */
+  /* The right column is not a card: it is the work surface the document sheet
+     floats on. Avoid a card inside a card. */
   #topbar{display:flex;align-items:center;gap:8px;padding:6px 6px 0}
   #topbar h1{margin:0;font-size:20px;font-weight:650;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #actions{margin-left:auto;display:flex;gap:8px;flex:0 0 auto}
-  /* Les icones heritent de currentColor : elles suivent les etats du bouton
-     (survol, danger, actif) sans variante de fichier. */
+  /* Icons inherit currentColor, so they follow the button through its states
+     (hover, danger, active) with no file variant. */
   .icon{width:16px;height:16px;flex:0 0 auto}
   .act{display:inline-flex;align-items:center;gap:6px;
     padding:7px 13px;border:1px solid var(--line);border-radius:var(--radius-btn);
     background:var(--panel);font-size:12.5px;cursor:pointer;white-space:nowrap}
   .act:hover{border-color:var(--ink-3)}
-  /* Texte en rose fonce : #d13d76 sur #ffe5f0 ne donne que 3.8:1, sous le seuil AA. */
+  /* Dark pink text: #d13d76 on #ffe5f0 is only 3.8:1, below the AA threshold. */
   .act[aria-pressed="true"]{border-color:var(--accent);color:var(--accent-strong);
     background:var(--accent-soft)}
   .act.danger{color:var(--danger);border-color:var(--danger-line)}
   .act.danger:hover{border-color:var(--danger)}
 
-  /* Groupe de zoom : trois boutons accoles, bordures fusionnees. */
+  /* Zoom group: three adjoining buttons, borders merged. */
   #zoom{display:flex}
   #zoom .act{border-radius:0;margin-left:-1px}
   #zoom .act:first-child{border-radius:var(--radius-btn) 0 0 var(--radius-btn);margin-left:0}
   #zoom .act:last-child{border-radius:0 var(--radius-btn) var(--radius-btn) 0}
   #zoom .act:focus-visible{position:relative;z-index:1}
-  /* Bouton carre, contenu par une icone seule. */
+  /* Square button, holding a lone icon. */
   .iconly{min-width:32px;padding:7px 0;justify-content:center}
   .zval{min-width:62px;padding:7px 0;justify-content:center;
     font-variant-numeric:tabular-nums;color:var(--ink-2)}
 
-  /* Menu des actions secondaires. Supprimer n'est plus expose en permanence :
-     une action destructive ne merite pas le meme rang qu'imprimer. */
+  /* Secondary actions menu. Delete is no longer permanently exposed: a
+     destructive action does not deserve the same rank as printing. */
   #more-wrap{position:relative}
   #more-menu{position:absolute;top:calc(100% + 6px);right:0;z-index:5;
     min-width:200px;padding:6px;background:var(--panel);
@@ -188,32 +188,32 @@
   .mi.danger{color:var(--danger)}
   .mi.danger:hover{background:#ffeceb}
 
-  /* En-tete du document : dans la colonne de la feuille, pas dans la barre
-     d'outils. Le titre s'aligne sur la premiere lettre du texte. */
+  /* Document header: in the sheet's column, not in the toolbar. The title
+     lines up with the first letter of the text. */
   #sheet{max-width:calc(var(--doc-width) + var(--doc-pad-x) * 2);margin:0 auto}
   #dochead{padding:4px var(--doc-pad-x) 14px}
   #dochead h1{margin:0 0 3px;padding:2px 7px;margin-left:-7px;
     font-size:24px;font-weight:650;letter-spacing:-.01em;
     border-radius:8px;cursor:default}
-  /* Affordance : rien ne signale qu un titre est modifiable tant qu on ne le
-     survole pas. Le fond au survol est le seul indice avant le double-clic. */
+  /* Affordance: nothing says a title is editable until it is hovered. This
+     ground is the only hint before the double-click. */
   #dochead h1:hover{background:var(--line-soft)}
   #dochead h1[contenteditable="true"]{background:var(--panel);cursor:text;
     box-shadow:inset 0 0 0 2px var(--accent);
     -webkit-user-select:text;user-select:text}
   #meta{margin:0;font-size:12.5px;color:var(--ink-3)}
 
-  /* overflow sur les deux axes : au-dela de 100 %, le document depasse la
-     largeur du volet et doit rester atteignable au defilement horizontal. */
-  /* Le padding lateral doit depasser le rayon de diffusion de l ombre du
-     document, sinon overflow:auto la tranche net sur les cotes. */
+  /* Overflow on both axes: past 100% the document exceeds the pane width and
+     must stay reachable by horizontal scrolling. */
+  /* Side padding must exceed the blur radius of the document shadow, or
+     overflow:auto slices it flat along the edges. */
   #scroll{flex:1;overflow:auto;padding:0 16px 48px}
-  /* Typographie de l'editeur Preply : Figtree, 20px, ligatures coupees.
-     Sans cette base, un <span style="font-size:20px"> archive parait 1,43x plus
-     grand que son entourage, alors que dans Preply il s'y fond. */
-  /* --doc-width = largeur de la colonne de texte chez Preply. Le max-width vise
-     la boite de bordure (box-sizing:border-box), d'ou l'ajout du padding :
-     sans ca la colonne ferait 1089 - 104 px et les lignes casseraient ailleurs. */
+  /* Typography of Preply's editor: Figtree, 20px, ligatures off. Without this
+     baseline an archived <span style="font-size:20px"> looks 1.43x larger than
+     its surroundings, where in Preply it blends in. */
+  /* --doc-width is the width of Preply's text column. max-width targets the
+     border box (box-sizing:border-box), hence adding the padding: without it
+     the column would be 1089 - 104 px and lines would break elsewhere. */
   #doc{padding:44px var(--doc-pad-x);background:var(--panel);
     border:1px solid var(--line-soft);border-radius:var(--radius-lg);
     box-shadow:var(--shadow);
@@ -229,13 +229,13 @@
   #doc td,#doc th{border:1px solid var(--line);padding:6px 10px}
   #doc hr{border:1px solid var(--line);margin:8px 0}
 
-  /* Comparaison avec la version precedente.
-     Le box-shadow sans flou ni etalement n'est pas une bordure : c'est le meme
-     aplat decale de 14 px vers la gauche, qui prolonge le fond dans la marge
-     interieure de la feuille. Un padding sur le bloc decalerait le texte et
-     casserait l'alignement avec les lignes inchangees.
-     Les suppressions gardent un indice non colore, le texte barre ; les ajouts
-     reposent sur la couleur seule — ecart assume au critere WCAG 1.4.1. */
+  /* Comparison against the previous version.
+     The box-shadow has neither blur nor spread, so it is not a border: it is
+     the same flat colour offset 14 px to the left, extending the ground into
+     the sheet's inner margin. Padding on the block would shift the text and
+     break alignment with the unchanged lines.
+     Deletions keep a non-colour cue, the strike-through; additions rest on
+     colour alone — an accepted deviation from WCAG 1.4.1. */
   #doc .pca-add{background:#e0faf6;box-shadow:-14px 0 0 #e0faf6;border-radius:2px}
   #doc .pca-del{background:#ffeceb;box-shadow:-14px 0 0 #ffeceb;border-radius:2px;
     color:var(--ink-2);text-decoration:line-through;text-decoration-color:#f87e77}
@@ -243,11 +243,11 @@
   #placeholder{display:grid;place-items:center;height:100%;color:var(--ink-3);
     font-size:13px;text-align:center;padding:40px}
 
-  /* ---------- volet historique ---------- */
-  /* Volet flottant, detache des bords : il se pose sur le plan de travail au
-     lieu d'etre colle au bord de la fenetre. */
-  /* bottom = 2 goutieres : #main deborde desormais de 12 px sous le body, donc
-     un bottom de 12 px collerait le volet au bord de la fenetre. */
+  /* ---------- history panel ---------- */
+  /* Floating panel, detached from the edges: it rests on the work surface
+     instead of being glued to the window border. */
+  /* bottom = two gutters: #main now overflows 12 px below the body, so a
+     bottom of 12 px would stick the panel to the window edge. */
   #history{position:absolute;top:46px;right:6px;bottom:calc(var(--gap) * 2);width:340px;
     background:var(--panel);border:1px solid var(--line-soft);
     border-radius:var(--radius-lg);
@@ -261,10 +261,10 @@
   #hclose{margin-left:auto;border:0;background:transparent;cursor:pointer;display:flex;
     color:var(--ink-3);padding:4px}
   #hlist{flex:1;overflow-y:auto;padding:10px}
-  /* Deux actions distinctes par version : ouvrir et supprimer. Elles sont donc
-     deux boutons freres dans un <li>, et non un bouton imbrique dans un
-     conteneur role="button" — imbrication invalide, et ininterpretable pour
-     une technologie d'assistance. */
+  /* Two distinct actions per version: open and delete. They are therefore two
+     sibling buttons inside an <li>, not a button nested in a role="button"
+     container — invalid nesting, and uninterpretable for assistive
+     technology. */
   .ver{margin-bottom:6px;border:1px solid var(--line);
     border-radius:var(--radius);background:var(--panel);overflow:hidden}
   .ver:hover{border-color:var(--ink-3)}
@@ -283,15 +283,15 @@
 
   @media print{
     body{display:block;background:#fff;padding:0}
-    /* L'en-tete du document reste imprime : nom de page, prof et date sont
-       exactement ce qu'on veut retrouver sur un PDF classe dans un dossier. */
+    /* The document header stays printed: page name, tutor and date are exactly
+       what one wants to find again on a PDF filed in a folder. */
     #classrooms,#pages,#topbar,#history{display:none}
     #main,#scroll,#sheet{overflow:visible;padding:0;margin:0;max-width:none}
     #dochead{padding:0 0 10px}
     #dochead h1{font-size:18px;padding:0;margin-left:0;background:none;box-shadow:none}
-    /* Le PDF reste canonique : ni zoom, ni marquage de comparaison. Une ligne
-       supprimee n'appartient plus au document — l'imprimer serait un mensonge
-       sur son contenu. */
+    /* The PDF stays canonical: no zoom, no comparison marks. A deleted line no
+       longer belongs to the document — printing it would misstate its
+       contents. */
     #doc .pca-del{display:none}
     #doc .pca-add{background:none;box-shadow:none}
 
