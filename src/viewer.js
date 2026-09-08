@@ -3,25 +3,24 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 /**
- * Viewer — navigation a trois niveaux : salle de classe (un professeur) →
- * page (listee une seule fois) → versions, reunies dans le volet Historique.
+ * Viewer — three-level navigation: classroom (one tutor) → page (listed once)
+ * → versions, gathered in the History panel.
  *
- * Le modele est derive de l'index a chaud ; aucune migration du stockage.
- *   classroomId -> une salle Preply, donc un professeur
- *   canvasId    -> une page du Canvas
- *   instantane  -> une version datee de cette page
+ * The model is derived from the index at load time; no storage migration.
+ *   classroomId -> a Preply classroom, therefore a tutor
+ *   canvasId    -> one Canvas page
+ *   snapshot    -> one dated version of that page
  */
 
 /**
- * Racine de l'API d'extension.
+ * Extension API root.
  *
- * Firefox expose `browser`, Chrome expose `chrome`. En MV3 les deux renvoient
- * des promesses sur les API utilisees ici, un alias suffit donc — embarquer le
- * polyfill Mozilla serait une dependance npm pour trois appels.
+ * Firefox exposes `browser`, Chrome exposes `chrome`. Under MV3 both return
+ * promises for the APIs used here, so an alias is enough — shipping the Mozilla
+ * polyfill would mean an npm dependency for three calls.
  *
- * Redeclare dans chaque fichier plutot que partage : le service worker de
- * Chrome ne charge qu'un seul script et ne peut pas importer un module commun
- * sans etape de build.
+ * Redeclared in each file rather than shared: the Chrome service worker loads a
+ * single script and cannot import a common module without a build step.
  */
 const api = globalThis.browser ?? globalThis.chrome;
 
@@ -30,8 +29,8 @@ const INDEX_KEY = 'pca:index';
 const elRooms = document.getElementById('room-list');
 const elPages = document.getElementById('page-list');
 const elFilter = document.getElementById('filter');
-// Le <span> et non le conteneur : renderUsage() ecrit en textContent, ce qui
-// effacerait le lien vers le depot pose a cote.
+// The <span>, not its container: renderUsage() writes with textContent, which
+// would wipe the repository link sitting next to it.
 const elUsage = document.getElementById('usage-text');
 const elTopbar = document.getElementById('topbar');
 const elMeta = document.getElementById('meta');
@@ -60,30 +59,29 @@ let rooms = new Map();
 let curRoom = null;
 /** @type {Page|null} */
 let curPage = null;
-/** Instantane affiche, augmente de sa cle. @type {object|null} */
+/** Snapshot on screen, augmented with its key. @type {object|null} */
 let curSnap = null;
 
-/* ------------------------------------------------------- preferences d'UI */
+/* ----------------------------------------------------- interface state */
 
 const PREFS_KEY = 'pca:prefs';
 
 /**
- * Etat d'interface persistant.
+ * Persistent interface state.
  *
- * Stocke dans `storage.local` et non dans `localStorage` : un module temporaire
- * recoit un UUID neuf a chaque chargement, donc une origine neuve et un
- * `localStorage` vide. `storage.local` est clé par l'ID de l'extension et
- * survit aux rechargements.
+ * Kept in `storage.local` rather than `localStorage`: a temporary add-on gets a
+ * fresh UUID on every load, hence a fresh origin and an empty `localStorage`.
+ * `storage.local` is keyed by extension id and survives reloads.
  *
- * `zoom` a `null` signifie « jamais choisi » : le palier par defaut sera
- * resolu a l'initialisation, une fois ZOOM_STEPS connu.
+ * `zoom` at `null` means never chosen: the default step is resolved at
+ * initialisation, once ZOOM_STEPS is known.
  *
  * @type {{zoom:number|null, roomId:string|null, pageId:string|null, focus:boolean}}
  */
 let prefs = { zoom: null, roomId: null, pageId: null, focus: false };
 
 /**
- * Charge les preferences. Une lecture impossible laisse les valeurs par defaut.
+ * Loads preferences. An unreadable store leaves the defaults in place.
  *
  * @returns {Promise<void>}
  */
@@ -92,32 +90,32 @@ async function loadPrefs() {
     const stored = await api.storage.local.get(PREFS_KEY);
     if (stored[PREFS_KEY]) prefs = { ...prefs, ...stored[PREFS_KEY] };
   } catch (e) {
-    console.warn('[pca] préférences illisibles', e);
+    console.warn('[pca] preferences unreadable', e);
   }
 }
 
-/** Ecrit les preferences, sans bloquer l'interface. @returns {void} */
+/** Writes preferences without blocking the interface. @returns {void} */
 function savePrefs() {
   api.storage.local.set({ [PREFS_KEY]: prefs })
-    .catch((e) => console.warn('[pca] préférences non écrites', e));
+    .catch((e) => console.warn('[pca] preferences not written', e));
 }
 
 const LABELS_KEY = 'pca:labels';
 
 /**
- * Noms de page choisis a la main, indexes par canvasId.
+ * Page names chosen by hand, indexed by canvasId.
  *
- * Stockes a part des instantanes : un nom appartient a la page, pas a une
- * version. Il doit survivre a l'archivage d'une nouvelle version comme a la
- * suppression de celle qui etait affichee quand on l'a saisi.
+ * Stored apart from snapshots: a name belongs to the page, not to a version. It
+ * has to survive both the archiving of a new version and the deletion of the
+ * one that was on screen when it was typed.
  *
  * @type {Record<string, string>}
  */
 let labels = {};
 
 /**
- * Charge les noms personnalises. Une lecture impossible laisse la table vide,
- * auquel cas les libelles derives du contenu reprennent la main.
+ * Loads custom names. An unreadable store leaves the table empty, in which case
+ * the labels derived from content take over.
  *
  * @returns {Promise<void>}
  */
@@ -126,30 +124,30 @@ async function loadLabels() {
     const stored = await api.storage.local.get(LABELS_KEY);
     labels = stored[LABELS_KEY] || {};
   } catch (e) {
-    console.warn('[pca] noms de page illisibles', e);
+    console.warn('[pca] page names unreadable', e);
   }
 }
 
-/** Ecrit les noms personnalises. @returns {void} */
+/** Writes custom names. @returns {void} */
 function saveLabels() {
   api.storage.local.set({ [LABELS_KEY]: labels })
-    .catch((e) => console.warn('[pca] noms de page non écrits', e));
+    .catch((e) => console.warn('[pca] page names not written', e));
 }
 
 const AVATARS_KEY = 'pca:avatars';
 
 /**
- * Avatars des professeurs en data URI, par classroomId.
+ * Tutor avatars as data URIs, by classroomId.
  *
- * Stockes une fois par salle et non dans chaque instantane : ils appartiennent
- * au professeur, pas a une version datee.
+ * Stored once per classroom rather than in every snapshot: they belong to the
+ * tutor, not to a dated version.
  *
  * @type {Record<string, string>}
  */
 let avatars = {};
 
 /**
- * Charge les avatars. En cas d'echec, l'initiale du professeur prend le relais.
+ * Loads avatars. On failure the tutor initial takes over.
  *
  * @returns {Promise<void>}
  */
@@ -158,26 +156,26 @@ async function loadAvatars() {
     const stored = await api.storage.local.get(AVATARS_KEY);
     avatars = stored[AVATARS_KEY] || {};
   } catch (e) {
-    console.warn('[pca] avatars illisibles', e);
+    console.warn('[pca] avatars unreadable', e);
   }
 }
 
 const ORDER_KEY = 'pca:order';
 
 /**
- * Rang des pages tel que Preply les presente, par salle puis par canvasId.
+ * Page rank as Preply presents it, by classroom then by canvasId.
  *
- * Chaque page du Canvas est un canvasId distinct ; rien dans un instantane ne
- * dit ou elle se situe dans la sequence. Seule la barre de vignettes le sait,
- * et c'est le content script qui la releve.
+ * Every Canvas page is a distinct canvasId, and nothing in a snapshot says
+ * where it sits in the sequence. Only the thumbnail bar knows, and the content
+ * script is what reads it.
  *
  * @type {Record<string, Record<string, {index: number, num: string}>>}
  */
 let order = {};
 
 /**
- * Charge les rangs connus. En cas d'echec, le tri retombe sur l'ordre
- * antichronologique d'archivage.
+ * Loads known ranks. On failure sorting falls back to reverse-chronological
+ * archiving order.
  *
  * @returns {Promise<void>}
  */
@@ -186,13 +184,13 @@ async function loadOrder() {
     const stored = await api.storage.local.get(ORDER_KEY);
     order = stored[ORDER_KEY] || {};
   } catch (e) {
-    console.warn('[pca] ordre des pages illisible', e);
+    console.warn('[pca] page order unreadable', e);
   }
 }
 
 /**
- * Nom affiche d'une page : le nom choisi, sinon le libelle derive du contenu,
- * sinon le numero Preply.
+ * Displayed name of a page: the chosen name, else the label derived from its
+ * content, else the Preply page number.
  *
  * @param {Page} page
  * @returns {string}
@@ -206,11 +204,11 @@ function pageName(page) {
 const elStatus = document.getElementById('sr-status');
 
 /**
- * Annonce un changement aux technologies d'assistance.
+ * Announces a change to assistive technology.
  *
- * Le viewer change de document sans rechargement : sans region live, rien ne
- * signale qu'on regarde autre chose. Le texte est vide puis repose au tick
- * suivant, sinon deux annonces identiques d'affilee passent inapercues.
+ * The viewer swaps documents with no page load: without a live region nothing
+ * signals that you are looking at something else. The text is cleared then set
+ * again on the next tick, or two identical announcements in a row go unnoticed.
  *
  * @param {string} message
  * @returns {void}
@@ -221,10 +219,10 @@ function announce(message) {
 }
 
 /**
- * Langues de cours Preply vers etiquettes BCP-47.
+ * Preply course languages mapped to BCP-47 tags.
  *
- * Sans `lang` juste sur le document, une synthese vocale lit le polonais avec
- * les regles du francais — le contenu devient inecoutable.
+ * Without `lang` on the document itself, a speech synthesiser reads Polish with
+ * French rules — the content becomes unlistenable.
  */
 const LANG_TAGS = {
   polish: 'pl', french: 'fr', english: 'en', spanish: 'es', german: 'de',
@@ -235,15 +233,15 @@ const LANG_TAGS = {
 };
 
 /**
- * Etiquette de langue d'un instantane.
+ * Language tag of a snapshot.
  *
- * Priorite au champ pose a la capture ; sinon on relit l'URL archivee, de la
- * forme /edu/<langue>/classroom-v2/... — ce qui couvre les instantanes pris
- * avant l'ajout du champ. Une langue inconnue renvoie une chaine vide : mieux
- * vaut heriter du francais que d'affirmer une langue fausse.
+ * The field set at capture wins; otherwise the archived URL is re-read, shaped
+ * /edu/<language>/classroom-v2/… — which covers snapshots taken before that
+ * field existed. An unknown language returns an empty string: inheriting the
+ * interface language beats asserting a wrong one.
  *
  * @param {{course?: string, url?: string}} snap
- * @returns {string} etiquette BCP-47, ou '' si indeterminee.
+ * @returns {string} BCP-47 tag, or empty when undetermined.
  */
 function langOf(snap) {
   const fromUrl = /\/edu\/([a-z-]+)\/classroom-v2\//i.exec(snap.url || '');
@@ -252,10 +250,10 @@ function langOf(snap) {
 }
 
 /**
- * Formate un horodatage ISO en libelle relatif court.
+ * Formats an ISO timestamp into a short relative label.
  *
  * @param {string} iso
- * @returns {string} par ex. "Aujourd'hui 18:42" ou "12 mars 2026 09:26".
+ * @returns {string} e.g. "Today 18:42" or "12 March 2026 09:26".
  */
 function fmt(iso) {
   const d = new Date(iso);
@@ -268,25 +266,25 @@ function fmt(iso) {
 }
 
 /**
- * Extrait le nom du professeur du titre de l'onglet Preply.
+ * Extracts the tutor name from the Preply tab title.
  *
- * @param {string} title - par ex. "Salle de classe avec Paula".
- * @returns {string} le nom, ou le titre complet si le motif ne correspond pas.
+ * @param {string} title - e.g. "Salle de classe avec Paula".
+ * @returns {string} the name, or the whole title when no pattern matches.
  */
 function tutorOf(title) {
   return tutorFromTitle(title) || 'Unknown classroom';
 }
 
-/** Elements traites comme une ligne autonome dans l'extraction de texte. */
+/** Elements treated as a standalone line when extracting text. */
 const BLOCK_TAGS = /^(P|LI|H[1-6]|TD|TH|BLOCKQUOTE|PRE|FIGCAPTION)$/;
 
 /**
- * Lettres qu'aucune normalisation Unicode ne decompose.
+ * Letters that no Unicode normalisation decomposes.
  *
- * Ce ne sont pas des lettres accentuees mais des lettres a part entiere : NFKD
- * les laisse intactes. Sans cette table, chercher « slonce » ne trouverait
- * jamais « słońce », ni « oe » « œuf », ni « strasse » « straße ».
- * Les expansions vers plusieurs lettres sont voulues et gerees par foldWithMap.
+ * These are not accented letters but letters in their own right: NFKD leaves
+ * them alone. Without this table, searching "slonce" would never find "słońce",
+ * nor "oe" find "œuf", nor "strasse" find "straße".
+ * Expansions to several letters are intended, and handled by foldWithMap.
  */
 const FOLD_MAP = new Map(Object.entries({
   ł: 'l', ø: 'o', đ: 'd', ð: 'd', þ: 'th', æ: 'ae', œ: 'oe', ß: 'ss',
@@ -296,18 +294,17 @@ const FOLD_MAP = new Map(Object.entries({
 const FOLD_RE = new RegExp(`[${[...FOLD_MAP.keys()].join('')}]`, 'g');
 
 /**
- * Plie une chaine pour la comparaison : sans diacritiques, sans casse.
+ * Folds a string for comparison: no diacritics, no case.
  *
- * Trois passes, dans cet ordre :
- *   1. NFKD — decompose lettre + marque combinante, et rabat les formes de
- *      compatibilite (pleine chasse, ligatures typographiques, exposants).
- *   2. suppression de toutes les marques Unicode (`\p{M}`), pas seulement du
- *      bloc latin : couvre aussi le grec, le cyrillique, l'hebreu, l'arabe,
- *      le vietnamien.
- *   3. minuscules, puis la table des lettres indecomposables.
+ * Three passes, in this order:
+ *   1. NFKD — splits letter + combining mark, and flattens compatibility forms
+ *      (full width, typographic ligatures, superscripts).
+ *   2. removal of every Unicode mark (`\p{M}`), not just the Latin block: this
+ *      also covers Greek, Cyrillic, Hebrew, Arabic and Vietnamese.
+ *   3. lower case, then the table of indecomposable letters.
  *
- * Le turc converge correctement : `İ` perd son point en 2, `ı` est rabattu
- * en 3, les deux donnent `i`.
+ * Turkish converges correctly: `İ` loses its dot at step 2, `ı` is flattened at
+ * step 3, and both end up as `i`.
  *
  * @param {string} s
  * @returns {string}
@@ -320,16 +317,15 @@ function fold(s) {
 }
 
 /**
- * Plie une ligne en conservant la correspondance vers les indices d'origine.
+ * Folds a line while keeping a map back to the original indices.
  *
- * Indispensable : le pliage change les longueurs — `ß` devient deux lettres, un
- * caractere accentue en perd une — donc un indice trouve dans la chaine pliee
- * ne designe pas le meme caractere dans la chaine affichee. On plie point de
- * code par point de code et on note, pour chaque position pliee, la position
- * source correspondante.
+ * Essential: folding changes lengths — `ß` becomes two letters, an accented
+ * character loses one — so an index found in the folded string does not point
+ * at the same character in the displayed one. We fold code point by code point
+ * and record, for each folded position, its source position.
  *
- * L'iteration se fait par point de code (`for...of`) et non par unite UTF-16 :
- * decouper une paire de substitution donnerait deux demi-caracteres.
+ * Iteration goes by code point (`for...of`) rather than by UTF-16 unit:
+ * splitting a surrogate pair would yield two half-characters.
  *
  * @param {string} s
  * @returns {{out: string, map: number[]}}
@@ -347,10 +343,10 @@ function foldWithMap(s) {
 }
 
 /**
- * Texte normalise d'un bloc, tel qu'utilise pour la recherche et la comparaison.
+ * Normalised text of a block, as used for search and for comparison.
  *
- * \s couvre deja l'espace insecable en JavaScript : l'ancienne classe
- * [\s<U+00A0>] contenait un caractere invisible, redondant et piegeux a relire.
+ * `\s` already covers the non-breaking space in JavaScript: the previous class
+ * [\s<U+00A0>] held an invisible character, redundant and a trap on re-reading.
  *
  * @param {Element} el
  * @returns {string}
@@ -360,15 +356,14 @@ function blockText(el) {
 }
 
 /**
- * Blocs porteurs de texte d'un document, dans l'ordre de lecture.
+ * Text-bearing blocks of a document, in reading order.
  *
- * Les blocs vides sont ecartes : ce sont les innombrables paragraphes a simple
- * saut de ligne de ProseMirror, sans interet ni pour la recherche ni pour la
- * comparaison.
+ * Empty blocks are dropped: those are ProseMirror's countless single-break
+ * paragraphs, of no interest to search or to comparison.
  *
- * Source unique du decoupage. Le diff aligne les lignes d'un instantane sur les
- * elements du DOM affiche par leur position : deux parcours divergents
- * decaleraient tout le marquage.
+ * Single source of block splitting. The diff aligns a snapshot's lines to the
+ * displayed DOM nodes by position, so two diverging walks would shift every
+ * marker.
  *
  * @param {ParentNode} root
  * @returns {Element[]}
@@ -377,7 +372,7 @@ function blockNodes(root) {
   const out = [];
   const visit = (el) => {
     for (const child of el.children) {
-      // Un <li> contenant un <p> ne doit pas produire deux fois la meme ligne.
+      // An <li> holding a <p> must not yield the same line twice.
       if (BLOCK_TAGS.test(child.tagName) && !child.querySelector('p,li,td,th')) {
         if (blockText(child)) out.push(child);
       } else {
@@ -390,10 +385,10 @@ function blockNodes(root) {
 }
 
 /**
- * Decoupe un instantane en lignes logiques et en derive le libelle de page.
+ * Splits a snapshot into logical lines and derives the page label from them.
  *
- * Preply ne nomme pas ses pages — la barre de vignettes ne fournit qu'un
- * numero. Le libelle est donc reconstruit depuis la premiere ligne non vide.
+ * Preply does not name its pages — the thumbnail bar only gives a number. The
+ * label is therefore reconstructed from the first non-empty line.
  *
  * @param {string} html
  * @returns {{label: string, lines: string[]}}
@@ -412,7 +407,7 @@ function parseSnapshot(html) {
 }
 
 /**
- * Extrait un apercu textuel court d'un instantane.
+ * Extracts a short text preview of a snapshot.
  *
  * @param {string} html
  * @returns {string}
@@ -424,10 +419,10 @@ function excerpt(html) {
   return t.length > 120 ? t.slice(0, 120) + '…' : t;
 }
 
-/* ------------------------------------------------------------------ modele */
+/* ------------------------------------------------------------------ model */
 
 /**
- * Reconstruit le modele a trois niveaux depuis l'index.
+ * Rebuilds the three-level model from the index.
  *
  * @returns {Promise<void>}
  */
@@ -454,12 +449,12 @@ async function loadModel() {
 }
 
 /**
- * Charge le contenu des pages d'une salle depuis leur version la plus recente :
- * libelle, lignes, et lignes pliees pour la recherche.
+ * Loads the page content of a classroom from each page's newest version:
+ * label, lines, and folded lines for search.
  *
- * Le pliage est calcule une fois ici et non a chaque frappe dans le filtre :
- * `fold()` normalise caractere par caractere, ce serait sensible sur un
- * document de plusieurs milliers de signes.
+ * Folding is computed once here rather than on every keystroke in the filter:
+ * `fold()` normalises character by character, which would be noticeable on a
+ * document of several thousand signs.
  *
  * @param {Room} room
  * @returns {Promise<void>}
@@ -487,10 +482,10 @@ async function resolvePageContent(room) {
 }
 
 /**
- * Cherche la premiere occurrence pliee dans les lignes d'une page.
+ * Finds the first folded occurrence in a page's lines.
  *
  * @param {Page} page
- * @param {string} needle - deja plie par `fold()`.
+ * @param {string} needle - already folded by `fold()`.
  * @returns {{line: string, start: number, end: number}|null}
  */
 function findMatch(page, needle) {
@@ -509,10 +504,10 @@ function findMatch(page, needle) {
 }
 
 /**
- * Construit l'extrait autour d'une occurrence, terme en gras.
+ * Builds the excerpt around an occurrence, the term in bold.
  *
- * Assemble en noeuds DOM et non en HTML : le contenu vient des cours, il ne
- * doit jamais etre interprete comme du balisage.
+ * Assembled as DOM nodes rather than HTML: the content comes from lessons and
+ * must never be interpreted as markup.
  *
  * @param {{line: string, start: number, end: number}} hit
  * @returns {DocumentFragment}
@@ -533,9 +528,9 @@ function excerptAround(hit) {
   return frag;
 }
 
-/* ----------------------------------------------------------------- rendus */
+/* ---------------------------------------------------------------- render */
 
-/** Rend la colonne des salles de classe. */
+/** Renders the classroom column. */
 function renderRooms() {
   elRooms.textContent = '';
 
@@ -554,24 +549,24 @@ function renderRooms() {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'room';
-    // Pose uniquement sur l'element courant : `aria-current="false"` partout
-    // ailleurs est valide mais bavard a l'oral.
+    // Set on the current item only: `aria-current="false"` everywhere else is
+    // valid but chatty when spoken.
     if (curRoom && curRoom.id === room.id) b.setAttribute('aria-current', 'true');
 
-    // L'avatar et le chevron sont purement decoratifs : le nom qui suit dit
-    // deja tout. Les laisser lisibles ferait annoncer « P, Paula, chevron ».
+    // The avatar and the chevron are purely decorative: the name that follows
+    // says it all. Leaving them readable would announce "P, Paula, chevron".
     const av = document.createElement('span');
     av.className = 'av';
     av.setAttribute('aria-hidden', 'true');
 
     const portrait = avatars[room.id];
     if (portrait) {
-      // Data URI : aucune requete reseau, donc l'avatar survit hors ligne.
+      // Data URI: no network request, so the avatar survives offline.
       const img = document.createElement('img');
       img.src = portrait;
       img.alt = '';
-      // Si la data URI est corrompue, on revient a l'initiale plutot que de
-      // laisser une image cassee.
+      // If the data URI is corrupt, fall back to the initial rather than leave
+      // a broken image.
       img.addEventListener('error', () => {
         av.classList.remove('has-img');
         av.textContent = room.tutor.slice(0, 1).toUpperCase();
@@ -604,10 +599,10 @@ function renderRooms() {
 }
 
 /**
- * Pages d'une salle, antichronologiques : la plus recemment archivee en tete.
+ * Pages of a classroom, newest archived first.
  *
- * Tri explicite plutot que de s'appuyer sur l'ordre d'insertion de la Map, qui
- * n'etait juste que par effet de bord du tri de l'index.
+ * Explicit sort rather than relying on the Map insertion order, which was only
+ * correct as a side effect of how the index was sorted.
  *
  * @param {Room} room
  * @returns {Page[]}
@@ -619,18 +614,18 @@ function pagesOf(room) {
     const ia = known[a.id] ? known[a.id].index : undefined;
     const ib = known[b.id] ? known[b.id].index : undefined;
 
-    // Ordre de Preply quand il est connu pour les deux pages.
+    // Preply order when it is known for both pages.
     if (Number.isFinite(ia) && Number.isFinite(ib)) return ia - ib;
-    // Une page dont on ignore le rang passe apres celles qu'on sait placer :
-    // l'inserer au hasard dans la sequence serait pire que de l'ajouter au bout.
+    // A page of unknown rank goes after those we can place: slotting it in at
+    // random would be worse than appending it.
     if (Number.isFinite(ia)) return -1;
     if (Number.isFinite(ib)) return 1;
-    // Repli historique : la plus recemment archivee d'abord.
+    // Historical fallback: most recently archived first.
     return a.entries[0].ts < b.entries[0].ts ? 1 : -1;
   });
 }
 
-/** Rend la colonne des pages de la salle courante. */
+/** Renders the page column of the current classroom. */
 function renderPages() {
   elPages.textContent = '';
   if (!curRoom) return;
@@ -639,11 +634,11 @@ function renderPages() {
   let shown = 0;
 
   for (const page of pagesOf(curRoom)) {
-    // La recherche porte sur le contenu de la version la plus recente. Le
-    // libelle etant sa premiere ligne, il est couvert par la meme passe.
+    // Search runs over the newest version's content. The label being its first
+    // line, the same pass covers it.
     const hit = needle ? findMatch(page, needle) : null;
-    // Un nom saisi a la main n'existe pas dans le contenu archive : il faut le
-    // chercher a part, sinon renommer une page la rendrait introuvable.
+    // A hand-typed name exists nowhere in the archived content, so it has to be
+    // searched separately — otherwise renaming a page would hide it.
     const nameHit = needle && !hit && fold(pageName(page)).includes(needle);
     if (needle && !hit && !nameHit) continue;
     shown++;
@@ -652,8 +647,8 @@ function renderPages() {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'page';
-    // « page » et non « true » : c'est le jeton prevu pour l'element courant
-    // d'une navigation, et il s'annonce « page actuelle ».
+    // "page" rather than "true": that is the token meant for the current item
+    // of a navigation, and it is announced as "current page".
     if (curPage && curPage.id === page.id) b.setAttribute('aria-current', 'page');
 
     const ic = document.createElement('span');
@@ -691,22 +686,22 @@ function renderPages() {
     elPages.append(li);
   }
 
-  // Le filtre se tape au clavier : sans annonce, rien ne signale que la liste
-  // s'est reduite, ni a combien.
+  // The filter is typed at the keyboard: without an announcement nothing says
+  // the list has shrunk, nor by how much.
   if (needle) announce(tn('pagesFound', shown, [elFilter.value.trim()]));
 }
 
 /**
- * Affiche un instantane dans le panneau principal.
+ * Shows a snapshot in the main pane.
  *
  * @param {IndexEntry} entry
  * @returns {Promise<void>}
- * @throws {Error} si l'index reference un instantane absent du stockage.
+ * @throws {Error} when the index references a snapshot missing from storage.
  */
 async function showSnapshot(entry) {
   const store = await api.storage.local.get(entry.key);
   const snap = store[entry.key];
-  if (!snap) throw new Error(`instantané manquant : ${entry.key}`);
+  if (!snap) throw new Error(`missing snapshot: ${entry.key}`);
 
   curSnap = { ...snap, key: entry.key };
   elDoc.innerHTML = snap.html;
@@ -719,8 +714,8 @@ async function showSnapshot(entry) {
   elTopbar.hidden = false;
   elTitle.textContent = pageName(curPage);
 
-  // Une seule ligne discrete : les metadonnees ne doivent pas rivaliser avec
-  // le titre, ce que faisaient les pastilles.
+  // A single discreet line: metadata must not compete with the title, which is
+  // what the pills used to do.
   const versions = curPage.entries.length;
   elMeta.textContent =
     `${tn('snapshotCount', versions)} · ${curRoom.tutor} · ${fmt(snap.ts)}`;
@@ -735,24 +730,23 @@ async function showSnapshot(entry) {
 
   document.getElementById('scroll').scrollTop = 0;
 
-  // Le diff enrichit elMeta, donc il doit passer avant l'annonce.
+  // The diff enriches elMeta, so it has to run before the announcement.
   await applyDiff(entry);
   announce(`${elTitle.textContent}, version du ${fmt(snap.ts)}. ${elMeta.textContent}`);
 }
 
-/** Au-dela, la table de programmation dynamique coute trop de memoire. */
+/** Past this, the dynamic programming table costs too much memory. */
 const MAX_DIFF_LINES = 1200;
 
 /**
- * Script d'edition entre deux listes de lignes, par plus longue sous-sequence
- * commune.
+ * Edit script between two lists of lines, by longest common subsequence.
  *
- * Programmation dynamique classique, en O(n*m). Sur des notes de cours on est a
- * quelques centaines de lignes, soit une table de l'ordre de 100 Ko — inutile
- * d'implementer Myers pour ca. Le garde-fou MAX_DIFF_LINES couvre l'aberration.
+ * Textbook dynamic programming, O(n*m). Lesson notes run to a few hundred
+ * lines, so the table is on the order of 100 KB — implementing Myers for that
+ * would be gold-plating. MAX_DIFF_LINES guards against the pathological case.
  *
- * @param {string[]} a - version precedente.
- * @param {string[]} b - version affichee.
+ * @param {string[]} a - previous version.
+ * @param {string[]} b - displayed version.
  * @returns {{t: 'eq'|'add'|'del', i?: number, j?: number}[]}
  */
 function diffLines(a, b) {
@@ -784,17 +778,17 @@ function diffLines(a, b) {
 }
 
 /**
- * Marque dans le document affiche ce qui a change depuis la version precedente.
+ * Marks in the displayed document what changed since the previous version.
  *
- * Le diff est une **vue**, jamais un format de stockage : les deux instantanes
- * restent entiers et independants, et le calcul est jete a chaque rendu. Une
- * chaine de deltas rendrait chaque version tributaire de toutes les
- * precedentes, ce qui est l'inverse de ce qu'on veut d'une archive.
+ * The diff is a **view**, never a storage format: both snapshots stay whole and
+ * independent, and the computation is thrown away on every render. A delta
+ * chain would make each version depend on all the ones before it, which is the
+ * opposite of what an archive should guarantee.
  *
- * Sans effet si le volet Historique est ferme : la comparaison est le mode de
- * lecture de ce volet, pas un etat separe a piloter.
+ * No effect while the History panel is closed: comparison is that panel's
+ * reading mode, not a separate state to drive.
  *
- * @param {IndexEntry} entry - l'instantane actuellement affiche.
+ * @param {IndexEntry} entry - the snapshot currently on screen.
  * @returns {Promise<void>}
  */
 async function applyDiff(entry) {
@@ -812,8 +806,8 @@ async function applyDiff(entry) {
   if (!prev) return;
 
   const before = parseSnapshot(prev.html).lines;
-  // Les memes blocs, dans le meme ordre, des deux cotes : blockNodes() est la
-  // source unique du decoupage, donc l'indice d'une ligne designe le bon noeud.
+  // The same blocks, in the same order, on both sides: blockNodes() is the
+  // single source of splitting, so a line index points at the right node.
   const blocks = blockNodes(elDoc);
   const after = blocks.map(blockText);
 
@@ -829,8 +823,8 @@ async function applyDiff(entry) {
   let pending = [];
 
   /**
-   * Insere les lignes supprimees accumulees, juste avant le bloc qui les
-   * suivait. `null` place le reliquat en fin de document.
+   * Inserts the accumulated deleted lines just before the block that followed
+   * them. `null` places the remainder at the end of the document.
    *
    * @param {Element|null} anchor
    * @returns {void}
@@ -856,7 +850,7 @@ async function applyDiff(entry) {
     flush(node);
     if (op.t === 'add') {
       node.classList.add('pca-add');
-      // La couleur seule ne dit rien a une synthese vocale.
+      // Colour alone says nothing to a speech synthesiser.
       const tag = document.createElement('span');
       tag.className = 'sr-only';
       tag.textContent = t('srAdded');
@@ -872,7 +866,7 @@ async function applyDiff(entry) {
 }
 
 /**
- * Remplit le volet Historique avec les versions de la page courante.
+ * Fills the History panel with the current page's versions.
  *
  * @returns {Promise<void>}
  */
@@ -897,9 +891,9 @@ async function renderHistory() {
     item.className = isCurrent ? 'ver current' : 'ver';
     item.dataset.key = e.key;
 
-    // Bouton d'ouverture et bouton de suppression sont freres. L'ancienne
-    // version imbriquait un <button> dans un conteneur role="button" :
-    // imbrication interdite, et le lecteur d'ecran n'annoncait qu'un controle.
+    // Open button and delete button are siblings. The previous version nested a
+    // <button> inside a role="button" container: forbidden nesting, and the
+    // screen reader announced a single control.
     const open = document.createElement('button');
     open.type = 'button';
     open.className = 'ver-open';
@@ -922,8 +916,8 @@ async function renderHistory() {
     del.className = 'del';
     del.dataset.icon = 'trash';
     del.append(t('deleteVersion'));
-    // Le libelle visible se repete d'une ligne a l'autre : l'intitule accessible
-    // precise laquelle, faute de quoi la liste annonce treize fois la meme chose.
+    // The visible label repeats from row to row: the accessible name says which
+    // one, or the list announces the same thing thirteen times.
     del.setAttribute('aria-label', t('deleteVersionLabel', [when]));
     del.addEventListener('click', async () => {
       await api.runtime.sendMessage({ type: 'pca:delete', keys: [e.key] });
@@ -954,7 +948,7 @@ async function renderUsage() {
 /* -------------------------------------------------------------- selection */
 
 /**
- * Selectionne une salle et sa page la plus recemment archivee.
+ * Selects a classroom and its most recently archived page.
  *
  * @param {Room} room
  * @returns {Promise<void>}
@@ -969,7 +963,7 @@ async function selectRoom(room) {
   if (first) {
     await selectPage(first);
   } else {
-    // Salle sans page : on memorise quand meme la salle.
+    // Classroom with no page: remember the classroom anyway.
     prefs.roomId = room.id;
     prefs.pageId = null;
     savePrefs();
@@ -1005,9 +999,9 @@ async function selectPage(page, entryKey) {
  * @returns {Promise<void>}
  */
 async function refresh(opts = {}) {
-  // La selection memorisee sert de cible par defaut. Toute reference devenue
-  // invalide — page supprimee, salle disparue — retombe silencieusement sur la
-  // premiere entree disponible.
+  // The remembered selection is the default target. Any reference that has
+  // become invalid — page deleted, classroom gone — falls back silently to the
+  // first available entry.
   const roomId = (opts.keepSelection && curRoom?.id) || prefs.roomId;
   const pageId = (opts.keepSelection && curPage?.id) || prefs.pageId;
 
@@ -1039,15 +1033,15 @@ async function refresh(opts = {}) {
 /* ---------------------------------------------------------------- actions */
 
 /**
- * Ouvre ou ferme le volet Historique.
+ * Opens or closes the History panel.
  *
- * Le document est re-rendu dans les deux sens : ouvrir fait apparaitre la
- * comparaison avec la version precedente, fermer la retire. Repartir de
- * l'instantane stocke est plus sur que defaire le marquage noeud par noeud.
+ * The document is re-rendered either way: opening brings up the comparison with
+ * the previous version, closing removes it. Starting again from the stored
+ * snapshot is safer than undoing the marking node by node.
  *
- * Fonction unique parce qu'il existe trois chemins de fermeture — le bouton,
- * la croix, Echap — et que deux d'entre eux oubliaient de redessiner, laissant
- * le diff affiche volet ferme.
+ * A single function because there are three ways to close — the button, the
+ * cross, Escape — and two of them used to forget to re-render, leaving the diff
+ * on screen with the panel shut.
  *
  * @param {boolean} open
  * @returns {Promise<void>}
@@ -1063,9 +1057,9 @@ async function setHistory(open) {
     : null;
   if (shown) await showSnapshot(shown);
 
-  // A l'ouverture, le volet est loin du bouton dans l'ordre du DOM : sans
-  // deplacement du focus, la tabulation continuerait dans la barre d'outils.
-  // A la fermeture, le focus doit revenir a son point de depart.
+  // On opening, the panel sits far from the button in DOM order: without moving
+  // focus, tabbing would carry on through the toolbar. On closing, focus has to
+  // return to where it started.
   if (open) document.getElementById('history-head').focus();
   else btnHistory.focus();
 }
@@ -1078,10 +1072,10 @@ document.getElementById('hclose').addEventListener('click', () => {
   setHistory(false).catch(console.error);
 });
 
-/* ------------------------------------------- menu des actions secondaires */
+/* ------------------------------------------------- secondary actions menu */
 
 /**
- * Ouvre ou ferme le menu, en tenant l'attribut aria a jour.
+ * Opens or closes the menu, keeping the aria attribute in step.
  *
  * @param {boolean} open
  * @returns {void}
@@ -1099,14 +1093,14 @@ btnMore.addEventListener('click', (e) => {
   setMenu(elMenu.hidden);
 });
 
-// Clic hors du menu : on referme, sans avaler le clic.
+// Click outside the menu closes it, without swallowing the click.
 document.addEventListener('click', (e) => {
   if (elMenu.hidden || e.target.closest('#more-wrap')) return;
   setMenu(false);
 });
 
-// Sortie au clavier : sans ceci le menu restait ouvert derriere l'utilisateur
-// apres une tabulation, et gardait aria-expanded a true.
+// Leaving by keyboard: without this the menu stayed open behind the user after
+// a tab, and kept aria-expanded at true.
 document.getElementById('more-wrap').addEventListener('focusout', (e) => {
   if (elMenu.hidden) return;
   if (e.relatedTarget && e.relatedTarget.closest('#more-wrap')) return;
@@ -1114,8 +1108,8 @@ document.getElementById('more-wrap').addEventListener('focusout', (e) => {
 });
 
 /**
- * Esc ferme la couche la plus recemment ouverte, une par pression : le menu
- * d'abord s'il est ouvert, le volet Historique ensuite.
+ * Escape closes the most recently opened layer, one per press: the menu first
+ * if it is open, then the History panel.
  */
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
@@ -1134,8 +1128,8 @@ document.addEventListener('keydown', (e) => {
   }
   if (!elHistory.hidden) {
     e.stopPropagation();
-    // Meme chemin que la croix et le bouton : la fermeture doit aussi retirer
-    // le marquage de comparaison du document.
+    // Same path as the cross and the button: closing must also strip the
+    // comparison marks from the document.
     setHistory(false).catch(console.error);
   }
 }, true);
@@ -1143,7 +1137,7 @@ document.addEventListener('keydown', (e) => {
 /* -------------------------------------------------------------- mode focus */
 
 /**
- * Applique le mode focus et le memorise.
+ * Applies focus mode and remembers it.
  *
  * @param {boolean} on
  * @returns {void}
@@ -1152,12 +1146,12 @@ function setFocusMode(on) {
   document.body.classList.toggle('focus', on);
   btnFocus.setAttribute('aria-pressed', String(on));
 
-  // Le caret indique le mouvement declenche, pas l'etat courant : vers la
-  // gauche pour replier les panneaux, vers la droite pour les redeployer.
+  // The caret shows the movement it triggers, not the current state: left to
+  // fold the panels away, right to bring them back.
   btnFocus.replaceChildren(icon(on ? 'caret-right' : 'caret-left'));
 
-  // Le bouton n'a plus de texte : l'intitule doit vivre dans aria-label, sinon
-  // il est muet pour un lecteur d'ecran.
+  // The button has no text left, so its name must live in aria-label — without
+  // it, it is mute to a screen reader.
   const label = on ? t('focusShow') : t('focusHide');
   btnFocus.setAttribute('aria-label', label);
   btnFocus.title = label;
@@ -1171,10 +1165,10 @@ btnFocus.addEventListener('click', () => setFocusMode(!document.body.classList.c
 
 /* ------------------------------------------------- renommage d'une page */
 
-/** Valeur affichee avant edition, pour pouvoir annuler. @type {string|null} */
+/** Value shown before editing, so it can be cancelled. @type {string|null} */
 let titleBefore = null;
 
-/** Passe le titre en edition et selectionne son contenu. @returns {void} */
+/** Switches the title into editing and selects its content. @returns {void} */
 function startTitleEdit() {
   if (!curPage || elTitle.isContentEditable) return;
   titleBefore = elTitle.textContent;
@@ -1189,13 +1183,13 @@ function startTitleEdit() {
 }
 
 /**
- * Sort du mode edition.
+ * Leaves editing mode.
  *
- * Un nom vide, ou identique au libelle derive du contenu, ne cree pas d'entree :
- * la page retombe sur son libelle automatique, qui suivra alors ses futures
- * versions au lieu d'etre fige.
+ * An empty name, or one identical to the label derived from the content,
+ * creates no entry: the page falls back to its automatic label, which will then
+ * follow its future versions instead of being frozen.
  *
- * @param {boolean} commit - false pour annuler et restaurer la valeur initiale.
+ * @param {boolean} commit - false to cancel and restore the initial value.
  * @returns {void}
  */
 function endTitleEdit(commit) {
@@ -1226,19 +1220,19 @@ elTitle.addEventListener('dblclick', startTitleEdit);
 
 elTitle.addEventListener('keydown', (e) => {
   if (!elTitle.isContentEditable) {
-    // Entree au clavier : le double-clic seul exclurait la navigation clavier.
+    // Enter from the keyboard: the double-click alone would exclude keyboard use.
     if (e.key === 'Enter') { e.preventDefault(); startTitleEdit(); }
     return;
   }
-  // Un titre est une ligne : Entree valide au lieu d'inserer un saut.
+  // A title is one line: Enter commits instead of inserting a break.
   if (e.key === 'Enter') { e.preventDefault(); endTitleEdit(true); }
 });
 
 elTitle.addEventListener('blur', () => endTitleEdit(true));
 
-// Un collage depuis une page web injecterait du balisage dans le titre.
-// execCommand est deprecie mais reste le seul moyen fiable de coller du texte
-// brut dans un contenteditable en conservant l'annulation native.
+// A paste from a web page would inject markup into the title. execCommand is
+// deprecated but remains the only reliable way to paste plain text into a
+// contenteditable while keeping the browser's native undo.
 elTitle.addEventListener('paste', (e) => {
   e.preventDefault();
   const text = (e.clipboardData || window.clipboardData).getData('text');
@@ -1265,9 +1259,9 @@ document.getElementById('btn-export').addEventListener('click', () => {
   if (!curSnap) return;
   const css = [...document.querySelectorAll('style')].map((s) => s.textContent).join('\n');
   const label = pageName(curPage);
-  // La feuille du viewer est reprise telle quelle, puis neutralisee sur les
-  // points propres a l'application. Les surcharges viennent APRES `css` :
-  // a specificite egale, c'est la derniere regle qui gagne.
+  // The viewer stylesheet is taken as-is, then neutralised on the points
+  // specific to the application. The overrides come AFTER `css`: at equal
+  // specificity, the last rule wins.
   const html = `<!doctype html>
 <html lang="pl"><head><meta charset="utf-8"><title>${label}</title>
 <style>
@@ -1287,13 +1281,13 @@ body{display:block;background:#fff;margin:0;padding:24px}
 /* ------------------------------------------------------------------- zoom */
 
 /**
- * Paliers de zoom.
+ * Zoom steps.
  *
- * On passe par la propriete `zoom` et non par `font-size` : le contenu archive
- * porte des `font-size:20px` en ligne heritees de l'editeur Preply, qu'un zoom
- * typographique laisserait intacts — seul le texte non stylise grandirait.
- * `zoom` multiplie toutes les longueurs calculees, colonne comprise, donc les
- * cesures de ligne restent exactement celles de Preply.
+ * We go through the `zoom` property rather than `font-size`: archived content
+ * carries inline `font-size:20px` inherited from Preply's editor, which a
+ * typographic zoom would leave untouched — only unstyled text would grow.
+ * `zoom` multiplies every computed length, the column included, so line breaks
+ * stay exactly where Preply put them.
  */
 const ZOOM_STEPS = [0.5, 0.67, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
 const ZOOM_DEFAULT = ZOOM_STEPS.indexOf(1);
@@ -1304,9 +1298,9 @@ const btnZoomValue = document.getElementById('zoom-reset');
 let zoomIndex = ZOOM_DEFAULT;
 
 /**
- * Applique un palier de zoom au document et le memorise.
+ * Applies a zoom step to the document and remembers it.
  *
- * @param {number} index - indice dans ZOOM_STEPS, borne aux extremites.
+ * @param {number} index - index into ZOOM_STEPS, clamped to the ends.
  * @returns {void}
  */
 function setZoom(index) {
@@ -1322,10 +1316,10 @@ function setZoom(index) {
   savePrefs();
 }
 
-/** Branche le groupe de zoom, ou le masque si le navigateur ne le gere pas. */
+/** Wires the zoom group, or hides it when the browser has no zoom support. */
 function initZoom() {
   if (!CSS.supports('zoom', '1.5')) {
-    // Firefox anterieur a 126 : mieux vaut masquer que proposer un bouton inerte.
+    // Firefox before 126: better hidden than offering an inert button.
     elZoom.hidden = true;
     return;
   }
