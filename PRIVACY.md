@@ -41,4 +41,4 @@ single version, or a page and all its versions, from the archive viewer.
 ## Contact
 
 Open an issue at
-<https://github.com/Mars073/preply-canvas-archiver/issues>.
+<https://github.com/Mars073/Preply-canvas-archiver/issues>.
