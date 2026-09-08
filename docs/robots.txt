@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mars073.github.io/Preply-canvas-archiver/sitemap.xml

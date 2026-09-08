@@ -6,159 +6,219 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Preply Canvas Archiver — keep your lesson notes</title>
-<meta name="description" content="Browser extension that archives the Canvas pages of your Preply lessons and reads them back offline, at any time.">
+<title>Preply Canvas Archiver — save your lesson notes and read them offline</title>
+<meta name="description" content="Preply closes a lesson's Canvas when the lesson ends. This Firefox and Chrome extension keeps a copy you can read offline, with every version and full search.">
+<link rel="canonical" href="https://mars073.github.io/Preply-canvas-archiver/">
 <link rel="icon" type="image/svg+xml" href="logo.svg">
+
+<!-- Link previews. These do far more for a project like this than any ranking
+     work: the page will be shared as a URL in chats and forums long before it
+     is ever found through a search engine. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Preply Canvas Archiver">
+<meta property="og:title" content="Your lesson notes, after the lesson">
+<meta property="og:description" content="Preply closes a lesson's Canvas when it ends. This extension keeps a copy you can read offline, with every version.">
+<meta property="og:url" content="https://mars073.github.io/Preply-canvas-archiver/">
+<meta property="og:image" content="https://mars073.github.io/Preply-canvas-archiver/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The archive reader showing a classroom, its pages and an archived lesson document.">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Preply Canvas Archiver",
+  "applicationCategory": "BrowserApplication",
+  "operatingSystem": "Firefox, Chrome",
+  "description": "Browser extension that archives the Canvas pages of Preply lessons and reads them back offline, keeping every version.",
+  "url": "https://mars073.github.io/Preply-canvas-archiver/",
+  "codeRepository": "https://github.com/Mars073/Preply-canvas-archiver",
+  "license": "https://www.mozilla.org/MPL/2.0/",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+  "inLanguage": ["en", "fr", "es", "ru", "pl", "zh-CN"]
+}
+</script>
 <style>
-  /* Same palette as the extension, taken from Preply's own design tokens. */
   :root{
-    --bg:#f4f4f8; --panel:#fff; --line:#dcdce5; --line-soft:#ebebf1;
-    --ink:#121117; --ink-2:#4d4c5c; --ink-3:#6a697c;
-    --accent:#d13d76; --accent-strong:#901443; --accent-soft:#ffe5f0;
-    --ok:#067560;
-    --shadow:0 1px 2px rgba(18,17,23,.04), 0 10px 28px rgba(18,17,23,.06);
+    --bg:#fff; --ink:#101014; --ink-2:#54525c; --ink-3:#8b8892;
+    --rule:#e8e6ea; --accent:#c2185b; --tint:#fdf2f6;
+    --w:64rem;
   }
   *{box-sizing:border-box}
-  html{scroll-behavior:smooth}
-  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
   body{
     margin:0;background:var(--bg);color:var(--ink);
-    font:17px/1.65 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
   }
-  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
-  a{color:var(--accent-strong)}
-  .wrap{max-width:920px;margin:0 auto;padding:0 24px}
+  .w{max-width:var(--w);margin:0 auto;padding:0 32px}
+  a{color:var(--accent);text-underline-offset:2px}
 
-  .skip{position:absolute;left:24px;top:16px;z-index:9;transform:translateY(-200%);
-    padding:10px 16px;border-radius:10px;background:var(--ink);color:#fff;
-    text-decoration:none;font-size:15px}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+  .skip{position:absolute;left:32px;top:20px;transform:translateY(-250%);
+    background:var(--ink);color:#fff;padding:10px 16px;text-decoration:none;z-index:9}
   .skip:focus{transform:none}
 
-  header{padding:72px 0 48px;text-align:center}
-  header img.logo{width:76px;height:76px;border-radius:18px;box-shadow:var(--shadow)}
-  h1{margin:20px 0 8px;font-size:40px;line-height:1.15;letter-spacing:-.02em}
-  .tagline{margin:0 auto;max-width:620px;font-size:20px;color:var(--ink-2)}
-  .unofficial{margin-top:14px;font-size:14px;color:var(--ink-3)}
+  /* --- masthead ------------------------------------------------------ */
+  .top{display:flex;align-items:center;gap:10px;padding:26px 0}
+  .top img{width:24px;height:24px;border-radius:6px}
+  .top b{font-size:15px;font-weight:650;letter-spacing:-.01em}
+  .top span{font-size:13px;color:var(--ink-3);margin-left:auto}
 
-  .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:32px 0 8px}
-  .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;
-    border-radius:12px;text-decoration:none;font-size:16px;font-weight:600;
-    border:1px solid var(--line);background:var(--panel);color:var(--ink)}
-  .btn:hover{border-color:var(--ink-3)}
-  .btn.primary{background:var(--ink);border-color:var(--ink);color:#fff}
-  /* Not a button: the stores have nothing to link to yet, and a dead link
-     would be worse than an honest label. */
-  .pending{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;
-    border-radius:12px;border:1px dashed var(--line);color:var(--ink-3);font-size:16px}
+  /* --- hero ---------------------------------------------------------- */
+  h1{font-size:clamp(34px,5.6vw,60px);line-height:1.04;letter-spacing:-.035em;
+    font-weight:680;margin:48px 0 0;max-width:16ch}
+  h1 em{font-style:normal;color:var(--accent)}
+  .sub{font-size:clamp(18px,2.1vw,22px);line-height:1.5;color:var(--ink-2);
+    max-width:46ch;margin:22px 0 0}
+  .actions{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin:32px 0 0}
+  .actions a{display:inline-block;background:var(--ink);color:#fff;
+    padding:13px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px}
+  .actions a:hover{background:var(--accent)}
+  .actions small{font-size:14px;color:var(--ink-3)}
 
-  main{padding-bottom:72px}
-  section{margin:56px 0}
-  h2{font-size:26px;letter-spacing:-.01em;margin:0 0 16px}
+  .shot{margin:56px 0 0;border:1px solid var(--rule);border-radius:12px;
+    overflow:hidden;background:var(--bg)}
+  .shot img{width:100%;height:auto;display:block}
+  .cap{margin:12px 0 0;font-size:14px;color:var(--ink-3)}
 
-  figure{margin:0 0 28px}
-  figure img{width:100%;height:auto;display:block;border:1px solid var(--line-soft);
-    border-radius:16px;box-shadow:var(--shadow);background:var(--panel)}
-  figcaption{margin-top:10px;font-size:15px;color:var(--ink-3);text-align:center}
+  /* --- body ---------------------------------------------------------- */
+  section{padding:64px 0 0}
+  h2{font-size:clamp(24px,3vw,32px);line-height:1.15;letter-spacing:-.025em;
+    font-weight:660;margin:0 0 18px;max-width:22ch}
+  p{margin:0 0 16px;max-width:62ch;color:var(--ink-2)}
+  p strong{color:var(--ink);font-weight:600}
 
-  ul.features{list-style:none;margin:0;padding:0;display:grid;gap:16px;
-    grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-  ul.features li{background:var(--panel);border:1px solid var(--line-soft);
-    border-radius:16px;padding:20px 22px;box-shadow:var(--shadow)}
-  ul.features b{display:block;margin-bottom:4px}
-  ul.features span{color:var(--ink-2);font-size:16px}
+  .pair{display:grid;gap:36px;grid-template-columns:1fr}
+  @media (min-width:800px){.pair{grid-template-columns:1fr 1fr;gap:56px}}
+  .pair h3{font-size:18px;font-weight:650;margin:0 0 8px;letter-spacing:-.01em}
+  .pair p{margin:0;font-size:16px}
 
-  .callout{background:var(--panel);border:1px solid var(--line-soft);
-    border-left:4px solid var(--ok);border-radius:16px;padding:22px 24px;
-    box-shadow:var(--shadow)}
-  .callout h2{margin-top:0}
+  .steps{background:var(--tint);border-radius:14px;padding:28px 32px;margin-top:8px}
+  .steps dt{font-weight:650;margin-top:18px}
+  .steps dt:first-of-type{margin-top:0}
+  .steps dd{margin:6px 0 0;color:var(--ink-2);font-size:16px}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:.86em;background:#f2f1f4;padding:2px 6px;border-radius:4px}
+  .steps code{background:#fff}
 
-  footer{border-top:1px solid var(--line);padding:32px 0 56px;
-    font-size:15px;color:var(--ink-3)}
-  footer a{color:var(--ink-2)}
-
-  code{background:var(--accent-soft);border-radius:4px;padding:1px 5px;font-size:.9em}
+  footer{margin-top:88px;border-top:1px solid var(--rule);padding:28px 0 64px}
+  footer p{font-size:14px;color:var(--ink-3);margin:0 0 6px;max-width:none}
 </style>
 </head>
 <body>
 
-<a class="skip" href="#main">Skip to content</a>
+<a class="skip" href="#content">Skip to content</a>
 
-<header>
-  <div class="wrap">
-    <img class="logo" src="logo.svg" alt="">
-    <h1>Preply Canvas Archiver</h1>
-    <p class="tagline">
-      Preply only lets you open a lesson’s Canvas during class. This extension
-      saves it, so your notes stay yours.
-    </p>
-    <div class="cta">
-      <a class="btn primary" href="https://github.com/Mars073/Preply-canvas-archiver">Source on GitHub</a>
-      <span class="pending">Firefox — not published yet</span>
-      <span class="pending">Chrome — not published yet</span>
-    </div>
-    <p class="unofficial">Unofficial tool. Not affiliated with, nor endorsed by, Preply.</p>
+<div class="w">
+  <div class="top">
+    <img src="logo.svg" alt="">
+    <b>Preply Canvas Archiver</b>
+    <span>Unofficial · not affiliated with Preply</span>
   </div>
-</header>
+</div>
 
-<main id="main">
-  <div class="wrap">
+<main id="content">
+  <div class="w">
+
+    <h1>Your lesson notes, <em>after</em> the lesson.</h1>
+    <p class="sub">
+      Preply closes a lesson’s Canvas the moment it ends, and everything your
+      tutor wrote goes with it. This extension keeps a copy — offline, with
+      every version.
+    </p>
+    <div class="actions">
+      <a href="https://github.com/Mars073/Preply-canvas-archiver">Get it on GitHub</a>
+      <small>Firefox and Chrome · store listings coming</small>
+    </div>
+
+    <div class="shot">
+      <img src="screenshots/archive-viewer.png" width="2521" height="1508" decoding="async"
+           alt="The archive reader: classrooms on the left, that classroom's pages in the middle, the archived document on the right.">
+    </div>
+    <p class="cap">One classroom per tutor. Each page listed once, with every version behind it.</p>
 
     <section>
-      <h2>What it looks like</h2>
-      <figure>
-        <img src="screenshots/archive-viewer.png"
-             alt="The archive viewer: a classroom list on the left, the pages of that classroom in the middle, and the archived document on the right.">
-        <figcaption>Your archive: one classroom per tutor, each page listed once, every version kept.</figcaption>
-      </figure>
-      <figure>
-        <img src="screenshots/toolbar-button.png"
-             alt="The Preply Canvas toolbar with an extra archive button on the right-hand side, marked by a red arrow.">
-        <figcaption>One button added to the Canvas toolbar. That is the whole footprint inside Preply.</figcaption>
-      </figure>
+      <h2>One button, and you stop losing notes.</h2>
+      <p>
+        A single archive button joins the Canvas toolbar during a lesson. Click
+        it and the page is stored. Forget, and it saves on its own a minute
+        after the last edit.
+      </p>
+      <div class="shot" style="margin-top:32px">
+        <img src="screenshots/toolbar-button.png" width="1678" height="1006" loading="lazy" decoding="async"
+             alt="The Preply Canvas toolbar with one extra archive button at its right end, marked by a red arrow.">
+      </div>
+      <p class="cap">The whole footprint inside Preply, styled from the buttons already there.</p>
     </section>
 
     <section>
-      <h2>What it does</h2>
-      <ul class="features">
-        <li><b>Saves in one click</b><span>The archive button stores the page. It also saves on its own a minute after the last edit, so you cannot forget.</span></li>
-        <li><b>Keeps every version</b><span>The history panel shows exactly what your tutor added or corrected since the previous one.</span></li>
-        <li><b>Reads offline</b><span>The viewer never contacts Preply. Images are copied in, so an archive still works months later.</span></li>
-        <li><b>Prints and exports</b><span>Print to PDF, or export a self-contained HTML file you can keep anywhere.</span></li>
-        <li><b>Searches properly</b><span>Accent- and case-insensitive across a whole classroom: type <code>slonce</code>, find <code>słońce</code>.</span></li>
-        <li><b>Speaks your language</b><span>English, French, Spanish, Russian, Polish and Chinese, with correct plural agreement in each.</span></li>
-      </ul>
+      <h2>Nothing leaves your browser.</h2>
+      <p>
+        <strong>No server, no account, no analytics</strong> — there is nothing
+        to send anything to. Everything lands in local storage on your own
+        machine, and uninstalling deletes it all.
+      </p>
+      <p>
+        The only traffic it causes goes to <code>preply.com</code> itself, while
+        you are already on a lesson page, to copy the images from your Canvas.
+      </p>
     </section>
 
     <section>
-      <div class="callout">
-        <h2>Your notes never leave your browser</h2>
-        <p>
-          There is no server, no account and no analytics, because there is
-          nothing to send anything to. Everything the extension saves is written
-          to your browser’s local storage, on your own machine. Uninstalling it
-          deletes the lot.
-        </p>
-        <p>
-          The only network traffic it causes goes to <code>preply.com</code>
-          itself, while you are already on a lesson page, to copy the images
-          shown in your Canvas.
-        </p>
+      <h2>The parts that were actually hard.</h2>
+      <div class="pair">
+        <div>
+          <h3>Versions stay whole</h3>
+          <p>Every save is stored complete and independent, never as a chain of
+             differences. A damaged file costs one version, not the history
+             behind it.</p>
+        </div>
+        <div>
+          <h3>Search that knows Polish</h3>
+          <p>Accents and case folded across a classroom — and <code>ł</code> is a
+             letter no normalisation decomposes. Type <code>slonce</code>, find
+             <code>słońce</code>.</p>
+        </div>
+        <div>
+          <h3>Lines break where they broke</h3>
+          <p>The reader reproduces the width, size and typeface of Preply’s
+             editor, so an archived page wraps exactly as it did in class.</p>
+        </div>
+        <div>
+          <h3>Images that survive</h3>
+          <p>Preply serves them from links that expire in hours. They are copied
+             in at capture, or the archive would quietly rot.</p>
+        </div>
       </div>
     </section>
 
     <section>
-      <h2>Installing before release</h2>
-      <p>
-        Neither store listing is live yet. Until then, clone the repository and
-        run <code>bash tools/package.sh</code>, then:
+      <h2>Running it today.</h2>
+      <p>Neither store listing is live yet, so it runs from source.</p>
+      <dl class="steps">
+        <dt>Firefox</dt>
+        <dd><code>about:debugging</code> → This Firefox → Load Temporary Add-on →
+            pick <code>src/manifest.json</code></dd>
+        <dt>Chrome</dt>
+        <dd>run <code>bash tools/package.sh</code>, then
+            <code>chrome://extensions</code> → Developer mode → Load unpacked →
+            pick <code>dist/chrome/</code></dd>
+      </dl>
+      <p style="margin-top:20px">
+        Only pages you open while it is installed can be captured. Lessons
+        already past are out of reach.
       </p>
-      <ul>
-        <li><b>Firefox</b> — <code>about:debugging</code> → <em>This Firefox</em> → <em>Load Temporary Add-on</em> → pick <code>src/manifest.json</code>.</li>
-        <li><b>Chrome</b> — <code>chrome://extensions</code> → enable <em>Developer mode</em> → <em>Load unpacked</em> → pick <code>dist/chrome/</code>.</li>
-      </ul>
+    </section>
+
+    <section>
+      <h2>Thanks.</h2>
       <p>
-        Only pages you visit while the extension is active can be captured.
-        There is no way to fetch past lessons retroactively.
+        To Paula, my Polish tutor and a formidable authority on sękacz, and to
+        Shuang laoshi, my Chinese tutor. This exists to keep what the two of
+        them teach me.
       </p>
     </section>
 
@@ -166,16 +226,11 @@
 </main>
 
 <footer>
-  <div class="wrap">
-    <p>
-      Released under the
-      <a href="https://github.com/Mars073/Preply-canvas-archiver/blob/master/LICENSE">Mozilla Public License 2.0</a>.
-      Icons by <a href="https://phosphoricons.com">Phosphor</a>, MIT licensed.
-    </p>
-    <p>
-      Preply is a trademark of its owner. This project is independent and has no
-      connection to it.
-    </p>
+  <div class="w">
+    <p><a href="https://github.com/Mars073/Preply-canvas-archiver">Source</a> ·
+       <a href="https://github.com/Mars073/Preply-canvas-archiver/blob/master/LICENSE">MPL&nbsp;2.0</a> ·
+       icons by <a href="https://phosphoricons.com">Phosphor</a></p>
+    <p>Preply is a trademark of its owner. This project is independent of it.</p>
   </div>
 </footer>
 
