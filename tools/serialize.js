@@ -3,23 +3,23 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 /**
- * Serialisation haute-fidelite du document Tiptap de Preply.
+ * High-fidelity serialisation of Preply's Tiptap document.
  *
- * Principe : on n'emporte aucun CSS de Preply. On lit les styles *calcules* sur
- * le DOM vivant et on les ecrit en ligne, mais uniquement les valeurs qui
- * different d'une reference :
- *   - proprietes heritees      -> comparees au parent (sinon tout est duplique)
- *   - proprietes de boite      -> comparees au defaut UA du meme tag, mesure
- *                                 dans une iframe bac a sable
- * Le resultat ne depend plus d'aucune feuille externe.
+ * Principle: none of Preply's CSS is carried over. Styles are read *computed*
+ * off the live DOM and written inline, but only the values that differ from a
+ * reference:
+ *   - inherited properties -> compared to the parent, or everything duplicates
+ *   - box properties       -> compared to the UA default for the same tag,
+ *                             measured inside a sandbox iframe
+ * The result no longer depends on any external stylesheet.
  *
- * Utilisable tel quel dans la console de la page du cours : le script s'execute
- * et telecharge un apercu. `window.pcaSerialize()` reste disponible ensuite.
+ * Usable as-is in the console of a lesson page: the script runs and downloads a
+ * preview. `window.pcaSerialize()` stays available afterwards.
  */
 (() => {
   const EDITOR_SEL = '[data-qa-id="text-editor"]';
 
-  /** Proprietes heritees : diff contre le parent. */
+  /** Inherited properties: diffed against the parent. */
   const INHERITED = [
     'color', 'font-family', 'font-size', 'font-style', 'font-weight',
     'font-variant', 'font-feature-settings', 'letter-spacing', 'line-height',
@@ -30,7 +30,7 @@
     'border-collapse', 'border-spacing', 'caption-side', 'empty-cells',
   ];
 
-  /** Proprietes de boite : diff contre le defaut UA du meme tag. */
+  /** Box properties: diffed against the UA default for the same tag. */
   const BOXED = [
     'display', 'vertical-align', 'opacity', 'visibility', 'float', 'clear',
     'background-color', 'background-image', 'background-size',
@@ -46,12 +46,12 @@
   ];
 
   /**
-   * Tags dont on fige la taille. Ailleurs on s'en abstient : ecrire la largeur
-   * calculee d'un <p> gelerait la mise en page a la fenetre de capture.
+   * Tags whose size is frozen. Elsewhere we abstain: writing the computed width
+   * of a <p> would freeze the layout to the capture window.
    */
   const SIZED = new Set(['IMG', 'TABLE', 'TD', 'TH', 'COL', 'COLGROUP', 'VIDEO']);
 
-  /** Ancetres necessaires pour que le defaut UA d'un tag soit juste. */
+  /** Ancestors required for a tag's UA default to be correct. */
   const SCAFFOLD = {
     TD: ['TABLE', 'TBODY', 'TR'], TH: ['TABLE', 'THEAD', 'TR'],
     TR: ['TABLE', 'TBODY'], TBODY: ['TABLE'], THEAD: ['TABLE'],
@@ -59,7 +59,7 @@
     LI: ['UL'], DT: ['DL'], DD: ['DL'],
   };
 
-  /** Attributs retires du clone : edition, hooks React, classes Preply. */
+  /** Attributes stripped from the clone: editing, React hooks, Preply classes. */
   const DROP_ATTRS = [
     'contenteditable', 'tabindex', 'spellcheck', 'translate', 'autocorrect',
     'autocapitalize', 'role', 'class', 'srcset', 'sizes', 'loading',
@@ -71,8 +71,8 @@
   const defaultsCache = new Map();
 
   /**
-   * Cree l'iframe bac a sable, calee sur la typographie de l'editeur pour que
-   * les marges exprimees en `em` se resolvent aux memes pixels.
+   * Creates the sandbox iframe, aligned on the editor's typography so that
+   * margins expressed in `em` resolve to the same pixels.
    *
    * @param {Element} editor
    * @returns {Document}
@@ -92,11 +92,11 @@
   }
 
   /**
-   * Style calcule d'un element vierge du meme tag, correctement imbrique.
+   * Computed style of a blank element of the same tag, correctly nested.
    *
-   * @param {string} tag - nom de balise en majuscules.
+   * @param {string} tag - tag name in upper case.
    * @param {Element} editor
-   * @returns {CSSStyleDeclaration|null} `null` si le tag ne peut pas etre instancie.
+   * @returns {CSSStyleDeclaration|null} `null` when the tag cannot be created.
    */
   function defaultsFor(tag, editor) {
     if (defaultsCache.has(tag)) return defaultsCache.get(tag);
@@ -112,7 +112,7 @@
       const el = doc.createElement(tag);
       host.appendChild(el);
       cs = getComputedStyle(el);
-      // Force la resolution avant que le noeud ne soit potentiellement recycle.
+      // Force resolution before the node can be recycled.
       void cs.display;
     } catch {
       cs = null;
@@ -122,13 +122,14 @@
   }
 
   /**
-   * Ecrit sur `dst` les styles calcules de `src` qui different des references.
+   * Writes onto `dst` the computed styles of `src` that differ from the
+   * references.
    *
-   * @param {Element} src - noeud vivant.
-   * @param {Element} dst - son clone detache.
-   * @param {CSSStyleDeclaration|null} parentCS - style calcule du parent vivant.
+   * @param {Element} src - live node.
+   * @param {Element} dst - its detached clone.
+   * @param {CSSStyleDeclaration|null} parentCS - computed style of the live parent.
    * @param {Element} editor
-   * @returns {CSSStyleDeclaration} le style calcule de `src`, pour la recursion.
+   * @returns {CSSStyleDeclaration} the computed style of `src`, for recursion.
    */
   function inlineOne(src, dst, parentCS, editor) {
     const cs = getComputedStyle(src);
@@ -162,7 +163,7 @@
   }
 
   /**
-   * Parcourt en parallele l'arbre vivant et son clone.
+   * Walks the live tree and its clone in parallel.
    *
    * @param {Element} src
    * @param {Element} dst
@@ -180,11 +181,11 @@
   }
 
   /**
-   * Remplace chaque `src` d'image par une data URI.
+   * Replaces every image `src` with a data URI.
    *
-   * Indispensable : les visuels du Canvas sont servis par des URL S3 presignees
-   * qui expirent en quelques heures. Une archive qui garde l'URL est fausse a
-   * retardement.
+   * Essential: Canvas visuals are served from presigned S3 URLs that expire
+   * within hours. An archive that keeps the URL is wrong on a delay — it looks
+   * fine today and shows empty frames in two days.
    *
    * @param {Element} clone
    * @returns {Promise<{inlined: number, failed: number, bytes: number}>}
@@ -199,9 +200,9 @@
       const src = img.getAttribute('src');
       if (!src || src.startsWith('data:')) return;
       try {
-        // `same-origin` et non `include` : les cookies partent vers preply.com
-        // (necessaires pour /files/...), mais pas vers S3, ou une requete
-        // creditee serait rejetee par le CORS alors que l'URL est deja signee.
+        // `same-origin` and not `include`: cookies go to preply.com, needed for
+        // /files/…, but not to S3, where a credentialed request would be
+        // rejected by CORS even though the URL is already signed.
         const res = await fetch(new URL(src, location.href).href, { credentials: 'same-origin' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const blob = await res.blob();
@@ -217,7 +218,7 @@
       } catch (e) {
         img.setAttribute('data-pca-unreachable', src);
         failed++;
-        console.warn('[pca] image non recuperee', src, e);
+        console.warn('[pca] image not fetched', src, e);
       }
     }));
 
@@ -225,24 +226,24 @@
   }
 
   /**
-   * Serialise l'editeur en HTML autonome.
+   * Serialises the editor into standalone HTML.
    *
-   * @param {Element} [editor] - par defaut le premier `[data-qa-id="text-editor"]`.
+   * @param {Element} [editor] - defaults to the first `[data-qa-id="text-editor"]`.
    * @returns {Promise<{html: string, stats: object}>}
-   * @throws {Error} si aucun editeur n'est present dans le document.
+   * @throws {Error} when no editor is present in the document.
    */
   async function pcaSerialize(editor) {
     const root = editor || document.querySelector(EDITOR_SEL);
-    if (!root) throw new Error(`aucun ${EDITOR_SEL} dans ce document`);
+    if (!root) throw new Error(`no ${EDITOR_SEL} in this document`);
 
     const clone = root.cloneNode(true);
     const stats = { nodes: 0 };
 
     walk(root, clone, null, root, stats);
 
-    // La largeur de la colonne de texte conditionne l'endroit ou les lignes
-    // cassent. On l'emporte en `max-width` et non en `width` : l'archive cadre
-    // comme chez Preply sur un ecran large, et reste capable de retrecir.
+    // The width of the text column decides where lines break. It is carried as
+    // `max-width` rather than `width`: the archive frames like Preply on a wide
+    // screen, and stays able to shrink.
     const rootWidth = getComputedStyle(root).width;
     if (rootWidth && rootWidth !== 'auto') clone.style.maxWidth = rootWidth;
 
@@ -265,10 +266,10 @@
 
   window.pcaSerialize = pcaSerialize;
 
-  // --- harnais console : produit un apercu telechargeable pour comparaison.
+  // --- console harness: produces a downloadable preview for comparison.
   pcaSerialize().then(({ html, stats }) => {
     const page = `<!doctype html><html lang="pl"><head><meta charset="utf-8">
-<title>Aperçu fidèle — ${document.title}</title>
+<title>Faithful preview — ${document.title}</title>
 <style>body{margin:0;background:#f4f4f8}
 main{max-width:900px;margin:24px auto;padding:32px;background:#fff;
   border:1px solid #dcdce5;border-radius:12px}
@@ -279,6 +280,6 @@ main{max-width:900px;margin:24px auto;padding:32px;background:#fff;
     a.href = URL.createObjectURL(new Blob([page], { type: 'text/html' }));
     a.download = 'preply-canvas-fidele.html';
     a.click();
-    console.log('[pca] serialisation terminee', stats);
-  }).catch((e) => console.error('[pca] echec', e));
+    console.log('[pca] serialisation complete', stats);
+  }).catch((e) => console.error('[pca] failed', e));
 })();
