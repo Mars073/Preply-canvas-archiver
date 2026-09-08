@@ -1,0 +1,183 @@
+<!doctype html>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+     License, v. 2.0. If a copy of the MPL was not distributed with this
+     file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preply Canvas Archiver — keep your lesson notes</title>
+<meta name="description" content="Browser extension that archives the Canvas pages of your Preply lessons and reads them back offline, at any time.">
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<style>
+  /* Same palette as the extension, taken from Preply's own design tokens. */
+  :root{
+    --bg:#f4f4f8; --panel:#fff; --line:#dcdce5; --line-soft:#ebebf1;
+    --ink:#121117; --ink-2:#4d4c5c; --ink-3:#6a697c;
+    --accent:#d13d76; --accent-strong:#901443; --accent-soft:#ffe5f0;
+    --ok:#067560;
+    --shadow:0 1px 2px rgba(18,17,23,.04), 0 10px 28px rgba(18,17,23,.06);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font:17px/1.65 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+  a{color:var(--accent-strong)}
+  .wrap{max-width:920px;margin:0 auto;padding:0 24px}
+
+  .skip{position:absolute;left:24px;top:16px;z-index:9;transform:translateY(-200%);
+    padding:10px 16px;border-radius:10px;background:var(--ink);color:#fff;
+    text-decoration:none;font-size:15px}
+  .skip:focus{transform:none}
+
+  header{padding:72px 0 48px;text-align:center}
+  header img.logo{width:76px;height:76px;border-radius:18px;box-shadow:var(--shadow)}
+  h1{margin:20px 0 8px;font-size:40px;line-height:1.15;letter-spacing:-.02em}
+  .tagline{margin:0 auto;max-width:620px;font-size:20px;color:var(--ink-2)}
+  .unofficial{margin-top:14px;font-size:14px;color:var(--ink-3)}
+
+  .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:32px 0 8px}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;
+    border-radius:12px;text-decoration:none;font-size:16px;font-weight:600;
+    border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+  .btn:hover{border-color:var(--ink-3)}
+  .btn.primary{background:var(--ink);border-color:var(--ink);color:#fff}
+  /* Not a button: the stores have nothing to link to yet, and a dead link
+     would be worse than an honest label. */
+  .pending{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;
+    border-radius:12px;border:1px dashed var(--line);color:var(--ink-3);font-size:16px}
+
+  main{padding-bottom:72px}
+  section{margin:56px 0}
+  h2{font-size:26px;letter-spacing:-.01em;margin:0 0 16px}
+
+  figure{margin:0 0 28px}
+  figure img{width:100%;height:auto;display:block;border:1px solid var(--line-soft);
+    border-radius:16px;box-shadow:var(--shadow);background:var(--panel)}
+  figcaption{margin-top:10px;font-size:15px;color:var(--ink-3);text-align:center}
+
+  ul.features{list-style:none;margin:0;padding:0;display:grid;gap:16px;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  ul.features li{background:var(--panel);border:1px solid var(--line-soft);
+    border-radius:16px;padding:20px 22px;box-shadow:var(--shadow)}
+  ul.features b{display:block;margin-bottom:4px}
+  ul.features span{color:var(--ink-2);font-size:16px}
+
+  .callout{background:var(--panel);border:1px solid var(--line-soft);
+    border-left:4px solid var(--ok);border-radius:16px;padding:22px 24px;
+    box-shadow:var(--shadow)}
+  .callout h2{margin-top:0}
+
+  footer{border-top:1px solid var(--line);padding:32px 0 56px;
+    font-size:15px;color:var(--ink-3)}
+  footer a{color:var(--ink-2)}
+
+  code{background:var(--accent-soft);border-radius:4px;padding:1px 5px;font-size:.9em}
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header>
+  <div class="wrap">
+    <img class="logo" src="logo.svg" alt="">
+    <h1>Preply Canvas Archiver</h1>
+    <p class="tagline">
+      Preply only lets you open a lesson’s Canvas during class. This extension
+      saves it, so your notes stay yours.
+    </p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/Mars073/preply-canvas-archiver">Source on GitHub</a>
+      <span class="pending">Firefox — not published yet</span>
+      <span class="pending">Chrome — not published yet</span>
+    </div>
+    <p class="unofficial">Unofficial tool. Not affiliated with, nor endorsed by, Preply.</p>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+
+    <section>
+      <h2>What it looks like</h2>
+      <figure>
+        <img src="screenshots/archive-viewer.png"
+             alt="The archive viewer: a classroom list on the left, the pages of that classroom in the middle, and the archived document on the right.">
+        <figcaption>Your archive: one classroom per tutor, each page listed once, every version kept.</figcaption>
+      </figure>
+      <figure>
+        <img src="screenshots/toolbar-button.png"
+             alt="The Preply Canvas toolbar with an extra archive button on the right-hand side, marked by a red arrow.">
+        <figcaption>One button added to the Canvas toolbar. That is the whole footprint inside Preply.</figcaption>
+      </figure>
+    </section>
+
+    <section>
+      <h2>What it does</h2>
+      <ul class="features">
+        <li><b>Saves in one click</b><span>The archive button stores the page. It also saves on its own a minute after the last edit, so you cannot forget.</span></li>
+        <li><b>Keeps every version</b><span>The history panel shows exactly what your tutor added or corrected since the previous one.</span></li>
+        <li><b>Reads offline</b><span>The viewer never contacts Preply. Images are copied in, so an archive still works months later.</span></li>
+        <li><b>Prints and exports</b><span>Print to PDF, or export a self-contained HTML file you can keep anywhere.</span></li>
+        <li><b>Searches properly</b><span>Accent- and case-insensitive across a whole classroom: type <code>slonce</code>, find <code>słońce</code>.</span></li>
+        <li><b>Speaks your language</b><span>English, French, Spanish, Russian, Polish and Chinese, with correct plural agreement in each.</span></li>
+      </ul>
+    </section>
+
+    <section>
+      <div class="callout">
+        <h2>Your notes never leave your browser</h2>
+        <p>
+          There is no server, no account and no analytics, because there is
+          nothing to send anything to. Everything the extension saves is written
+          to your browser’s local storage, on your own machine. Uninstalling it
+          deletes the lot.
+        </p>
+        <p>
+          The only network traffic it causes goes to <code>preply.com</code>
+          itself, while you are already on a lesson page, to copy the images
+          shown in your Canvas.
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Installing before release</h2>
+      <p>
+        Neither store listing is live yet. Until then, clone the repository and
+        run <code>bash tools/package.sh</code>, then:
+      </p>
+      <ul>
+        <li><b>Firefox</b> — <code>about:debugging</code> → <em>This Firefox</em> → <em>Load Temporary Add-on</em> → pick <code>src/manifest.json</code>.</li>
+        <li><b>Chrome</b> — <code>chrome://extensions</code> → enable <em>Developer mode</em> → <em>Load unpacked</em> → pick <code>dist/chrome/</code>.</li>
+      </ul>
+      <p>
+        Only pages you visit while the extension is active can be captured.
+        There is no way to fetch past lessons retroactively.
+      </p>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>
+      Released under the
+      <a href="https://github.com/Mars073/preply-canvas-archiver/blob/master/LICENSE">Mozilla Public License 2.0</a>.
+      Icons by <a href="https://phosphoricons.com">Phosphor</a>, MIT licensed.
+    </p>
+    <p>
+      Preply is a trademark of its owner. This project is independent and has no
+      connection to it.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
