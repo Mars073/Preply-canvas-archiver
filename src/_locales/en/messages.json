@@ -1,0 +1,85 @@
+{
+  "extName": { "message": "Preply Canvas Archiver" },
+  "extDescription": { "message": "Archives the Canvas pages of a Preply lesson and reads them back outside class hours." },
+
+  "viewerTitle": { "message": "Canvas archive" },
+  "skipToContent": { "message": "Skip to page content" },
+
+  "classroomsTitle": { "message": "Classrooms" },
+  "classroomsSubtitle": { "message": "One classroom per tutor" },
+  "pagesTitle": { "message": "Pages" },
+  "filterPlaceholder": { "message": "Filter pages…" },
+  "filterLabel": { "message": "Filter pages" },
+
+  "focusHide": { "message": "Hide the navigation panels" },
+  "focusShow": { "message": "Show the navigation panels" },
+  "zoomGroup": { "message": "Document zoom" },
+  "zoomOut": { "message": "Zoom out" },
+  "zoomIn": { "message": "Zoom in" },
+  "zoomReset": { "message": "Reset to 100%" },
+  "zoomValueLabel": { "message": "Zoom $1%, reset to 100%" },
+  "zoomAnnounce": { "message": "Zoom $1%" },
+
+  "historyBtn": { "message": "History" },
+  "printBtn": { "message": "Print / PDF" },
+  "moreActions": { "message": "More actions" },
+  "moreMenuLabel": { "message": "Secondary actions" },
+  "exportBtn": { "message": "Export as HTML" },
+  "deletePageBtn": { "message": "Delete page" },
+
+  "historyTitle": { "message": "Snapshot history" },
+  "historyHint": { "message": "Each archive creates a version. Open one to read it again or export it." },
+  "historyClose": { "message": "Close the history panel" },
+
+  "placeholderSelect": { "message": "Pick a classroom, then a page." },
+  "renameHint": { "message": "Double-click, or press Enter, to rename the page" },
+  "repoLabel": { "message": "Project source code on GitHub, opens in a new tab" },
+  "repoTitle": { "message": "Project source code on GitHub" },
+
+  "noArchives": { "message": "No archive yet. Click Archive in the Canvas toolbar." },
+  "noMatch": { "message": "No page contains that term." },
+  "snapshotMissing": { "message": "Snapshot not found" },
+  "pageFallback": { "message": "Page $1" },
+  "pageNoText": { "message": "Page with no text" },
+
+  "pageCount_one": { "message": "$1 page" },
+  "pageCount_other": { "message": "$1 pages" },
+  "versionCount_one": { "message": "$1 version" },
+  "versionCount_other": { "message": "$1 versions" },
+  "snapshotCount_one": { "message": "$1 snapshot" },
+  "snapshotCount_other": { "message": "$1 snapshots" },
+  "pagesFound_one": { "message": "$1 page for “$2”" },
+  "pagesFound_other": { "message": "$1 pages for “$2”" },
+  "confirmDeletePage_one": { "message": "Delete “$2” and its $1 snapshot?" },
+  "confirmDeletePage_other": { "message": "Delete “$2” and its $1 snapshots?" },
+
+  "storageUsage": { "message": "$1 · ≈ $2 MB" },
+  "todayAt": { "message": "Today $1" },
+  "yesterdayAt": { "message": "Yesterday $1" },
+
+  "newestVersion": { "message": "Newest version" },
+  "charsAdded": { "message": "+$1 characters" },
+  "charsRemoved": { "message": "−$1 characters" },
+  "sameContent": { "message": "Identical content" },
+  "openVersion": { "message": "Open the version from $1 — $2" },
+  "deleteVersion": { "message": "Delete this version" },
+  "deleteVersionLabel": { "message": "Delete the version from $1" },
+  "versionDeleted": { "message": "Version from $1 deleted" },
+
+  "pageRenamed": { "message": "Page renamed to $1" },
+  "panelsHidden": { "message": "Navigation panels hidden" },
+  "panelsShown": { "message": "Navigation panels shown" },
+  "archivesUpdated": { "message": "Archive updated" },
+
+  "diffFirstVersion": { "message": " · first version, nothing to compare" },
+  "diffTooLong": { "message": " · document too long to compare" },
+  "diffIdentical": { "message": " · identical to the previous version" },
+  "diffSummary": { "message": " · $1 added, $2 removed since the previous version" },
+  "srAdded": { "message": "Added: " },
+  "srRemoved": { "message": "Removed: " },
+
+  "archiveButton": { "message": "Archive this Canvas page" },
+  "archiveDone": { "message": "Page archived" },
+  "archiveNoCanvas": { "message": "No Canvas open" },
+  "archiveFailed": { "message": "Archiving failed" }
+}

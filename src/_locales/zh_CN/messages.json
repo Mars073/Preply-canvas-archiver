@@ -1,0 +1,80 @@
+{
+  "extName": { "message": "Preply Canvas Archiver" },
+  "extDescription": { "message": "归档 Preply 课程的 Canvas 页面，课后也能随时查看。" },
+
+  "viewerTitle": { "message": "Canvas 归档" },
+  "skipToContent": { "message": "跳到页面内容" },
+
+  "classroomsTitle": { "message": "课堂" },
+  "classroomsSubtitle": { "message": "每位老师一个课堂" },
+  "pagesTitle": { "message": "页面" },
+  "filterPlaceholder": { "message": "筛选页面…" },
+  "filterLabel": { "message": "筛选页面" },
+
+  "focusHide": { "message": "隐藏导航面板" },
+  "focusShow": { "message": "显示导航面板" },
+  "zoomGroup": { "message": "文档缩放" },
+  "zoomOut": { "message": "缩小" },
+  "zoomIn": { "message": "放大" },
+  "zoomReset": { "message": "恢复到 100%" },
+  "zoomValueLabel": { "message": "缩放 $1%，恢复到 100%" },
+  "zoomAnnounce": { "message": "缩放 $1%" },
+
+  "historyBtn": { "message": "历史记录" },
+  "printBtn": { "message": "打印 / PDF" },
+  "moreActions": { "message": "更多操作" },
+  "moreMenuLabel": { "message": "次要操作" },
+  "exportBtn": { "message": "导出为 HTML" },
+  "deletePageBtn": { "message": "删除页面" },
+
+  "historyTitle": { "message": "快照历史" },
+  "historyHint": { "message": "每次归档都会生成一个版本。打开任一版本即可重读或导出。" },
+  "historyClose": { "message": "关闭历史记录" },
+
+  "placeholderSelect": { "message": "请先选择课堂，再选择页面。" },
+  "renameHint": { "message": "双击或按 Enter 键重命名页面" },
+  "repoLabel": { "message": "在 GitHub 上查看项目源代码，将在新标签页中打开" },
+  "repoTitle": { "message": "在 GitHub 上查看项目源代码" },
+
+  "noArchives": { "message": "暂无归档。请点击 Canvas 工具栏中的「归档」。" },
+  "noMatch": { "message": "没有页面包含该词。" },
+  "snapshotMissing": { "message": "找不到快照" },
+  "pageFallback": { "message": "第 $1 页" },
+  "pageNoText": { "message": "无文字的页面" },
+
+  "pageCount_other": { "message": "$1 个页面" },
+  "versionCount_other": { "message": "$1 个版本" },
+  "snapshotCount_other": { "message": "$1 个快照" },
+  "pagesFound_other": { "message": "「$2」匹配到 $1 个页面" },
+  "confirmDeletePage_other": { "message": "要删除「$2」及其 $1 个快照吗？" },
+
+  "storageUsage": { "message": "$1 · 约 $2 MB" },
+  "todayAt": { "message": "今天 $1" },
+  "yesterdayAt": { "message": "昨天 $1" },
+
+  "newestVersion": { "message": "最新版本" },
+  "charsAdded": { "message": "+$1 个字符" },
+  "charsRemoved": { "message": "−$1 个字符" },
+  "sameContent": { "message": "内容相同" },
+  "openVersion": { "message": "打开 $1 的版本 — $2" },
+  "deleteVersion": { "message": "删除此版本" },
+  "deleteVersionLabel": { "message": "删除 $1 的版本" },
+  "versionDeleted": { "message": "已删除 $1 的版本" },
+
+  "pageRenamed": { "message": "页面已重命名为 $1" },
+  "panelsHidden": { "message": "导航面板已隐藏" },
+  "panelsShown": { "message": "导航面板已显示" },
+  "archivesUpdated": { "message": "归档已更新" },
+
+  "diffFirstVersion": { "message": " · 首个版本，无可对比" },
+  "diffTooLong": { "message": " · 文档过长，无法对比" },
+  "diffIdentical": { "message": " · 与上一版本相同" },
+  "diffSummary": { "message": " · 自上一版本新增 $1 处，删除 $2 处" },
+  "srAdded": { "message": "新增：" },
+  "srRemoved": { "message": "删除：" },
+
+  "archiveButton": { "message": "归档此 Canvas 页面" },
+  "archiveDone": { "message": "页面已归档" },
+  "archiveNoCanvas": { "message": "未打开 Canvas" },
+  "archiveFailed": { "message": "归档失败" }
+}

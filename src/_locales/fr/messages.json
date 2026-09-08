@@ -1,0 +1,85 @@
+{
+  "extName": { "message": "Preply Canvas Archiver" },
+  "extDescription": { "message": "Archive les pages Canvas d’un cours Preply et les relit hors séance." },
+
+  "viewerTitle": { "message": "Archives Canvas" },
+  "skipToContent": { "message": "Aller au contenu de la page" },
+
+  "classroomsTitle": { "message": "Salles de classe" },
+  "classroomsSubtitle": { "message": "Une salle par professeur" },
+  "pagesTitle": { "message": "Pages" },
+  "filterPlaceholder": { "message": "Filtrer les pages…" },
+  "filterLabel": { "message": "Filtrer les pages" },
+
+  "focusHide": { "message": "Masquer les panneaux de navigation" },
+  "focusShow": { "message": "Afficher les panneaux de navigation" },
+  "zoomGroup": { "message": "Zoom du document" },
+  "zoomOut": { "message": "Réduire le zoom" },
+  "zoomIn": { "message": "Augmenter le zoom" },
+  "zoomReset": { "message": "Réinitialiser à 100 %" },
+  "zoomValueLabel": { "message": "Zoom $1 %, réinitialiser à 100 %" },
+  "zoomAnnounce": { "message": "Zoom $1 %" },
+
+  "historyBtn": { "message": "Historique" },
+  "printBtn": { "message": "Imprimer / PDF" },
+  "moreActions": { "message": "Plus d’actions" },
+  "moreMenuLabel": { "message": "Actions secondaires" },
+  "exportBtn": { "message": "Exporter en HTML" },
+  "deletePageBtn": { "message": "Supprimer la page" },
+
+  "historyTitle": { "message": "Historique des instantanés" },
+  "historyHint": { "message": "Chaque archivage crée une version. Ouvre-en une pour la relire ou l’exporter." },
+  "historyClose": { "message": "Fermer l’historique" },
+
+  "placeholderSelect": { "message": "Sélectionne une salle de classe, puis une page." },
+  "renameHint": { "message": "Double-cliquer, ou appuyer sur Entrée, pour renommer la page" },
+  "repoLabel": { "message": "Code source du projet sur GitHub, nouvel onglet" },
+  "repoTitle": { "message": "Code source du projet sur GitHub" },
+
+  "noArchives": { "message": "Aucune archive. Clique sur « Archiver » dans la barre d’outils du Canvas." },
+  "noMatch": { "message": "Aucune page ne contient ce terme." },
+  "snapshotMissing": { "message": "Instantané introuvable" },
+  "pageFallback": { "message": "Page $1" },
+  "pageNoText": { "message": "Page sans texte" },
+
+  "pageCount_one": { "message": "$1 page" },
+  "pageCount_other": { "message": "$1 pages" },
+  "versionCount_one": { "message": "$1 version" },
+  "versionCount_other": { "message": "$1 versions" },
+  "snapshotCount_one": { "message": "$1 instantané" },
+  "snapshotCount_other": { "message": "$1 instantanés" },
+  "pagesFound_one": { "message": "$1 page pour « $2 »" },
+  "pagesFound_other": { "message": "$1 pages pour « $2 »" },
+  "confirmDeletePage_one": { "message": "Supprimer « $2 » et son $1 instantané ?" },
+  "confirmDeletePage_other": { "message": "Supprimer « $2 » et ses $1 instantanés ?" },
+
+  "storageUsage": { "message": "$1 · ≈ $2 Mo" },
+  "todayAt": { "message": "Aujourd’hui $1" },
+  "yesterdayAt": { "message": "Hier $1" },
+
+  "newestVersion": { "message": "Version la plus récente" },
+  "charsAdded": { "message": "+$1 caractères" },
+  "charsRemoved": { "message": "−$1 caractères" },
+  "sameContent": { "message": "Contenu identique" },
+  "openVersion": { "message": "Ouvrir la version du $1 — $2" },
+  "deleteVersion": { "message": "Supprimer cette version" },
+  "deleteVersionLabel": { "message": "Supprimer la version du $1" },
+  "versionDeleted": { "message": "Version du $1 supprimée" },
+
+  "pageRenamed": { "message": "Page renommée $1" },
+  "panelsHidden": { "message": "Panneaux de navigation masqués" },
+  "panelsShown": { "message": "Panneaux de navigation affichés" },
+  "archivesUpdated": { "message": "Archives mises à jour" },
+
+  "diffFirstVersion": { "message": " · première version, rien à comparer" },
+  "diffTooLong": { "message": " · document trop long pour être comparé" },
+  "diffIdentical": { "message": " · identique à la version précédente" },
+  "diffSummary": { "message": " · $1 ajouts, $2 suppressions depuis la version précédente" },
+  "srAdded": { "message": "Ajouté : " },
+  "srRemoved": { "message": "Supprimé : " },
+
+  "archiveButton": { "message": "Archiver cette page du Canvas" },
+  "archiveDone": { "message": "Page archivée" },
+  "archiveNoCanvas": { "message": "Aucun Canvas ouvert" },
+  "archiveFailed": { "message": "Échec de l’archivage" }
+}
