@@ -27,7 +27,7 @@ for target in firefox chrome; do
   # name, and the type declarations, which are for the editor only.
   for entry in src/*; do
     case "$(basename "$entry")" in
-      manifest.chrome.json|globals.d.ts) continue ;;
+      manifest.chrome.json|globals.d.ts|context.md) continue ;;
       *) cp -r "$entry" "$out/" ;;
     esac
   done

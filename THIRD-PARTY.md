@@ -42,14 +42,19 @@ SOFTWARE.
 The viewer's stylesheet asks for Figtree, the typeface Preply's editor renders
 in, so an archived page keeps the proportions of the original.
 
-**The font file is not currently bundled**: `src/fonts/` does not exist and the
-`@font-face` rule falls back to a system font. No redistribution therefore takes
-place, and no notice is owed yet.
+The font is bundled: `src/fonts/Figtree-variable.woff2` and its italic
+counterpart, converted to woff2 from the variable TTFs published on Google
+Fonts. Redistribution therefore takes place, and the SIL Open Font License 1.1
+requires its full text to travel with the font files — `src/fonts/OFL.txt`
+does exactly that, inside every package.
 
-That changes the moment a `.woff2` is added to the package. Figtree is published
-under the SIL Open Font License 1.1 (`ofl/figtree` in `google/fonts`), which
-requires the full licence text to travel with the font file. Add `OFL.txt`
-alongside it and extend this file at the same time.
+```
+Copyright 2022 The Figtree Project Authors
+(https://github.com/erikdkennedy/figtree)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+Full text in src/fonts/OFL.txt, shipped alongside the fonts.
+```
 
 <https://fonts.google.com/specimen/Figtree>
 

@@ -10,15 +10,26 @@
      is needed, since the page belongs to that same package. -->
 <link rel="icon" type="image/svg+xml" href="logo.svg">
 <style>
-  /* Figtree, the typeface of Preply's editor. SIL Open Font License
-     (google/fonts, ofl/figtree), so redistributable with the extension.
-     While fonts/Figtree-variable.woff2 is missing the fallback stack applies
-     silently — one 404 in the console, no other consequence. */
+  /* Figtree, the typeface of Preply's editor, bundled so an archive keeps the
+     proportions of the original. SIL Open Font License; fonts/OFL.txt ships
+     beside it, which the licence requires.
+
+     Variable woff2, both slopes: 56 KB for the pair, against 712 KB for the
+     TTF set Google Fonts hands out. */
   @font-face{
     font-family:"Figtree";
     src:url("fonts/Figtree-variable.woff2") format("woff2");
     font-weight:100 900;
     font-style:normal;
+    font-display:swap;
+  }
+  /* A separate italic file, so an <em> in a lesson gets a drawn italic rather
+     than an upright slanted by the browser. */
+  @font-face{
+    font-family:"Figtree";
+    src:url("fonts/Figtree-italic-variable.woff2") format("woff2");
+    font-weight:100 900;
+    font-style:italic;
     font-display:swap;
   }
 

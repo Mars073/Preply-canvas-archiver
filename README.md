@@ -75,9 +75,9 @@ Contributors: read [CLAUDE.md](CLAUDE.md) for the working rules, then
 ## Third-party assets
 
 Icons come from [Phosphor Icons](https://phosphoricons.com), MIT licensed, and
-their path data ships inside the extension. The viewer also asks for
-[Figtree](https://fonts.google.com/specimen/Figtree), which is not bundled.
-Full notices in [THIRD-PARTY.md](THIRD-PARTY.md).
+their path data ships inside the extension. The viewer renders archived pages in
+[Figtree](https://fonts.google.com/specimen/Figtree), bundled as woff2 under the
+SIL Open Font License. Full notices in [THIRD-PARTY.md](THIRD-PARTY.md).
 
 ## Thanks
 
