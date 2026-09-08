@@ -1,8 +1,12 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
 /**
  * Phosphor Icons, generated from assets/phosphor/*.svg.
  *
  * Icon paths: Copyright (c) 2023 Phosphor Icons, MIT licensed.
- * Full notice in THIRD-PARTY.md at the repository root.
+ * Full notice in THIRD-PARTY.md, shipped inside every package.
  *
  * DO NOT EDIT BY HAND: rerun tools/build-icons.sh after adding or replacing
  * a file in assets/phosphor/.
@@ -36,7 +40,7 @@ const ICON_PATHS = {
  */
 function icon(name) {
   const d = ICON_PATHS[name];
-  if (!d) throw new RangeError('icône inconnue : ' + name);
+  if (!d) throw new RangeError('unknown icon: ' + name);
 
   const svg = document.createElementNS(ICON_NS, 'svg');
   svg.setAttribute('viewBox', '0 0 256 256');

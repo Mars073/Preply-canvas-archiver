@@ -75,5 +75,8 @@ Full notices in [THIRD-PARTY.md](THIRD-PARTY.md).
 
 ## Licence
 
-**Not decided yet.** Until a licence file is added, this repository is
-all-rights-reserved by default and nobody may reuse it.
+[Mozilla Public License 2.0](LICENSE).
+
+File-level copyleft: these files may be used inside a larger work of any kind,
+but changes made *to them* have to be published under the same licence. Each
+source file carries the notice; the licence text ships inside every package.
