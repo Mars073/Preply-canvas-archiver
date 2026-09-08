@@ -1308,8 +1308,8 @@ function setZoom(index) {
   const z = ZOOM_STEPS[zoomIndex];
   const percent = Math.round(z * 100);
   elDoc.style.zoom = String(z);
-  btnZoomValue.textContent = `${percent} %`;
-  // Le libelle visible n'est qu'un nombre : l'intitule accessible dit de quoi.
+  btnZoomValue.textContent = PERCENT_FORMAT.format(z);
+  // The visible label is only a number: the accessible name says what of.
   btnZoomValue.setAttribute('aria-label', t('zoomValueLabel', [percent]));
   announce(t('zoomAnnounce', [percent]));
   prefs.zoom = zoomIndex;

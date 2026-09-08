@@ -7,6 +7,9 @@ versions — it is submission material, not documentation of the code.
 Short descriptions are held under **132 characters**, the Chrome Web Store
 limit; AMO allows 250 but there is no reason to diverge.
 
+Screenshots live in `screenshots/`. The `store-` prefixed files are 1280x800,
+the size the Chrome Web Store expects; AMO accepts the originals as they are.
+
 ---
 
 ## For reviewers — English only

@@ -9,6 +9,10 @@ Unofficial tool, not affiliated with Preply.
 > **Status: pre-release.** Not yet published to addons.mozilla.org or the
 > Chrome Web Store.
 
+![The archive viewer: classrooms, pages and the document](docs/screenshots/archive-viewer.png)
+
+![The archive button added to the Preply Canvas toolbar](docs/screenshots/toolbar-button.png)
+
 ## What it does
 
 - Adds an **archive button** to the Canvas toolbar during a lesson. One click

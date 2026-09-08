@@ -20,6 +20,15 @@ const UI_LOCALE = i18nApi.i18n.getUILanguage();
 const PLURAL_RULES = new Intl.PluralRules(UI_LOCALE);
 
 /**
+ * Percentage formatter.
+ *
+ * The space before the sign is a French convention, absent in English and
+ * placed differently again in other locales. Intl knows the rule; hardcoding
+ * one spelling would be wrong in five languages out of six.
+ */
+const PERCENT_FORMAT = new Intl.NumberFormat(UI_LOCALE, { style: 'percent' });
+
+/**
  * Translates a key.
  *
  * @param {string} key - entry in messages.json.
