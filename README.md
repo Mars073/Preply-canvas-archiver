@@ -8,6 +8,8 @@ Unofficial tool, not affiliated with Preply.
 
 > **Status: pre-release.** Not yet published to addons.mozilla.org or the
 > Chrome Web Store.
+>
+> Project page: <https://mars073.github.io/Preply-canvas-archiver/>
 
 ![The archive viewer: classrooms, pages and the document](docs/screenshots/archive-viewer.png)
 
@@ -76,6 +78,15 @@ Icons come from [Phosphor Icons](https://phosphoricons.com), MIT licensed, and
 their path data ships inside the extension. The viewer also asks for
 [Figtree](https://fonts.google.com/specimen/Figtree), which is not bundled.
 Full notices in [THIRD-PARTY.md](THIRD-PARTY.md).
+
+## Thanks
+
+To **Paula**, my Polish tutor and a formidable authority on sękacz, whose
+lessons are the reason this exists at all.
+
+To **Shuang laoshi**, my Chinese tutor, for the same reason in another script.
+
+This tool was written to keep what the two of them teach me.
 
 ## Licence
 
