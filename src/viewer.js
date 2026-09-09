@@ -41,6 +41,8 @@ const elPlaceholder = document.getElementById('placeholder');
 const elMenu = document.getElementById('more-menu');
 const btnMore = document.getElementById('btn-more');
 const btnFocus = document.getElementById('btn-focus');
+const elReading = document.getElementById('reading');
+const elScroll = document.getElementById('scroll');
 const elHistory = document.getElementById('history');
 
 /**
@@ -751,9 +753,9 @@ async function showSnapshot(entry) {
   // add or strip the comparison marks. Scrolling back to the top there throws
   // the reader out of the passage they were reading; it is only right when the
   // document being shown actually changes.
-  const scroller = document.getElementById('scroll');
+
   const sameDocument = curSnap !== null && curSnap.key === entry.key;
-  const keptScroll = sameDocument ? scroller.scrollTop : 0;
+  const keptScroll = sameDocument ? elScroll.scrollTop : 0;
 
   curSnap = { ...snap, key: entry.key };
   // The archived document is written as HTML because that is what it is. The
@@ -801,7 +803,7 @@ async function showSnapshot(entry) {
 
   // Restored after the diff, not before: inserting the deleted lines changes
   // the height above the viewport, so an earlier restore would land elsewhere.
-  scroller.scrollTop = keptScroll;
+  elScroll.scrollTop = keptScroll;
   announce(t('snapshotAnnounce', [elTitle.textContent, fmt(snap.ts), elMeta.textContent]));
 }
 
@@ -1467,6 +1469,59 @@ api.storage.onChanged.addListener((changes, area) => {
       .catch(console.error);
   }, 300);
 });
+
+/* ------------------------------------------------------- fondus de defilement */
+
+/**
+ * How far the reader has to scroll before the top fade appears, in pixels.
+ *
+ * Not zero: the first pixels of scroll only lift the sheet away from the
+ * toolbar, and a fade over the title while it is still fully readable draws
+ * attention to nothing. It shows once real text has passed under the edge.
+ */
+const TOP_FADE_AT = 64;
+
+let fadeTop = false;
+let fadeBottom = false;
+
+/**
+ * Shows the top and bottom fades only while the document actually continues
+ * past that edge.
+ *
+ * Called from a scroll handler, so it writes to the DOM only when the answer
+ * changes: toggling a class that is already set still costs a style
+ * invalidation, and scroll fires far more often than the state flips.
+ *
+ * The two edges are not symmetric. The top waits for TOP_FADE_AT, since the
+ * first pixels of scroll hide nothing worth marking. The bottom answers as
+ * soon as anything is out of sight, with a pixel of slack for fractional
+ * scroll offsets — zoom and device pixel ratios fold into a value that never
+ * reaches its bound exactly.
+ *
+ * @returns {void}
+ */
+function updateScrollFades() {
+  const above = elScroll.scrollTop > TOP_FADE_AT;
+  const below = elScroll.scrollTop + elScroll.clientHeight < elScroll.scrollHeight - 1;
+
+  if (above !== fadeTop) {
+    fadeTop = above;
+    elReading.classList.toggle('fade-top', above);
+  }
+  if (below !== fadeBottom) {
+    fadeBottom = below;
+    elReading.classList.toggle('fade-bottom', below);
+  }
+}
+
+elScroll.addEventListener('scroll', updateScrollFades, { passive: true });
+
+// The edges also move when nothing is scrolled: a snapshot is swapped in, the
+// diff inserts its deleted lines, an image resolves, the zoom changes, the
+// window is resized. Observing both boxes catches all of it without a call
+// sprinkled at each of those sites.
+new ResizeObserver(updateScrollFades).observe(elScroll);
+new ResizeObserver(updateScrollFades).observe(elDoc);
 
 /* ------------------------------------------------------------------- boot */
 

@@ -55,6 +55,12 @@
        very pale one for detachment. A single shadow gives either a dirty halo
        or a hard edge. */
     --shadow:0 1px 2px rgba(18,17,23,.04), 0 10px 28px rgba(18,17,23,.06);
+    /* Where the history panel starts: the toolbar box plus the small gap that
+       sets it apart from it. Measured, not derived — CSS cannot ask the
+       toolbar how tall it is. The edge fades deliberately do NOT use this:
+       they need the toolbar height exactly, gap excluded, and reusing this
+       number for both is what left the top fade sitting too low. */
+    --history-top:52px;
     --doc-width:1089px; --doc-pad-x:52px;
   }
   *{box-sizing:border-box}
@@ -204,7 +210,24 @@
     margin-bottom:calc(-1 * var(--gap))}
   /* The right column is not a card: it is the work surface the document sheet
      floats on. Avoid a card inside a card. */
-  #topbar{display:flex;align-items:center;gap:8px;padding:6px 6px 0}
+  #topbar{display:flex;align-items:center;gap:8px;padding:6px}
+
+  /* Fades marking that the document continues out of sight. They hang off
+     #reading, whose box IS the reading area: no toolbar height to hardcode,
+     and nothing to keep in sync when the toolbar changes. A pseudo-element of
+     #scroll itself would not do — it would scroll away with the content
+     instead of staying at the edge.
+
+     Each shows only when there is something to hide, which is the point: a
+     fade that is always there says nothing. pointer-events:none so they never
+     intercept a click or a text selection. */
+  #reading{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+  #reading::before,#reading::after{content:"";position:absolute;left:0;right:0;
+    height:30px;pointer-events:none;opacity:0;z-index:2;
+    transition:opacity var(--slide-nav) var(--ease-nav)}
+  #reading::before{top:0;background:linear-gradient(var(--bg),rgba(244,244,248,0))}
+  #reading::after{bottom:0;background:linear-gradient(rgba(244,244,248,0),var(--bg))}
+  #reading.fade-top::before,#reading.fade-bottom::after{opacity:1}
   #topbar h1{margin:0;font-size:20px;font-weight:650;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #actions{margin-left:auto;display:flex;gap:8px;flex:0 0 auto}
@@ -319,7 +342,7 @@
      instead of being glued to the window border. */
   /* bottom = two gutters: #main now overflows 12 px below the body, so a
      bottom of 12 px would stick the panel to the window edge. */
-  #history{position:absolute;top:46px;right:6px;bottom:calc(var(--gap) * 2);width:340px;
+  #history{position:absolute;z-index:3;top:var(--history-top);right:6px;bottom:calc(var(--gap) * 2);width:340px;
     background:var(--panel);border:1px solid var(--line-soft);
     border-radius:var(--radius-lg);
     display:flex;flex-direction:column;overflow:hidden;
@@ -371,7 +394,8 @@
     /* The document header stays printed: page name, tutor and date are exactly
        what one wants to find again on a PDF filed in a folder. */
     #classrooms,#pages,#topbar,#history{display:none}
-    #main,#scroll,#sheet{overflow:visible;padding:0;margin:0;max-width:none}
+    #main,#reading,#scroll,#sheet{overflow:visible;padding:0;margin:0;max-width:none}
+    #reading::before,#reading::after{display:none}
     #dochead{padding:0 0 10px}
     #dochead h1{font-size:18px;padding:0;margin-left:0;background:none;box-shadow:none}
     /* The PDF stays canonical: no zoom, no comparison marks. A deleted line no
@@ -448,7 +472,8 @@
   @media (prefers-reduced-motion:reduce){
     body,body #classrooms,body #pages,#history,#history.open,
     body.drill #classrooms,body.drill #pages,body:not(.drill) #classrooms,
-    body.focus #classrooms,body.focus #pages,body.focus.drill #pages{transition:none}
+    body.focus #classrooms,body.focus #pages,body.focus.drill #pages,
+    #reading::before,#reading::after{transition:none}
   }
 </style>
 </head>
@@ -526,20 +551,26 @@
        and the user never learns the document swapped under them. -->
   <p id="sr-status" class="sr-only" role="status" aria-live="polite"></p>
 
-  <div id="scroll">
-    <div id="placeholder" data-i18n="placeholderSelect"></div>
-    <div id="sheet" hidden>
-      <header id="dochead">
-        <h1 id="doc-title" tabindex="0" aria-describedby="title-hint"></h1>
-        <span id="title-hint" class="sr-only" data-i18n="renameHint"></span>
-        <p id="meta"></p>
-      </header>
-      <!-- tabindex=-1: target of the skip link, focusable by script but absent
-           from the tab order. `lang` is set on display from the lesson's own
-           language: without it a screen reader speaks Polish with French rules. -->
-      <article id="doc" tabindex="-1" aria-labelledby="doc-title"></article>
+  <!-- Wraps the scroller so the edge fades have something to hang off whose
+       top IS the top of the reading area. Anchored to #main they needed the
+       toolbar height as a number, which is guesswork and was wrong. -->
+  <div id="reading">
+    <div id="scroll">
+      <div id="placeholder" data-i18n="placeholderSelect"></div>
+      <div id="sheet" hidden>
+        <header id="dochead">
+          <h1 id="doc-title" tabindex="0" aria-describedby="title-hint"></h1>
+          <span id="title-hint" class="sr-only" data-i18n="renameHint"></span>
+          <p id="meta"></p>
+        </header>
+        <!-- tabindex=-1: target of the skip link, focusable by script but absent
+             from the tab order. `lang` is set on display from the lesson's own
+             language: without it a screen reader speaks Polish with French rules. -->
+        <article id="doc" tabindex="-1" aria-labelledby="doc-title"></article>
+      </div>
     </div>
   </div>
+
 
   <aside id="history" aria-labelledby="history-head">
     <header>
