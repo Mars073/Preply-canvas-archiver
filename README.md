@@ -95,3 +95,7 @@ This tool was written to keep what the two of them teach me.
 File-level copyleft: these files may be used inside a larger work of any kind,
 but changes made *to them* have to be published under the same licence. Each
 source file carries the notice; the licence text ships inside every package.
+
+---
+
+<sub>Made with <span title="Claude Code">🤖</span> — no fun, no love, just more slop.</sub>
