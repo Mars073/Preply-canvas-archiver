@@ -1,6 +1,7 @@
 {
   "extName": { "message": "Preply Canvas Archiver" },
   "extDescription": { "message": "Archiwizuje strony Canvas z lekcji Preply i pozwala je czytać poza zajęciami." },
+  "actionTitle": { "message": "Preply Canvas Archiver — otwórz archiwum" },
 
   "viewerTitle": { "message": "Archiwum Canvas" },
   "skipToContent": { "message": "Przejdź do treści strony" },

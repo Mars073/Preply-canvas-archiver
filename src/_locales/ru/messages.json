@@ -1,6 +1,7 @@
 {
   "extName": { "message": "Preply Canvas Archiver" },
   "extDescription": { "message": "Сохраняет страницы Canvas с урока Preply и открывает их вне занятия." },
+  "actionTitle": { "message": "Preply Canvas Archiver — открыть архив" },
 
   "viewerTitle": { "message": "Архив Canvas" },
   "skipToContent": { "message": "Перейти к содержимому страницы" },

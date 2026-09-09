@@ -1,6 +1,7 @@
 {
   "extName": { "message": "Preply Canvas Archiver" },
   "extDescription": { "message": "Archive les pages Canvas d’un cours Preply et les relit hors séance." },
+  "actionTitle": { "message": "Preply Canvas Archiver — ouvrir les archives" },
 
   "viewerTitle": { "message": "Archives Canvas" },
   "skipToContent": { "message": "Aller au contenu de la page" },

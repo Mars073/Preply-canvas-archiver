@@ -1,6 +1,7 @@
 {
   "extName": { "message": "Preply Canvas Archiver" },
   "extDescription": { "message": "归档 Preply 课程的 Canvas 页面，课后也能随时查看。" },
+  "actionTitle": { "message": "Preply Canvas Archiver — 打开归档" },
 
   "viewerTitle": { "message": "Canvas 归档" },
   "skipToContent": { "message": "跳到页面内容" },
