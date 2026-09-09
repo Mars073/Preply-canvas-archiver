@@ -7,6 +7,7 @@
   "skipToContent": { "message": "Przejdź do treści strony" },
 
   "classroomsTitle": { "message": "Klasy" },
+  "backToRooms": { "message": "Powrót do klas" },
   "classroomsSubtitle": { "message": "Jedna klasa na nauczyciela" },
   "pagesTitle": { "message": "Strony" },
   "filterPlaceholder": { "message": "Filtruj strony…" },

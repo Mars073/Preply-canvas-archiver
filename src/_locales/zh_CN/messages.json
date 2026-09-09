@@ -7,6 +7,7 @@
   "skipToContent": { "message": "跳到页面内容" },
 
   "classroomsTitle": { "message": "课堂" },
+  "backToRooms": { "message": "返回课堂" },
   "classroomsSubtitle": { "message": "每位老师一个课堂" },
   "pagesTitle": { "message": "页面" },
   "filterPlaceholder": { "message": "筛选页面…" },

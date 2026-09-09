@@ -43,9 +43,14 @@
     --danger:#c9160d; --danger-line:#fdc2be; --ok:#067560;
     --radius:10px; --radius-lg:18px; --radius-btn:10px;
     --gap:12px;
-    /* One duration and one curve for every panel movement, so the focus
-       toggle and anything added later stay in step. */
+    /* Two movements, two timings. --slide folds the panels away: an occasional
+       gesture, a long travel, and a symmetric ease that suits both. */
     --slide:.34s; --ease:cubic-bezier(.4,0,.2,1);
+    /* The swap gets its own pair. Its curve decelerates instead of easing in
+       and out: over a short distance a slow start eats most of the duration
+       and what remains reads as a lurch. Leaving at full speed and settling
+       is what makes a short move feel deliberate rather than hurried. */
+    --slide-nav:.26s; --ease-nav:cubic-bezier(0,0,.2,1);
     /* Two layers: a tight contact shadow at the edge of the card, and a wide,
        very pale one for detachment. A single shadow gives either a dirty halo
        or a hard edge. */
@@ -119,6 +124,19 @@
   #classrooms{display:flex;flex-direction:column}
   .col-head{padding:16px 16px 10px;border-bottom:1px solid var(--line-soft)}
   .col-head h2{margin:0;font-size:13px;font-weight:650;letter-spacing:.01em}
+  .head-row{display:flex;align-items:center;gap:8px}
+  /* Hidden by default: above the breakpoint both panels are on screen and
+     there is nowhere to go back to. Pulled left so the caret, not its
+     padding, lines up with the heading below it. */
+  /* No border: the caret sits inside a panel header, not in a toolbar, and a
+     framed button there reads as a second card edge. The hover cue moves to
+     the background, since the border was carrying it. The focus ring is
+     global and untouched — that one is not decoration. */
+  #back-rooms{display:none;width:26px;height:26px;min-width:0;padding:0;
+    margin-left:-4px;border:0;border-radius:6px;background:transparent;
+    color:var(--ink-2)}
+  #back-rooms:hover{background:var(--bg);color:var(--ink)}
+  #back-rooms .icon{width:13px;height:13px}
   .col-head .sub{margin:2px 0 0;font-size:11.5px;color:var(--ink-3)}
   /* A flex column rather than margins on the <li>: gap only applies between
      items, so no orphan margin is left at the end of the list. */
@@ -366,6 +384,58 @@
     @page{margin:16mm}
   }
 
+  /* Below this width the two panels no longer fit beside the document without
+     squeezing it. They share one column: the pages panel covers the classrooms
+     panel, and the caret in its header goes back. It enters from the right, as
+     it sits to the right in the wide layout — the spatial order survives the
+     breakpoint, so the movement reads as going one level deeper.
+
+     Two tracks on both sides of the focus toggle, so it stays interpolable
+     here as well: a list of a different length would snap. */
+  @media (max-width:1439px){
+    body{grid-template-columns:300px 1fr}
+    body.focus{grid-template-columns:0px 1fr}
+
+    /* All three placed explicitly. The two panels must land in the SAME cell:
+       with only grid-column set, auto-placement pushed the pages panel to a
+       second row and dragged the document down with it. */
+    #classrooms,#pages{grid-column:1;grid-row:1;width:300px}
+    /* Grid items take z-index with no positioning. Without it the panels are
+       painted before #main, which comes later in the DOM, and a panel would
+       slide in UNDERNEATH the document. */
+    #main{grid-column:2;grid-row:1;z-index:0}
+    #classrooms{z-index:1}
+    #pages{z-index:2}
+    #back-rooms{display:inline-flex}
+
+    /* One corridor, off to the left. Whichever panel is not current waits out
+       there; the current one sits in place. Switching sends one out and brings
+       the other in along that same path, so they cross rather than replace one
+       another — the swap is visible, which is what says a level was changed.
+
+       visibility is kept alongside the fade: an opacity:0 panel is still
+       focusable and still in the accessibility tree. It is delayed by the slide
+       so the leaving panel is not cut off mid-flight. */
+    #classrooms,#pages{
+      transform:translateX(calc(-100% - var(--gap)));opacity:0;visibility:hidden;
+      transition:transform var(--slide-nav) var(--ease-nav),
+                 opacity var(--slide-nav) var(--ease-nav),
+                 visibility 0s var(--slide-nav)}
+    body:not(.drill) #classrooms,body.drill #pages{
+      transform:none;opacity:1;visibility:visible;
+      transition:transform var(--slide-nav) var(--ease-nav),
+                 opacity var(--slide-nav) var(--ease-nav),
+                 visibility 0s}
+
+    /* Focus mode outranks the drill state, and has to say so explicitly: the
+       selectors above score the same, so source order alone was leaving the
+       current panel visible. It kept a sliver showing, because the collapsed
+       track stops at the body padding and overflow:hidden clips at the padding
+       box rather than inside it. */
+    body.focus #classrooms,body.focus #pages,body.focus.drill #pages{
+      visibility:hidden;transition:visibility 0s var(--slide)}
+  }
+
   /* Until the stored preferences have been applied, nothing moves: a panel
      must not be seen sliding away on a page that opened folded. The class is
      dropped one frame after boot. */
@@ -377,7 +447,8 @@
      Covers the history panel too, which slides on the same variables. */
   @media (prefers-reduced-motion:reduce){
     body,body #classrooms,body #pages,#history,#history.open,
-    body.focus #classrooms,body.focus #pages{transition:none}
+    body.drill #classrooms,body.drill #pages,body:not(.drill) #classrooms,
+    body.focus #classrooms,body.focus #pages,body.focus.drill #pages{transition:none}
   }
 </style>
 </head>
@@ -389,7 +460,7 @@
 
 <nav id="classrooms" class="card" aria-labelledby="rooms-head">
   <div class="col-head">
-    <h2 id="rooms-head" data-i18n="classroomsTitle"></h2>
+    <h2 id="rooms-head" tabindex="-1" data-i18n="classroomsTitle"></h2>
     <p class="sub" data-i18n="classroomsSubtitle"></p>
   </div>
   <ul class="col-body" id="room-list"></ul>
@@ -406,7 +477,15 @@
 
 <nav id="pages" class="card" aria-labelledby="pages-head">
   <div class="col-head">
-    <h2 id="pages-head" data-i18n="pagesTitle"></h2>
+    <div class="head-row">
+      <!-- Shown only below the two-panel breakpoint, where this panel covers
+           the classrooms one instead of sitting beside it. Hidden above it:
+           there is nothing to go back to when both are on screen. -->
+      <button class="act iconly" id="back-rooms" type="button"
+              data-icon="caret-left"
+              data-i18n-label="backToRooms" data-i18n-title="backToRooms"></button>
+      <h2 id="pages-head" data-i18n="pagesTitle"></h2>
+    </div>
     <input id="filter" type="search"
            data-i18n-placeholder="filterPlaceholder" data-i18n-label="filterLabel">
   </div>

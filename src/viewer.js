@@ -1024,6 +1024,10 @@ async function renderUsage() {
  * @returns {Promise<void>}
  */
 async function selectRoom(room) {
+  // Below the breakpoint the two panels share one column, and choosing a
+  // classroom is what moves the pages panel over it. Above it the class is
+  // inert: no rule outside the media query reads it.
+  document.body.classList.add('drill');
   curRoom = room;
   curPage = null;
   await resolvePageContent(room);
@@ -1236,6 +1240,24 @@ function setFocusMode(on) {
   prefs.focus = on;
   savePrefs();
 }
+
+/**
+ * Leaves the pages panel and shows the classrooms one again.
+ *
+ * Only reachable below the breakpoint, where the button is the sole way back:
+ * the classrooms panel is covered, so it cannot be clicked.
+ *
+ * @returns {void}
+ */
+function backToRooms() {
+  document.body.classList.remove('drill');
+  // preventScroll for the same reason as the history heading: the panel it
+  // belongs to is still travelling, and #main is a scroll container.
+  document.getElementById('rooms-head').focus({ preventScroll: true });
+  announce(t('backToRooms'));
+}
+
+document.getElementById('back-rooms').addEventListener('click', backToRooms);
 
 btnFocus.addEventListener('click', () => setFocusMode(!document.body.classList.contains('focus')));
 

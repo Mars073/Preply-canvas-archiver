@@ -7,6 +7,7 @@
   "skipToContent": { "message": "Ir al contenido de la página" },
 
   "classroomsTitle": { "message": "Aulas" },
+  "backToRooms": { "message": "Volver a las aulas" },
   "classroomsSubtitle": { "message": "Un aula por profesor" },
   "pagesTitle": { "message": "Páginas" },
   "filterPlaceholder": { "message": "Filtrar páginas…" },
