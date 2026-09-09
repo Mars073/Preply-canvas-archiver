@@ -1,5 +1,2 @@
 dist/
 *.zip
-
-# Sources haute resolution, non embarquees dans les paquets.
-
