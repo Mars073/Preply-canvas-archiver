@@ -4,6 +4,12 @@ Text to paste into the AMO and Chrome Web Store submission forms. Kept in the
 repository so the wording stays consistent between the two stores and across
 versions — it is submission material, not documentation of the code.
 
+The store dashboards hold the live copy, not this file. Text is kept here only
+when it is used more than once — across the two stores, across locales, or
+across versions. A field that exists once, in one dashboard that remembers it,
+does not belong here: the duplicate would drift the first time it is edited
+there and never here.
+
 Short descriptions are held under **132 characters**, the Chrome Web Store
 limit; AMO allows 250 but there is no reason to diverge.
 
@@ -258,3 +264,28 @@ default MV3 policy (`script-src 'self'`) applies unchanged.
 No user data is collected, transmitted or sold, so none of the data categories
 apply. Everything the extension writes stays in `storage.local` on the user's
 own machine. Certify all three clauses.
+
+### Test instructions
+
+No account is needed to review this extension, and none can be supplied for the
+part that needs one — see below.
+
+WHAT CAN BE TESTED WITHOUT AN ACCOUNT
+Click the toolbar icon. It opens the archive viewer in a new tab (there is no
+popup). With nothing archived yet it shows its empty state, which confirms the
+service worker starts, the page loads and the interface is localised — the
+extension ships English, French, Spanish, Russian, Polish and Chinese.
+On any site other than preply.com the extension does nothing at all: no script
+runs, no storage is written.
+
+WHAT CANNOT BE TESTED, AND WHY
+The archive button is injected into the toolbar of a Preply lesson Canvas. That
+page only exists while a paid lesson is in progress, on the account that booked
+it. We cannot provide credentials: the lesson is a private conversation with a
+real tutor, and sharing the account would breach Preply's own terms.
+
+The full source is public if you would rather read the capture path than run it:
+https://github.com/Mars073/Preply-canvas-archiver — content.js injects the
+button and builds the snapshot, background.js is the sole writer to
+storage.local, viewer.js renders it back. Screenshots of the populated viewer
+are on the listing.
