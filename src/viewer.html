@@ -239,6 +239,12 @@
   #doc ul,#doc ol{margin:0 0 .8em;padding-left:1.5em}
   #doc li p{margin:0}
   #doc img{max-width:100%;height:auto}
+  /* A picture whose bytes are gone leaves a visible gap rather than nothing:
+     silence would read as an empty paragraph. */
+  #doc img[data-pca-missing],#doc img[data-pca-unreachable]{
+    display:inline-block;min-width:120px;min-height:60px;
+    border:1px dashed var(--danger-line);border-radius:6px;
+    background:#ffeceb}
   #doc table{border-collapse:collapse;margin:0 0 1em}
   #doc td,#doc th{border:1px solid var(--line);padding:6px 10px}
   #doc hr{border:1px solid var(--line);margin:8px 0}

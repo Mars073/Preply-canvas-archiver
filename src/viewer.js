@@ -160,6 +160,36 @@ async function loadAvatars() {
   }
 }
 
+const IMAGE_PREFIX = 'pca:img:';
+
+/**
+ * Puts captured images back into a document.
+ *
+ * Snapshots hold only a content hash in `data-pca-img`, because the same
+ * picture recurs in every version of a page and storing it per version would
+ * multiply it. The bytes live once under `pca:img:<hash>` and are reattached
+ * here, at display time.
+ *
+ * A hash with no matching entry is marked rather than left as a silent empty
+ * frame.
+ *
+ * @param {ParentNode} root - the displayed document, or a detached copy.
+ * @returns {Promise<void>}
+ */
+async function resolveImages(root) {
+  const nodes = [...root.querySelectorAll('img[data-pca-img]')];
+  if (nodes.length === 0) return;
+
+  const hashes = [...new Set(nodes.map((n) => n.dataset.pcaImg))];
+  const stored = await api.storage.local.get(hashes.map((h) => IMAGE_PREFIX + h));
+
+  for (const node of nodes) {
+    const uri = stored[IMAGE_PREFIX + node.dataset.pcaImg];
+    if (uri) node.src = uri;
+    else node.setAttribute('data-pca-missing', '');
+  }
+}
+
 const ORDER_KEY = 'pca:order';
 
 /**
@@ -705,6 +735,7 @@ async function showSnapshot(entry) {
 
   curSnap = { ...snap, key: entry.key };
   elDoc.innerHTML = snap.html;
+  await resolveImages(elDoc);
   const tag = langOf(snap);
   if (tag) elDoc.lang = tag;
   else elDoc.removeAttribute('lang');
@@ -1254,9 +1285,16 @@ document.getElementById('btn-delete').addEventListener('click', async () => {
   await refresh({ keepSelection: true });
 });
 
-document.getElementById('btn-export').addEventListener('click', () => {
+document.getElementById('btn-export').addEventListener('click', async () => {
   setMenu(false);
   if (!curSnap) return;
+
+  // A copy is built and its images resolved, rather than reusing the document
+  // on screen: that one may carry comparison marks.
+  const sheet = document.createElement('div');
+  sheet.innerHTML = curSnap.html;
+  await resolveImages(sheet);
+
   const css = [...document.querySelectorAll('style')].map((s) => s.textContent).join('\n');
   const label = pageName(curPage);
   // The viewer stylesheet is taken as-is, then neutralised on the points
@@ -1269,7 +1307,7 @@ ${css}
 body{display:block;background:#fff;margin:0;padding:24px}
 #sheet{margin:0 auto}
 </style></head>
-<body><div id="sheet"><article id="doc">${curSnap.html}</article></div></body></html>`;
+<body><div id="sheet"><article id="doc">${sheet.innerHTML}</article></div></body></html>`;
 
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));

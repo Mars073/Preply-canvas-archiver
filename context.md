@@ -32,11 +32,13 @@ Everything crosses through the background, which owns every write.
 | `pca:avatars` | `{classroomId: dataUri}` | background |
 | `pca:labels` | `{canvasId: name}` — user-chosen page names | viewer |
 | `pca:prefs` | `{zoom, roomId, pageId, focus}` | viewer |
+| `pca:img:<sha256>` | one captured image, as a data URI | background |
 
-Three things live outside snapshots on purpose: **order**, **avatars** and
-**labels** belong to a page or a classroom, not to a dated version. Storing
-them per snapshot would duplicate kilobytes across dozens of versions and lose
-them on deletion.
+Four things live outside snapshots on purpose: **order**, **avatars**,
+**labels** and **images** belong to a page, a classroom or the archive at large,
+not to a dated version. Storing them per snapshot would duplicate kilobytes
+across dozens of versions. Images are keyed by content hash and swept when no
+snapshot refers to them any more.
 
 ## What was learned about Preply
 
@@ -99,15 +101,15 @@ the `browser_specific_settings` key.
 
 - **Nothing here has ever been executed by an agent.** Every change is
   unverified until loaded in a browser.
-- **`tools/serialize.js` is not wired in.** It is the high-fidelity serialiser
-  (computed-style inlining, image data URIs) meant to replace
-  `serializeEditor()`, still awaiting a console test during a lesson.
-- **`fonts/` does not exist**, so the Figtree `@font-face` resolves to nothing
-  and the viewer falls back to a system font. Archived text therefore looks
-  slightly heavier than in Preply.
+- **The capture path has not run end to end since the restructuring.** The
+  viewer is verified on both browsers; button injection, capture, page order,
+  avatar and image harvesting all need a live lesson to confirm.
+- **`tools/serialize.js` is not wired in.** It inlines every computed style, not
+  colours alone, which would raise fidelity further. `cloneEditor()` handles
+  colours and images; the rest awaits a console test during a lesson.
 - **Accessibility deviations**, deliberate and documented: non-text contrast
   below 3:1 on control borders (WCAG 1.4.11), no reflow at 320 px (1.4.10), and
   diff additions signalled by colour alone (1.4.1).
 - **Retroactive archiving is impossible.** Only pages visited while the
-  extension is active can be captured.
-- **No licence file**, which currently makes the repository all-rights-reserved.
+  extension is active can be captured, and snapshots taken before images were
+  content-addressed still point at URLs that expired long ago.

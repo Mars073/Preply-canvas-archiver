@@ -10,6 +10,11 @@
  *   'pca:snap:<canvasId>:<ts>'   -> one snapshot
  *   'pca:order'                  -> {classroomId: {canvasId: {index, num}}}
  *   'pca:avatars'                -> {classroomId: dataUri}
+ *   'pca:img:<sha256>'           -> one captured image, as a data URI
+ *
+ * Images are content-addressed: the same picture recurs across the versions of
+ * a page and often across pages, so it is stored once and referenced from the
+ * markup by its hash. Orphans are swept after a deletion.
  */
 
 /**
@@ -53,6 +58,69 @@ async function mergeOrder(classroomId, entries) {
 
   all[classroomId] = room;
   await api.storage.local.set({ [ORDER_KEY]: all });
+}
+
+const IMAGE_PREFIX = 'pca:img:';
+
+/** Matches the hash a captured image was rewritten to. */
+const IMAGE_REF = /data-pca-img="([0-9a-f]{64})"/g;
+
+/**
+ * Stores captured images, one entry per distinct content hash.
+ *
+ * Content-addressed rather than inlined into each snapshot: the same picture
+ * appears in every version of a page, and often across pages. Keyed by hash it
+ * is written once for the whole archive, and an already-known hash costs
+ * nothing.
+ *
+ * @param {Record<string, string>} blobs - hash -> data URI.
+ * @returns {Promise<number>} how many were new.
+ */
+async function saveImages(blobs) {
+  const hashes = Object.keys(blobs || {});
+  if (hashes.length === 0) return 0;
+
+  const keys = hashes.map((h) => IMAGE_PREFIX + h);
+  const known = await api.storage.local.get(keys);
+
+  /** @type {Record<string, string>} */
+  const fresh = {};
+  for (const h of hashes) {
+    if (known[IMAGE_PREFIX + h] === undefined) fresh[IMAGE_PREFIX + h] = blobs[h];
+  }
+
+  const count = Object.keys(fresh).length;
+  if (count > 0) await api.storage.local.set(fresh);
+  return count;
+}
+
+/**
+ * Drops images no surviving snapshot refers to any more.
+ *
+ * Mark and sweep rather than reference counting: a counter drifts out of step
+ * the first time a write fails halfway, and then either leaks forever or
+ * deletes a picture still in use. Scanning what remains cannot be wrong, and at
+ * this scale it costs one pass over the archive.
+ *
+ * @returns {Promise<number>} how many were removed.
+ */
+async function sweepImages() {
+  const stored = await api.storage.local.get(INDEX_KEY);
+  const index = stored[INDEX_KEY] || [];
+
+  const snapshots = await api.storage.local.get(index.map((e) => e.key));
+  const live = new Set();
+  for (const snap of Object.values(snapshots)) {
+    if (!snap || typeof snap.html !== 'string') continue;
+    for (const m of snap.html.matchAll(IMAGE_REF)) live.add(m[1]);
+  }
+
+  const all = await api.storage.local.get(null);
+  const orphans = Object.keys(all)
+    .filter((k) => k.startsWith(IMAGE_PREFIX) && !live.has(k.slice(IMAGE_PREFIX.length)));
+
+  if (orphans.length > 0) await api.storage.local.remove(orphans);
+  return orphans.length;
 }
 
 const AVATARS_KEY = 'pca:avatars';
@@ -108,9 +176,15 @@ async function saveSnapshot(snap) {
   const avatar = snap.avatar;
   delete snap.avatar;
 
+  // Images travel with the snapshot but are stored apart, keyed by content
+  // hash, and the markup keeps only the hash.
+  const images = snap.images;
+  delete snap.images;
+
   await api.storage.local.set({ [key]: snap, [INDEX_KEY]: index });
   await mergeOrder(snap.classroomId, snap.order);
   await saveAvatar(snap.classroomId, avatar);
+  await saveImages(images);
   return { key, count: index.length };
 }
 
@@ -130,7 +204,10 @@ async function deleteSnapshots(keys) {
 
   await api.storage.local.remove(keys);
   await api.storage.local.set({ [INDEX_KEY]: index });
-  return { removed: doomed.size, remaining: index.length };
+
+  // Deleting a version may have orphaned its pictures.
+  const images = await sweepImages();
+  return { removed: doomed.size, remaining: index.length, images };
 }
 
 api.runtime.onMessage.addListener((msg) => {

@@ -41,18 +41,92 @@ let autosaveTimer;
 /** @type {MutationObserver|null} */
 let editorObserver = null;
 
+/** Refuses anything larger than this as an inline lesson image. */
+const MAX_IMAGE_BYTES = 4_000_000;
+
 /**
- * Serialises the ProseMirror node into standalone HTML.
+ * Content hash of a byte buffer, hex encoded.
+ *
+ * @param {ArrayBuffer} buffer
+ * @returns {Promise<string>} 64 hex characters.
+ */
+async function sha256(buffer) {
+  const digest = await crypto.subtle.digest('SHA-256', buffer);
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Downloads the images of a serialised document and replaces their `src` with
+ * a content hash.
+ *
+ * Preply serves Canvas images from presigned S3 links that expire within hours,
+ * so an archive keeping the URL looks right today and shows empty frames next
+ * week. The bytes have to be captured while the link is still valid.
+ *
+ * Content addressing rather than inlining: the same image appears in every
+ * version of a page, and inlining would store it once per version. Keyed by
+ * hash it is stored once for the whole archive.
+ *
+ * Mutates `clone` in place: `src` is dropped and `data-pca-img` holds the hash.
+ * An image that cannot be fetched keeps its original URL and gains
+ * `data-pca-unreachable`, so a broken frame is at least explained.
+ *
+ * @param {Element} clone - detached copy of the editor.
+ * @returns {Promise<Record<string, string>>} new blobs, hash -> data URI.
+ */
+async function harvestImages(clone) {
+  /** @type {Record<string, string>} */
+  const blobs = {};
+
+  await Promise.all([...clone.querySelectorAll('img')].map(async (img) => {
+    const src = img.getAttribute('src');
+    img.removeAttribute('srcset');
+    img.removeAttribute('sizes');
+    if (!src || src.startsWith('data:')) return;
+
+    try {
+      const res = await fetch(new URL(src, location.href).href, { credentials: 'same-origin' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const buffer = await res.arrayBuffer();
+      if (buffer.byteLength > MAX_IMAGE_BYTES) throw new Error(`${buffer.byteLength} bytes`);
+
+      const hash = await sha256(buffer);
+      img.removeAttribute('src');
+      img.setAttribute('data-pca-img', hash);
+
+      // The blob is sent every time; the background writes it only when the
+      // hash is unknown, so a recurring image costs one message and no storage.
+      blobs[hash] = await new Promise((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onload = () => resolve(fr.result);
+        fr.onerror = () => reject(fr.error);
+        fr.readAsDataURL(new Blob([buffer], { type: res.headers.get('content-type') || 'image/png' }));
+      });
+    } catch (e) {
+      img.setAttribute('data-pca-unreachable', src);
+      console.warn('[pca] image not captured', src, e);
+    }
+  }));
+
+  return blobs;
+}
+
+/**
+ * Copies the ProseMirror node and strips it of everything Preply-specific.
  *
  * Preply's colours are obfuscated tokens (`var(--0d2c1d)`) defined in one of
- * their stylesheets. They are resolved to computed values at capture time, so
- * the resulting HTML depends on no external CSS.
+ * their stylesheets. They are resolved to computed values here, so the stored
+ * HTML depends on no external CSS.
+ *
+ * Returns the clone rather than its innerHTML: the caller still has to harvest
+ * the images, which is asynchronous, before the markup is final.
  *
  * @param {Element} editor - the live `.ProseMirror` node.
- * @returns {string} cleaned innerHTML, with no editing attributes left.
+ * @returns {Element} a detached clone, cleaned of editing attributes.
  * @throws {TypeError} when `editor` is not an Element.
  */
-function serializeEditor(editor) {
+function cloneEditor(editor) {
   if (!(editor instanceof Element)) throw new TypeError('editor must be an Element');
 
   const clone = editor.cloneNode(true);
@@ -73,7 +147,7 @@ function serializeEditor(editor) {
   for (const el of clone.querySelectorAll('[contenteditable]')) el.removeAttribute('contenteditable');
   for (const el of clone.querySelectorAll('[tabindex]')) el.removeAttribute('tabindex');
 
-  return clone.innerHTML;
+  return clone;
 }
 
 /**
@@ -168,13 +242,18 @@ async function grabAvatar(title) {
  * @returns {{canvasId: string, classroomId: string, page: string, course: string, title: string, url: string, ts: string, order: object[], html: string}|null}
  *   `null` when the Canvas is not on screen.
  */
-function buildSnapshot() {
+async function buildSnapshot() {
   const editor = document.querySelector(SEL_EDITOR);
   if (!editor) return null;
 
   const m = location.pathname.match(/\/classroom-v2\/(\d+)\/canvas\/(\d+)/);
   const lang = location.pathname.match(/\/edu\/([a-z-]+)\//i);
   const active = document.querySelector(SEL_ACTIVE_THUMB);
+
+  // The clone is prepared first, then its images are downloaded while their
+  // presigned links are still valid, and only then is innerHTML read.
+  const clone = cloneEditor(editor);
+  const images = await harvestImages(clone);
 
   return {
     classroomId: m ? m[1] : 'unknown',
@@ -188,7 +267,8 @@ function buildSnapshot() {
     url: location.href,
     ts: new Date().toISOString(),
     order: readPageOrder(),
-    html: serializeEditor(editor),
+    images,
+    html: clone.innerHTML,
   };
 }
 
@@ -200,7 +280,7 @@ function buildSnapshot() {
  * @returns {Promise<'saved'|'unchanged'|'no-canvas'>}
  */
 async function capture(manual) {
-  const snap = buildSnapshot();
+  const snap = await buildSnapshot();
   if (!snap) return 'no-canvas';
   if (!manual && snap.html === lastSavedHtml) return 'unchanged';
 
