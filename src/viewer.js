@@ -1053,6 +1053,69 @@ async function selectRoom(room) {
  * @param {string} [entryKey] - version to restore instead of the newest.
  * @returns {Promise<void>}
  */
+/**
+ * Brings the first occurrence of the search term to the middle of the reading
+ * area and flashes it.
+ *
+ * Folds accents and case exactly as the page filter does, so a search for
+ * "slonce" lands on "słońce". Folding can change length — "œ" becomes two
+ * characters — so the position is mapped back through foldWithMap() rather
+ * than reused as-is.
+ *
+ * Lines the diff inserted are skipped: a deleted line is no longer part of the
+ * document, and sending the reader to struck-through text would misdirect.
+ *
+ * Does nothing when the term matches only the page title, or nothing at all.
+ * The reader is then left at the top, where a document normally opens.
+ *
+ * @param {string} needle - already folded, as fold() returns it.
+ * @returns {void}
+ */
+function revealMatch(needle) {
+  if (!needle) return;
+
+  const walker = document.createTreeWalker(elDoc, NodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    if (node.parentElement && node.parentElement.closest('.pca-del')) continue;
+
+    const { out, map } = foldWithMap(node.nodeValue);
+    const at = out.indexOf(needle);
+    if (at === -1) continue;
+
+    const end = at + needle.length;
+    const range = document.createRange();
+    range.setStart(node, map[at]);
+    range.setEnd(node, end < map.length ? map[end] : node.nodeValue.length);
+
+    // A wrapped span rather than an overlay: it travels with the text, so the
+    // mark stays on the word if the reader scrolls while it is still fading.
+    // The range never crosses an element boundary — matching is done one text
+    // node at a time — which is the condition surroundContents() imposes.
+    const mark = document.createElement('span');
+    mark.className = 'pca-hit';
+    range.surroundContents(mark);
+
+    // Unwrapped once the fade is over, and normalize() welds the text node back
+    // together. Without it every search would leave the document a little more
+    // fragmented, and blockText() would still read the same string while the
+    // DOM underneath drifted further from the archived one.
+    mark.addEventListener('animationend', () => {
+      const parent = mark.parentNode;
+      if (!parent) return;
+      parent.replaceChild(document.createTextNode(mark.textContent), mark);
+      parent.normalize();
+    }, { once: true });
+
+    // Centred, not merely revealed: a hit pinned against the top edge loses
+    // the lines above it that give it its meaning.
+    const box = mark.getBoundingClientRect();
+    const view = elScroll.getBoundingClientRect();
+    const offset = (box.top - view.top) - (elScroll.clientHeight - box.height) / 2;
+    elScroll.scrollTop = Math.max(0, elScroll.scrollTop + offset);
+    return;
+  }
+}
+
 async function selectPage(page, entryKey) {
   curPage = page;
   prefs.roomId = curRoom ? curRoom.id : null;
@@ -1064,6 +1127,10 @@ async function selectPage(page, entryKey) {
   // have been deleted between two renders.
   const wanted = entryKey && page.entries.find((e) => e.key === entryKey);
   await showSnapshot(wanted || page.entries[0]);
+
+  // After the snapshot, never before: showSnapshot() sets the scroll position
+  // itself, so a jump to the match has to have the last word on it.
+  revealMatch(fold(elFilter.value.trim()));
   if (historyOpen()) await renderHistory();
 }
 

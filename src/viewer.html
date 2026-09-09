@@ -331,6 +331,29 @@
      Deletions keep a non-colour cue, the strike-through; additions rest on
      colour alone — an accepted deviation from WCAG 1.4.1. */
   #doc .pca-add{background:#e0faf6;box-shadow:-14px 0 0 #e0faf6;border-radius:2px}
+
+  /* The searched term, flashed once when a filtered page is opened. It holds
+     long enough to be found by eye, then fades out and the span is unwrapped.
+     Yellow is deliberately outside the diff palette: green and red already
+     mean added and removed, and a third meaning must not borrow their colours.
+
+     A spread-only box-shadow in the same colour pushes the ground a few pixels
+     past the glyphs, so the mark reads as a highlighter stroke rather than as
+     a tight box clamped to the text. It has no offset and no blur: it is not a
+     shadow here, it is extra background. It fades in the same keyframes as the
+     background, or the halo would outlive the fill.
+
+     Both go to transparent YELLOW rather than to `transparent`, which
+     interpolates through grey and dirties the last frames.
+
+     Left out of the reduced-motion rule on purpose: nothing moves, and the
+     mark disappearing on its own is the behaviour, not an ornament. */
+  @keyframes pca-hit-fade{
+    0%,55%{background-color:#fde68a;box-shadow:0 0 0 3px #fde68a}
+    100%{background-color:rgba(253,230,138,0);box-shadow:0 0 0 3px rgba(253,230,138,0)}
+  }
+  #doc .pca-hit{border-radius:3px;
+    animation:pca-hit-fade 1.7s var(--ease) forwards}
   #doc .pca-del{background:#ffeceb;box-shadow:-14px 0 0 #ffeceb;border-radius:2px;
     color:var(--ink-2);text-decoration:line-through;text-decoration-color:#f87e77}
 
@@ -402,6 +425,8 @@
        longer belongs to the document — printing it would misstate its
        contents. */
     #doc .pca-del{display:none}
+    /* A transient mark must never be frozen into a PDF. */
+    #doc .pca-hit{animation:none;background:none}
     #doc .pca-add{background:none;box-shadow:none}
 
     #doc{max-width:none;margin:0;padding:0;border:0;border-radius:0;zoom:1 !important}
