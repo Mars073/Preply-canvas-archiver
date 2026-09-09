@@ -36,6 +36,32 @@ deviations below are deliberate and take precedence over it.
 - **Accessibility is not optional** and overrides visual preference. Known
   deviations are listed in `context.md`; do not add new ones silently.
 
+## Versioning
+
+Semantic versioning, with one adjustment: **the compatibility surface is
+`storage.local`, not a public API.** Nobody calls this code; what users own is
+their archive. A key renamed or a payload reshaped without a migration destroys
+it, and that is what earns a major bump.
+
+| Change | Bump |
+|---|---|
+| Storage layout changed with no migration path | major |
+| Visible feature, new locale, new permission | minor |
+| Fix, styling, translation, documentation | patch |
+| Preply selector repaired after one of their deployments | patch, released quickly |
+
+While the version stays `0.x`, the storage format is explicitly unstable and a
+minor bump may still break archives. Say so in the release notes when it does.
+
+**The version string must be one to four dot-separated integers**, each below
+65536. Chrome accepts nothing else — no `-beta`, no `+build`, no leading zeros.
+Firefox is more permissive, but a single format across both stores avoids
+maintaining two numbering schemes.
+
+`src/manifest.json` and `src/manifest.chrome.json` must always carry the same
+version. The release workflow refuses to build when they disagree, or when the
+tag does not match them.
+
 ## Generated files — never edit by hand
 
 | File | Regenerate with |

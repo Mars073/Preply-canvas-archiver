@@ -1,0 +1,64 @@
+# Builds both store packages when a version tag is pushed, and attaches them to
+# a GitHub Release.
+#
+# Deliberately stops there. Uploading to AMO and the Chrome Web Store stays
+# manual: both put a submission through human review with back-and-forth, so
+# automating the upload would add API secrets and a failure mode without
+# removing any actual work.
+#
+# No third-party actions and no npm: the runner already has bash, jq, zip and
+# the gh CLI, which is the whole toolchain this project needs.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Manifests are valid JSON
+        run: jq empty src/manifest.json src/manifest.chrome.json
+
+      - name: Tag and both manifests agree on the version
+        run: |
+          firefox=$(jq -r .version src/manifest.json)
+          chrome=$(jq -r .version src/manifest.chrome.json)
+          tag="${GITHUB_REF_NAME#v}"
+
+          if [ "$firefox" != "$chrome" ]; then
+            echo "::error::manifest.json is $firefox but manifest.chrome.json is $chrome"
+            exit 1
+          fi
+          if [ "$firefox" != "$tag" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match manifest version $firefox"
+            exit 1
+          fi
+          # Chrome accepts one to four dot-separated integers and nothing else.
+          case "$firefox" in
+            *[!0-9.]*|.*|*.|*..*)
+              echo "::error::version $firefox is not a plain dotted-integer string"
+              exit 1 ;;
+          esac
+          echo "releasing $firefox"
+
+      - name: Build both packages
+        run: bash tools/package.sh
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/*.zip \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            --verify-tag
