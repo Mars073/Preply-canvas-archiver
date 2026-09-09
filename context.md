@@ -101,9 +101,12 @@ the `browser_specific_settings` key.
 
 - **Nothing here has ever been executed by an agent.** Every change is
   unverified until loaded in a browser.
-- **The capture path has not run end to end since the restructuring.** The
-  viewer is verified on both browsers; button injection, capture, page order,
-  avatar and image harvesting all need a live lesson to confirm.
+- **The capture path has never run end to end since the restructuring.** The
+  viewer is verified in Firefox and in Chrome, on 0.1.2, loaded from
+  `dist/chrome/`: it opens, renders and localises. Button injection, capture,
+  page order, avatar and image harvesting have not been exercised in either
+  browser — they all need a live lesson, which is the one thing no test here
+  can fake.
 - **`tools/serialize.js` is not wired in.** It inlines every computed style, not
   colours alone, which would raise fidelity further. `cloneEditor()` handles
   colours and images; the rest awaits a console test during a lesson.

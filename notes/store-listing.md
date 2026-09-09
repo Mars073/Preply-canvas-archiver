@@ -207,3 +207,54 @@ Preply 只允许在上课期间打开课程的 Canvas，课后就无法访问。
 一切都保存在你的浏览器中。无需账号，没有服务器，不做任何追踪。
 
 非官方工具，与 Preply 无关联。
+
+---
+
+## Chrome Web Store — Privacy practices tab
+
+Chrome asks for each of these as a separate field, where AMO inferred them from
+the reviewer notes. Kept here so both stores answer identically.
+
+### Single purpose description
+
+Preply only lets a student open a lesson's Canvas — the shared notes document —
+while the lesson is running. This extension saves a copy of that Canvas page to
+local browser storage and shows it again afterwards. That is its only function.
+It does nothing on any site other than preply.com.
+
+### Host permission justification — https://preply.com/*
+
+The extension reads the Canvas document of a Preply lesson page the user is
+already viewing, so it can save a copy, and it fetches the images displayed on
+that page so they can be stored inline. Preply serves those images from
+presigned URLs that expire, so an archive that merely linked to them would break
+within days. No other host is requested and the extension runs on no other site.
+
+### storage justification
+
+Saved Canvas pages, their successive versions, the page order within a
+classroom, the tutor avatars and the user's display preferences are all kept in
+local extension storage. None of it is transmitted anywhere.
+
+### unlimitedStorage justification
+
+One lesson accumulates dozens of whole HTML versions over months, each carrying
+its images inline. The default quota would silently truncate the user's archive
+once it filled — which is precisely the loss this extension exists to prevent.
+Snapshots are stored whole and independent by design, so the archive grows
+rather than being compacted into fragile delta chains.
+
+### Remote code
+
+**No, I am not using remote code.** Every line of JavaScript that runs ships
+inside the package. There is no bundler, no CDN, no eval, no remotely hosted
+script and no inline script; viewer.html loads three local files. The images
+fetched from preply.com are data, not code: they are inlined as `data:` URIs and
+never executed. The extension declares no `content_security_policy`, so the
+default MV3 policy (`script-src 'self'`) applies unchanged.
+
+### Data usage certification
+
+No user data is collected, transmitted or sold, so none of the data categories
+apply. Everything the extension writes stays in `storage.local` on the user's
+own machine. Certify all three clauses.
