@@ -36,7 +36,7 @@ for target in firefox chrome; do
   # Legal notices travel with the package, not only with the repository. The MIT
   # licence of the embedded icon paths requires its notice to accompany every
   # copy, and a published .xpi or .crx is a copy. LICENSE is copied when it
-  # exists — the project has not chosen one yet.
+  # exists; the project is MPL-2.0.
   cp THIRD-PARTY.md "$out/"
   [ -f LICENSE ] && cp LICENSE "$out/"
 
@@ -51,9 +51,29 @@ for target in firefox chrome; do
     (cd "$out" && zip -qr "../../$archive" .)
     echo "  $archive"
   elif command -v powershell.exe >/dev/null 2>&1; then
-    # Windows fallback: Git Bash ships no zip, but Compress-Archive exists.
-    MSYS_NO_PATHCONV=1 powershell.exe -NoProfile -Command \
-      "Compress-Archive -Path '$out/*' -DestinationPath '$archive' -Force" >/dev/null
+    # Windows fallback: Git Bash ships no zip. Compress-Archive cannot be used
+    # here — PowerShell 5.1 writes "\" as the entry separator, which the ZIP
+    # format forbids (APPNOTE 4.4.17.1 requires "/") and which yields a package
+    # a browser store may reject or extract flat. Entries are written one by one
+    # with normalised names instead.
+    ps1="dist/.pack.ps1"
+    cat > "$ps1" <<'PS'
+param([string]$Src, [string]$Out)
+$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$root = (Resolve-Path $Src).Path
+$zip = [System.IO.Compression.ZipFile]::Open($Out, 'Create')
+Get-ChildItem -LiteralPath $root -Recurse -File | ForEach-Object {
+  $name = $_.FullName.Substring($root.Length + 1).Replace('\', '/')
+  [void][System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $_.FullName, $name)
+}
+$zip.Dispose()
+PS
+    MSYS_NO_PATHCONV=1 powershell.exe -NoProfile -ExecutionPolicy Bypass \
+      -File "$(cygpath -w "$ps1")" \
+      -Src "$(cygpath -w "$out")" \
+      -Out "$(cygpath -w "$archive")" >/dev/null
+    rm -f "$ps1"
     echo "  $archive"
   else
     echo "  (no zip available: the $out folder is ready to load as-is)"
