@@ -26,6 +26,7 @@ storage, and displays them again afterwards.
 | `host_permissions: https://preply.com/*` | The extension reads the Canvas document of a lesson page the user is already viewing, in order to save a copy. It runs on no other site. |
 | `storage` | Saved pages, their versions and the user's display preferences are kept in local extension storage. |
 | `unlimitedStorage` | A single lesson accumulates dozens of HTML versions over time; the default quota would silently truncate a user's archive. |
+| `data_collection_permissions: { required: ["none"] }` | Nothing is transmitted outside the extension. Declared explicitly so Firefox’s built-in consent screen states it. |
 
 ### Data handling
 
@@ -33,6 +34,30 @@ No user data is collected, transmitted or sold. The extension has no server and
 no analytics. Everything it writes stays in the browser's local storage on the
 user's own machine. The only outbound requests go to `preply.com` itself, to
 download images already displayed on the page being archived.
+
+### Linter warnings
+
+The validator reports four `UNSAFE_VAR_ASSIGNMENT` warnings in `viewer.js`.
+They are inherent to the add-on: it archives an HTML document and shows it
+again, so it writes HTML.
+
+Three of the four build a **detached** `<div>` that is never inserted into any
+document — two read `textContent` back for the page list and the search
+excerpts, one serialises a standalone HTML export. Only `showSnapshot()`
+writes into the live page.
+
+The content originates from the Preply Canvas, so a tutor could in principle
+paste an inline event handler into it. Two properties close that: `innerHTML`
+never executes a `<script>`, and the extension declares **no**
+`content_security_policy`, so the default MV3 policy (`script-src 'self'`)
+applies to extension pages and blocks inline handlers. No `eval`, no remote
+script, no inline script anywhere — `viewer.html` loads three local files.
+
+The metadata also lists `content.js` and `viewer.js` under
+`unknownMinifiedFiles`. Neither is minified or generated: both are the
+hand-written sources, commented and JSDoc-annotated. The whole add-on is
+built without a bundler, a transpiler or a minifier, and the repository is
+public at https://github.com/Mars073/Preply-canvas-archiver.
 
 ### Testing instructions
 

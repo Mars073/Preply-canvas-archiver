@@ -734,6 +734,13 @@ async function showSnapshot(entry) {
   if (!snap) throw new Error(`missing snapshot: ${entry.key}`);
 
   curSnap = { ...snap, key: entry.key };
+  // The archived document is written as HTML because that is what it is. The
+  // linter flags this, and the risk it names is real in principle: a tutor
+  // could paste an inline handler into the Canvas. Two things close it —
+  // innerHTML never executes a <script>, and the default MV3 CSP
+  // (script-src 'self', no override in either manifest) blocks inline
+  // handlers on extension pages. Declaring a content_security_policy that
+  // relaxes script-src would reopen it.
   elDoc.innerHTML = snap.html;
   await resolveImages(elDoc);
   const tag = langOf(snap);
