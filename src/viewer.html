@@ -43,6 +43,9 @@
     --danger:#c9160d; --danger-line:#fdc2be; --ok:#067560;
     --radius:10px; --radius-lg:18px; --radius-btn:10px;
     --gap:12px;
+    /* One duration and one curve for every panel movement, so the focus
+       toggle and anything added later stay in step. */
+    --slide:.34s; --ease:cubic-bezier(.4,0,.2,1);
     /* Two layers: a tight contact shadow at the edge of the card, and a wide,
        very pale one for detachment. A single shadow gives either a dirty halo
        or a hard edge. */
@@ -62,11 +65,34 @@
     background:var(--bg); color:var(--ink);
     font:14px/1.55 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     -webkit-user-select:none; user-select:none;
+    /* Panels leave by sliding past the left edge; without this they would
+       widen the page instead of disappearing behind it. */
+    overflow:hidden;
+    transition:grid-template-columns var(--slide) var(--ease),
+               gap var(--slide) var(--ease);
   }
   /* Focus mode: both navigation panels give way to the document, which is the
-     product. Once a page is chosen they are secondary. */
-  body.focus{grid-template-columns:1fr}
-  body.focus #classrooms, body.focus #pages{display:none}
+     product. Once a page is chosen they are secondary.
+
+     The tracks collapse to zero rather than being removed: the list stays
+     three items long, which is what makes it interpolable at all — a list of
+     a different length does not animate, it snaps.
+
+     Each panel keeps its own width and is pinned to the END of its track, so
+     a collapsing track drags it leftwards. The two tracks collapse across the
+     same span, so on the way out the pages panel slides over the classrooms
+     panel and covers it, and uncovers it on the way back. That overlap is the
+     whole effect; it falls out of the geometry rather than being staged. */
+  #classrooms{width:264px}
+  #pages{width:300px}
+  #classrooms,#pages{justify-self:end;transition:visibility 0s}
+  body.focus{grid-template-columns:0px 0px 1fr;gap:0}
+  /* Hidden only once the slide is over, otherwise the panel vanishes mid-
+     flight. visibility, not display: it drops them from the tab order and
+     from the accessibility tree, which off-screen alone would not. */
+  body.focus #classrooms,body.focus #pages{
+    visibility:hidden;transition:visibility 0s var(--slide);
+  }
 
   button{font:inherit;color:inherit}
   :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
@@ -221,7 +247,14 @@
      must stay reachable by horizontal scrolling. */
   /* Side padding must exceed the blur radius of the document shadow, or
      overflow:auto slices it flat along the edges. */
-  #scroll{flex:1;overflow:auto;padding:0 16px 48px}
+  /* overflow-y is scroll, not auto: the gutter is reserved once and for all.
+     The document is centred, so a scrollbar that comes and goes moves it
+     sideways — and it does come and go, because re-rendering empties the
+     article for an instant and the diff then adds the deleted lines back.
+     Reading was drifting left and snapping back on every history toggle.
+     Browsers with overlay scrollbars reserve nothing here, which is right:
+     they never caused the shift. */
+  #scroll{flex:1;overflow-y:scroll;overflow-x:auto;padding:0 16px 48px}
   /* Typography of Preply's editor: Figtree, 20px, ligatures off. Without this
      baseline an archived <span style="font-size:20px"> looks 1.43x larger than
      its surroundings, where in Preply it blends in. */
@@ -273,7 +306,21 @@
     border-radius:var(--radius-lg);
     display:flex;flex-direction:column;overflow:hidden;
     box-shadow:0 1px 2px rgba(18,17,23,.04), 0 16px 40px rgba(18,17,23,.10)}
-  #history[hidden]{display:none}
+  /* Closed state. The panel keeps its box and slides out to the right,
+     overlapping the document on the way — it is an overlay already, so the
+     movement only has to reveal that. The `hidden` attribute is deliberately
+     not used: [hidden] forces display:none, which cancels any transition.
+     visibility does what hidden did for assistive technology, and is delayed
+     by the slide so the panel does not blink out mid-flight. */
+  #history{visibility:hidden;opacity:0;
+    transform:translateX(calc(100% + 6px));
+    transition:transform var(--slide) var(--ease),
+               opacity var(--slide) var(--ease),
+               visibility 0s var(--slide)}
+  #history.open{visibility:visible;opacity:1;transform:none;
+    transition:transform var(--slide) var(--ease),
+               opacity var(--slide) var(--ease),
+               visibility 0s}
   #history header{padding:16px 18px 12px;border-bottom:1px solid var(--line-soft)}
   #history header .row{display:flex;align-items:center}
   #history h2{margin:0;font-size:14px;font-weight:650}
@@ -318,9 +365,23 @@
     #doc{max-width:none;margin:0;padding:0;border:0;border-radius:0;zoom:1 !important}
     @page{margin:16mm}
   }
+
+  /* Until the stored preferences have been applied, nothing moves: a panel
+     must not be seen sliding away on a page that opened folded. The class is
+     dropped one frame after boot. */
+  body.booting,body.booting #classrooms,body.booting #pages,
+  body.booting #history{transition:none}
+
+  /* Motion is decoration here: the layout is identical at both ends, so
+     removing the animation costs nothing and every toggle stays instant.
+     Covers the history panel too, which slides on the same variables. */
+  @media (prefers-reduced-motion:reduce){
+    body,body #classrooms,body #pages,#history,#history.open,
+    body.focus #classrooms,body.focus #pages{transition:none}
+  }
 </style>
 </head>
-<body>
+<body class="booting">
 
 <!-- Every user-visible string carries its key and is filled by applyI18n().
      Nothing is written twice: the markup declares, messages.json holds. -->
@@ -401,7 +462,7 @@
     </div>
   </div>
 
-  <aside id="history" hidden aria-labelledby="history-head">
+  <aside id="history" aria-labelledby="history-head">
     <header>
       <div class="row">
         <h2 id="history-head" tabindex="-1" data-i18n="historyTitle"></h2>

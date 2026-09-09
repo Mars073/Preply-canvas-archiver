@@ -77,6 +77,22 @@ principle covers colours, the archive button's styling — cloned from a live
 Preply button rather than copied by class name — and images, inlined as data
 URIs because Preply's asset URLs are presigned and expire.
 
+**Panels move with `transform`, and focus moves with `preventScroll`.** Only
+`transform` and `opacity` are animated, because they are painted after layout
+and so cannot shift anything else. The trap is elsewhere: moving focus into a
+panel that is still travelling makes the browser scroll an ancestor to bring
+the focused element into view. `#main` carries `overflow:hidden`, which makes
+it a scroll container even though it shows no bar, so the whole page slid
+sideways on every history toggle. Any focus sent into an animated panel needs
+`focus({ preventScroll: true })`.
+
+**The document is swapped whole.** `showSnapshot()` builds it in a detached
+node, resolves its images there, and hands it over in one `replaceChildren()`.
+Assigning `innerHTML` first and awaiting the images afterwards paints a
+document whose images have no height yet, which changes the page height and
+moves the scrollbar. For the same reason the scrollbar gutter is reserved with
+`overflow-y:scroll` rather than left to `auto`.
+
 **`zoom`, not `font-size`.** Archived content carries inline `font-size: 20px`
 from Preply, which a typographic zoom would leave untouched. `zoom` scales every
 computed length, column width included, so line breaks stay where Preply put

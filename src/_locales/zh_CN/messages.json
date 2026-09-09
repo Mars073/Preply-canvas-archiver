@@ -61,6 +61,7 @@
   "deleteVersion": { "message": "删除此版本" },
   "deleteVersionLabel": { "message": "删除 $1 的版本" },
   "versionDeleted": { "message": "已删除 $1 的版本" },
+  "snapshotAnnounce": { "message": "$1，$2 的版本。$3" },
 
   "pageRenamed": { "message": "页面已重命名为 $1" },
   "panelsHidden": { "message": "导航面板已隐藏" },

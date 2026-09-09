@@ -66,6 +66,7 @@
   "deleteVersion": { "message": "Delete this version" },
   "deleteVersionLabel": { "message": "Delete the version from $1" },
   "versionDeleted": { "message": "Version from $1 deleted" },
+  "snapshotAnnounce": { "message": "$1, version from $2. $3" },
 
   "pageRenamed": { "message": "Page renamed to $1" },
   "panelsHidden": { "message": "Navigation panels hidden" },

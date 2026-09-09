@@ -42,6 +42,20 @@ const elMenu = document.getElementById('more-menu');
 const btnMore = document.getElementById('btn-more');
 const btnFocus = document.getElementById('btn-focus');
 const elHistory = document.getElementById('history');
+
+/**
+ * Whether the history panel is open.
+ *
+ * The panel is no longer toggled with the `hidden` attribute: it has to stay
+ * in the layout to slide, and `[hidden]` forces `display:none`, which cancels
+ * every transition. `.open` carries the state; `visibility` in CSS does what
+ * `hidden` used to do for assistive technology and the tab order.
+ *
+ * @returns {boolean}
+ */
+function historyOpen() {
+  return elHistory.classList.contains('open');
+}
 const elHList = document.getElementById('hlist');
 const btnHistory = document.getElementById('btn-history');
 
@@ -733,6 +747,14 @@ async function showSnapshot(entry) {
   const snap = store[entry.key];
   if (!snap) throw new Error(`missing snapshot: ${entry.key}`);
 
+  // Opening or closing the history panel re-renders the SAME snapshot, only to
+  // add or strip the comparison marks. Scrolling back to the top there throws
+  // the reader out of the passage they were reading; it is only right when the
+  // document being shown actually changes.
+  const scroller = document.getElementById('scroll');
+  const sameDocument = curSnap !== null && curSnap.key === entry.key;
+  const keptScroll = sameDocument ? scroller.scrollTop : 0;
+
   curSnap = { ...snap, key: entry.key };
   // The archived document is written as HTML because that is what it is. The
   // linter flags this, and the risk it names is real in principle: a tutor
@@ -741,8 +763,15 @@ async function showSnapshot(entry) {
   // (script-src 'self', no override in either manifest) blocks inline
   // handlers on extension pages. Declaring a content_security_policy that
   // relaxes script-src would reopen it.
-  elDoc.innerHTML = snap.html;
-  await resolveImages(elDoc);
+  // Built detached, then swapped in one go. Assigning innerHTML and resolving
+  // the images afterwards paints an intermediate document: resolveImages()
+  // awaits storage, so for a frame or two the images have no src and no
+  // height. The page was visibly shorter, the scrollbar came and went, and
+  // the centred sheet slid sideways and back on every history toggle.
+  const built = document.createElement('div');
+  built.innerHTML = snap.html;
+  await resolveImages(built);
+  elDoc.replaceChildren(...built.childNodes);
   const tag = langOf(snap);
   if (tag) elDoc.lang = tag;
   else elDoc.removeAttribute('lang');
@@ -766,11 +795,14 @@ async function showSnapshot(entry) {
     else open.removeAttribute('aria-current');
   }
 
-  document.getElementById('scroll').scrollTop = 0;
 
   // The diff enriches elMeta, so it has to run before the announcement.
   await applyDiff(entry);
-  announce(`${elTitle.textContent}, version du ${fmt(snap.ts)}. ${elMeta.textContent}`);
+
+  // Restored after the diff, not before: inserting the deleted lines changes
+  // the height above the viewport, so an earlier restore would land elsewhere.
+  scroller.scrollTop = keptScroll;
+  announce(t('snapshotAnnounce', [elTitle.textContent, fmt(snap.ts), elMeta.textContent]));
 }
 
 /** Past this, the dynamic programming table costs too much memory. */
@@ -830,7 +862,7 @@ function diffLines(a, b) {
  * @returns {Promise<void>}
  */
 async function applyDiff(entry) {
-  if (elHistory.hidden || !curPage) return;
+  if (!historyOpen() || !curPage) return;
 
   const pos = curPage.entries.findIndex((e) => e.key === entry.key);
   const previous = curPage.entries[pos + 1];
@@ -1026,7 +1058,7 @@ async function selectPage(page, entryKey) {
   // have been deleted between two renders.
   const wanted = entryKey && page.entries.find((e) => e.key === entryKey);
   await showSnapshot(wanted || page.entries[0]);
-  if (!elHistory.hidden) await renderHistory();
+  if (historyOpen()) await renderHistory();
 }
 
 /**
@@ -1054,7 +1086,7 @@ async function refresh(opts = {}) {
     elSheet.hidden = true;
     elPlaceholder.hidden = false;
     elTopbar.hidden = true;
-    elHistory.hidden = true;
+    elHistory.classList.remove('open');
     btnHistory.setAttribute('aria-pressed', 'false');
     return;
   }
@@ -1085,7 +1117,7 @@ async function refresh(opts = {}) {
  * @returns {Promise<void>}
  */
 async function setHistory(open) {
-  elHistory.hidden = !open;
+  elHistory.classList.toggle('open', open);
   btnHistory.setAttribute('aria-pressed', String(open));
 
   if (open) await renderHistory();
@@ -1098,12 +1130,18 @@ async function setHistory(open) {
   // On opening, the panel sits far from the button in DOM order: without moving
   // focus, tabbing would carry on through the toolbar. On closing, focus has to
   // return to where it started.
-  if (open) document.getElementById('history-head').focus();
+  // preventScroll is not a nicety here. The heading lives inside the panel,
+  // which at this instant is still translated off to the right, and #main is
+  // a scroll container because of its overflow:hidden. Focusing normally makes
+  // the browser scroll the heading into view, which slides every bit of the
+  // page sideways until the panel lands. The panel is already on its way in;
+  // nothing needs scrolling to reach it.
+  if (open) document.getElementById('history-head').focus({ preventScroll: true });
   else btnHistory.focus();
 }
 
 btnHistory.addEventListener('click', () => {
-  setHistory(elHistory.hidden).catch(console.error);
+  setHistory(!historyOpen()).catch(console.error);
 });
 
 document.getElementById('hclose').addEventListener('click', () => {
@@ -1164,7 +1202,7 @@ document.addEventListener('keydown', (e) => {
     btnMore.focus();
     return;
   }
-  if (!elHistory.hidden) {
+  if (historyOpen()) {
     e.stopPropagation();
     // Same path as the cross and the button: closing must also strip the
     // comparison marks from the document.
@@ -1418,6 +1456,13 @@ api.storage.onChanged.addListener((changes, area) => {
   await loadOrder();
   await loadAvatars();
   setFocusMode(prefs.focus === true);
+
+  // Two frames, not one: the first still carries the pre-focus layout, so a
+  // class dropped there would let the collapse animate on a page that was
+  // meant to open already folded.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.body.classList.remove('booting');
+  }));
   initZoom();
   await refresh();
 })().catch(console.error);

@@ -76,6 +76,7 @@
   "deleteVersion": { "message": "Удалить эту версию" },
   "deleteVersionLabel": { "message": "Удалить версию от $1" },
   "versionDeleted": { "message": "Версия от $1 удалена" },
+  "snapshotAnnounce": { "message": "$1, версия от $2. $3" },
 
   "pageRenamed": { "message": "Страница переименована в $1" },
   "panelsHidden": { "message": "Панели навигации скрыты" },
