@@ -1694,7 +1694,7 @@ document.getElementById('back-rooms').addEventListener('click', backToRooms);
 
 btnFocus.addEventListener('click', () => setFocusMode(!document.body.classList.contains('focus')));
 
-/* ------------------------------------------------- renommage d'une page */
+/* ------------------------------------------------------ renaming a page */
 
 /** Value shown before editing, so it can be cancelled. @type {string|null} */
 let titleBefore = null;
@@ -1915,7 +1915,7 @@ api.storage.onChanged.addListener((changes, area) => {
   }, 300);
 });
 
-/* ------------------------------------------------------- fondus de defilement */
+/* --------------------------------------------------------- scroll fades */
 
 /**
  * How far the reader has to scroll before the top fade appears, in pixels.
