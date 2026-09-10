@@ -6,8 +6,8 @@ them.
 
 Unofficial tool, not affiliated with Preply.
 
-> **Status: pre-release.** Version 0.1.2 is under review on addons.mozilla.org.
-> Not yet submitted to the Chrome Web Store.
+> **Status: pre-release.** Version 0.2.0 is under review on addons.mozilla.org
+> and on the Chrome Web Store.
 >
 > Project page: <https://mars073.github.io/Preply-canvas-archiver/>
 
@@ -19,24 +19,27 @@ Unofficial tool, not affiliated with Preply.
 
 - Adds an **archive button** to the Canvas toolbar during a lesson. One click
   stores the page; it also saves on its own a minute after the last edit.
+- Adds a **quick print** button beside it, for a PDF of the page on screen
+  without leaving the lesson.
 - Keeps **every version** of a page, and shows what changed between two of them.
 - Reads your archive **offline**, from a viewer that never contacts Preply.
-- **Prints to PDF** and exports a self-contained HTML file.
+- From the viewer, **prints a clean PDF** or exports a self-contained HTML file.
 - Search across a classroom's pages, accent- and case-insensitive.
 - Available in English, French, Spanish, Russian, Polish and Chinese.
 
 ## Privacy
 
-Everything stays in your browser. The extension has no server, sends no
-telemetry, and transmits nothing anywhere. It reads `preply.com` pages while you
-are on them, and writes to your browser's local storage. See
-[PRIVACY.md](PRIVACY.md).
+Everything stays in your browser. The extension has no server, no account and no
+telemetry, and nothing leaves your machine on its own. It reads `preply.com`
+pages while you are on them, and writes to your browser's local storage. The one
+thing that can leave is an error report, and only if you follow the link and
+send it yourself. See [PRIVACY.md](PRIVACY.md).
 
 ## Install
 
-Store listings are not live yet: the Firefox version is under review on
-addons.mozilla.org, and the Chrome Web Store submission has not started.
-Until then, both browsers can load it manually.
+Store listings are not live yet: version 0.2.0 is under review on both
+addons.mozilla.org and the Chrome Web Store. Until then, both browsers can load
+it manually.
 
 Download the two packages from the [latest release](https://github.com/Mars073/Preply-canvas-archiver/releases/latest),
 or build them yourself with `bash tools/package.sh` — see [BUILD.md](BUILD.md).

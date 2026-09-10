@@ -12,15 +12,19 @@ Preply lesson page                     extension pages
 content.js                             viewer.html + viewer.js
   reads .ProseMirror                     rebuilds the model from the index
   resolves computed colours              renders one snapshot at a time
-  reads the thumbnail bar order          diffs it against the previous one
-  fetches the tutor avatar
+  strips widgets and executables         diffs it against the previous one
+  reads the thumbnail bar order        crash.js
+  fetches the tutor avatar               catches what nobody else did
+  prints through an isolated frame       loaded first, guards the rest
         │  runtime.sendMessage
         ▼
 background.js  ──►  storage.local  ──►  storage.onChanged  ──►  viewer refresh
 ```
 
 The viewer never talks to Preply, and the content script never reads storage.
-Everything crosses through the background, which owns every write.
+Everything crosses through the background, which owns every write — serialised,
+since `storage.local` offers no transaction and two writers would each rewrite
+an index built before the other's change.
 
 ## Storage layout
 
@@ -93,6 +97,30 @@ principle covers colours, the archive button's styling — cloned from a live
 Preply button rather than copied by class name — and images, inlined as data
 URIs because Preply's asset URLs are presigned and expire.
 
+**Nothing executable survives a capture.** `script`, `style`, `link`, `meta`,
+`base`, `iframe`, `object` and `embed` are removed, along with every `on*`
+attribute — at capture and again on display, so archives taken before the rule
+existed are covered too. `<script>` was never the exposure, `innerHTML` not
+running one; a `<style>` was, applying at once to the whole page it lands in,
+and so were `<link>` and `<iframe>`, which would fetch from a page whose whole
+claim is that it never does. The two places with no extension CSP to fall back
+on are the print frame, whose srcdoc content is parsed normally, and the
+standalone HTML export, opened outside any policy at all.
+
+**Quick print goes through an isolated frame.** The clone is handed to an iframe
+by `srcdoc` and that frame is printed. Never `document.open()`: a content script
+writing into a frame that inherits the page origin is refused as insecure.
+Printing Preply's page instead would have meant hiding their whole interface
+with a stylesheet written against their markup, which is the trade this add-on
+refuses everywhere else.
+
+**The document styling is measured, not chosen.** Both the viewer and the print
+sheet carry what Preply gives the document and a bare clone cannot inherit —
+block margins, list indentation, cell padding, header tint. Every value came
+from comparing computed styles between a live Canvas and the rendered archive.
+The ones invented before were all wrong, and the interface's own `ul` reset had
+been eating every bullet in every lesson.
+
 **Panels move with `transform`, and focus moves with `preventScroll`.** Only
 `transform` and `opacity` are animated, because they are painted after layout
 and so cannot shift anything else. The trap is elsewhere: moving focus into a
@@ -152,12 +180,16 @@ the `browser_specific_settings` key.
 
 - **Nothing here has ever been executed by an agent.** Every change is
   unverified until loaded in a browser.
-- **The capture path has never run end to end since the restructuring.** The
-  viewer is verified in Firefox and in Chrome, on 0.1.2, loaded from
-  `dist/chrome/`: it opens, renders and localises. Button injection, capture,
-  page order, avatar and image harvesting have not been exercised in either
-  browser — they all need a live lesson, which is the one thing no test here
-  can fake.
+- **The capture path has never run end to end.** The viewer is exercised
+  constantly, in Firefox against `src/` and in Chrome against `dist/chrome/`:
+  it opens, renders, navigates and localises. Button injection, capture, page
+  order, avatar and image harvesting have been exercised in neither browser —
+  they all need a live lesson, which is the one thing no test here can fake.
+
+  This is the gap that matters. Everything under `content.js` and
+  `background.js` has been rewritten since it was last near a lesson: the
+  message protocol, the write queue, the observer, the button factory, the
+  print path, the node stripping. None of it has run.
 - **`tools/serialize.js` is not wired in.** It inlines every computed style, not
   colours alone, which would raise fidelity further. `cloneEditor()` handles
   colours and images; the rest awaits a console test during a lesson.
