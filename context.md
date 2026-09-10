@@ -103,6 +103,25 @@ document whose images have no height yet, which changes the page height and
 moves the scrollbar. For the same reason the scrollbar gutter is reserved with
 `overflow-y:scroll` rather than left to `auto`.
 
+**Firefox 115 is the floor, for the ESR.** Nothing in the code needs it: the
+newest DOM API used is `replaceChildren`, from Firefox 78, and MV3 itself
+settles the rest. 115 is a deliberate reach down to the extended-support
+release, so an add-on about keeping lesson notes still installs on a machine
+someone else administers.
+
+It is paid for twice, and both are handled by feature detection rather than
+by raising the floor:
+
+- `zoom` arrives in Firefox 126. Below it the zoom group hides itself
+  (`CSS.supports`) rather than offering three dead buttons.
+- `storage.local.getBytesInUse` arrives in Firefox 144. Below it the footer
+  shows the snapshot count with no size, since the only figure that could be
+  computed instead would be wrong in the reassuring direction.
+
+Raising the floor would buy those two back and cost every ESR user. If it is
+ever raised, it should be because something cannot be detected and degraded,
+not to tidy away a warning.
+
 **`zoom`, not `font-size`.** Archived content carries inline `font-size: 20px`
 from Preply, which a typographic zoom would leave untouched. `zoom` scales every
 computed length, column width included, so line breaks stay where Preply put
