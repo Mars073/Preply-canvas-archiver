@@ -999,33 +999,137 @@ async function applyDiff(entry) {
     : t('diffIdentical');
 }
 
+const elHMenu = document.getElementById('hmenu');
+const btnHMore = document.getElementById('hmore');
+const btnDropSame = document.getElementById('btn-drop-same');
+const btnDropOld = document.getElementById('btn-drop-old');
+
 /**
- * Fills the History panel with the current page's versions.
+ * Keys the two bulk actions would delete, refreshed by renderHistory().
+ *
+ * Collected while the rows are built rather than recomputed on click: the
+ * comparison is already done there, and doing it twice invites the menu to
+ * promise one count and delete another.
+ *
+ * @type {{same: string[], old: string[]}}
+ */
+let bulk = { same: [], old: [] };
+
+/** Row whose actions menu is open, or null. @type {HTMLElement|null} */
+let verMenuRow = null;
+
+/**
+ * Opens the actions menu of one version row, closing any other.
+ *
+ * Only ever one is open, so the state is a single reference rather than a
+ * flag per row: closing the previous one cannot then be forgotten. Passing
+ * null closes whatever is open.
+ *
+ * @param {HTMLElement|null} row - the <li> to open, or null to close.
+ * @returns {void}
+ */
+function setVerMenu(row) {
+  if (verMenuRow && verMenuRow !== row) {
+    verMenuRow.querySelector('.ver-menu').hidden = true;
+    verMenuRow.querySelector('.ver-more').setAttribute('aria-expanded', 'false');
+  }
+  verMenuRow = row;
+  if (!row) return;
+
+  row.querySelector('.ver-menu').hidden = false;
+  row.querySelector('.ver-more').setAttribute('aria-expanded', 'true');
+  // Measured after being shown: a hidden element has no box to measure.
+  const menu = row.querySelector('.ver-menu');
+  menu.classList.remove('up');
+  const list = elHList.getBoundingClientRect();
+  if (menu.getBoundingClientRect().bottom > list.bottom) menu.classList.add('up');
+
+  const first = row.querySelector('.ver-menu .mi');
+  if (first) first.focus();
+}
+
+/** Whether a version row menu is open. @returns {boolean} */
+function verMenuOpen() {
+  return verMenuRow !== null && !verMenuRow.querySelector('.ver-menu').hidden;
+}
+
+/**
+ * First place two versions of a page diverge.
+ *
+ * Deliberately not the full LCS that applyDiff() runs: the common prefix is the
+ * same under either method, so the first divergence is exact, and finding it
+ * costs one linear scan instead of a quadratic table per row in the list.
+ *
+ * @param {string[]} before - the older version, block by block.
+ * @param {string[]} after - the newer one.
+ * @returns {{text: string, added: boolean}|null} null when nothing changed.
+ */
+function firstChange(before, after) {
+  const shared = Math.min(before.length, after.length);
+  let i = 0;
+  while (i < shared && before[i] === after[i]) i++;
+
+  if (i < after.length) return { text: after[i], added: true };
+  if (i < before.length) return { text: before[i], added: false };
+  return null;
+}
+
+/**
+ * Fills the History panel: one row per stored version, newest first.
+ *
+ * Each row shows where that version parted from the one before it, rather than
+ * the opening lines of the document. The top of a page barely moves from one
+ * archive to the next, so an excerpt taken there looked identical thirteen
+ * times over and told the reader nothing.
+ *
+ * Every snapshot is parsed once and its blocks reused as the "after" of its own
+ * row and the "before" of the row above it, so the list costs one parse per
+ * version, as it did when it only showed an excerpt.
  *
  * @returns {Promise<void>}
  */
 async function renderHistory() {
+  // The rows are about to be discarded: the reference to the open one must not
+  // outlive them, or the next close would reach into a detached node.
+  setBulkMenu(false);
+  setVerMenu(null);
   elHList.textContent = '';
   if (!curPage) return;
 
+  bulk = { same: [], old: [] };
   const store = await api.storage.local.get(curPage.entries.map((e) => e.key));
+  const blocks = curPage.entries.map((e) => {
+    const snap = store[e.key];
+    return snap ? parseSnapshot(snap.html).lines : null;
+  });
 
   curPage.entries.forEach((e, i) => {
-    const snap = store[e.key];
-    const prev = curPage.entries[i + 1];
-    const delta = prev ? e.chars - prev.chars : 0;
-
     const when = fmt(e.ts);
-    const size = i === 0 ? t('newestVersion')
-      : delta > 0 ? t('charsAdded', [delta])
-        : delta < 0 ? t('charsRemoved', [Math.abs(delta)]) : t('sameContent');
     const isCurrent = curSnap && curSnap.key === e.key;
+
+    // The oldest version has nothing behind it: its opening lines ARE what it
+    // introduced, so the excerpt falls back to them.
+    const after = blocks[i];
+    const before = blocks[i + 1];
+    let change = null;
+    if (after && before) change = firstChange(before, after);
+
+    // A version identical to the one before it recorded nothing: archiving
+    // fires a minute after the last edit, so an idle page produces these.
+    if (after && before && !change) bulk.same.push(e.key);
+    if (i > 0) bulk.old.push(e.key);
+
+    let summary;
+    if (!after) summary = t('versionMissing');
+    else if (!before) summary = after[0] || t('emptyVersion');
+    else if (!change) summary = t('noChange');
+    else summary = change.added ? t('lineAdded', [change.text]) : t('lineRemoved', [change.text]);
 
     const item = document.createElement('li');
     item.className = isCurrent ? 'ver current' : 'ver';
     item.dataset.key = e.key;
 
-    // Open button and delete button are siblings. The previous version nested a
+    // Open button and menu button are siblings. An earlier version nested a
     // <button> inside a role="button" container: forbidden nesting, and the
     // screen reader announced a single control.
     const open = document.createElement('button');
@@ -1033,36 +1137,72 @@ async function renderHistory() {
     open.className = 'ver-open';
     if (isCurrent) open.setAttribute('aria-current', 'true');
 
-    const when_ = document.createElement('b');
-    when_.textContent = when;
-    const sz = document.createElement('span');
-    sz.className = 'sz';
-    sz.textContent = size;
+    const stamp = document.createElement('b');
+    stamp.textContent = when;
+
     const ex = document.createElement('div');
     ex.className = 'ex';
-    ex.textContent = snap ? excerpt(snap.html) : '(introuvable)';
-    open.append(when_, sz, ex);
-    open.setAttribute('aria-label', t('openVersion', [when, size]));
-    open.addEventListener('click', () => showSnapshot(e).catch(console.error));
+    if (change) ex.classList.add(change.added ? 'added' : 'removed');
+    // The sign is decoration: the accessible name below already says added or
+    // removed in words, and a screen reader reading "plus" would add nothing.
+    if (change) {
+      const sign = document.createElement('span');
+      sign.className = 'sign';
+      sign.setAttribute('aria-hidden', 'true');
+      sign.textContent = change.added ? '+' : '\u2212';
+      ex.append(sign);
+    }
+    ex.append(change ? change.text : summary);
+
+    open.append(stamp, ex);
+    open.setAttribute('aria-label', t('openVersion', [when, summary]));
+    // then, not await: the scroll has to happen once applyDiff has laid the
+    // marks down, and showSnapshot is what runs it.
+    open.addEventListener('click', () => {
+      showSnapshot(e).then(revealDiff).catch(console.error);
+    });
+
+    const more = document.createElement('button');
+    more.type = 'button';
+    more.className = 'ver-more';
+    more.dataset.icon = 'dots-three';
+    more.setAttribute('aria-haspopup', 'true');
+    more.setAttribute('aria-expanded', 'false');
+    // The visible control repeats from row to row: the accessible name has to
+    // say which version it acts on, or the list announces the same thing
+    // thirteen times.
+    more.setAttribute('aria-label', t('versionActions', [when]));
+
+    const menu = document.createElement('div');
+    menu.className = 'ver-menu';
+    menu.hidden = true;
+    menu.setAttribute('aria-label', t('versionActions', [when]));
 
     const del = document.createElement('button');
     del.type = 'button';
-    del.className = 'del';
+    del.className = 'mi danger';
     del.dataset.icon = 'trash';
     del.append(t('deleteVersion'));
-    // The visible label repeats from row to row: the accessible name says which
-    // one, or the list announces the same thing thirteen times.
     del.setAttribute('aria-label', t('deleteVersionLabel', [when]));
     del.addEventListener('click', async () => {
+      setVerMenu(null);
       await api.runtime.sendMessage({ type: 'pca:delete', keys: [e.key] });
       announce(t('versionDeleted', [when]));
       await refresh({ keepSelection: true });
     });
 
-    item.append(open, del);
+    menu.append(del);
+    more.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      setVerMenu(menu.hidden ? item : null);
+    });
+
+    item.append(open, more, menu);
     paintIcons(item);
     elHList.append(item);
   });
+
+  syncBulkMenu();
 }
 
 /** Affiche l'occupation reelle du stockage de l'extension. @returns {Promise<void>} */
@@ -1133,6 +1273,57 @@ async function selectRoom(room) {
  * @param {string} needle - already folded, as fold() returns it.
  * @returns {void}
  */
+/**
+ * Whether the reader asked their system to stop moving things.
+ *
+ * Kept as the live MediaQueryList and read on each use rather than latched to
+ * a boolean: the setting can change while the tab is open, and a value read
+ * once at load would go on animating for someone who has just turned it off.
+ *
+ * The guard sits here and not in the stylesheet with the others because the
+ * scroll is animated by scrollTo(), which no media query reaches.
+ */
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+/**
+ * Scrolls the reading area so a rectangle sits in its middle.
+ *
+ * Centred rather than merely brought on screen: something pinned against an
+ * edge loses the lines around it that give it its meaning.
+ *
+ * @param {DOMRect} box - viewport coordinates, as getBoundingClientRect gives.
+ * @returns {void}
+ */
+function centreOn(box) {
+  const view = elScroll.getBoundingClientRect();
+  const offset = (box.top - view.top) - (elScroll.clientHeight - box.height) / 2;
+
+  // Smooth here, and only here. Set on the container in CSS it would also
+  // animate the scroll restore in showSnapshot(), which puts the reader back
+  // where they were and must not be seen travelling to get there.
+  elScroll.scrollTo({
+    top: Math.max(0, elScroll.scrollTop + offset),
+    behavior: reducedMotion.matches ? 'auto' : 'smooth',
+  });
+}
+
+/**
+ * Brings the first comparison mark into the middle of the reading area.
+ *
+ * Called when a version is picked from the History panel, and only then. Doing
+ * it on every showSnapshot() would mean merely opening the panel threw the
+ * reader to the first change, which is the opposite of keeping their place.
+ *
+ * Silent when the version changed nothing, or when the panel is closed and no
+ * mark was laid down.
+ *
+ * @returns {void}
+ */
+function revealDiff() {
+  const first = elDoc.querySelector('.pca-add,.pca-del');
+  if (first) centreOn(first.getBoundingClientRect());
+}
+
 function revealMatch(needle) {
   if (!needle) return;
 
@@ -1168,12 +1359,7 @@ function revealMatch(needle) {
       parent.normalize();
     }, { once: true });
 
-    // Centred, not merely revealed: a hit pinned against the top edge loses
-    // the lines above it that give it its meaning.
-    const box = mark.getBoundingClientRect();
-    const view = elScroll.getBoundingClientRect();
-    const offset = (box.top - view.top) - (elScroll.clientHeight - box.height) / 2;
-    elScroll.scrollTop = Math.max(0, elScroll.scrollTop + offset);
+    centreOn(mark.getBoundingClientRect());
     return;
   }
 }
@@ -1299,6 +1485,70 @@ function setMenu(open) {
   if (first) first.focus();
 }
 
+
+/**
+ * Writes the two bulk entries from the counts the last render established.
+ *
+ * An entry with nothing to act on is disabled rather than hidden: a menu whose
+ * items come and go moves the remaining one under a pointer already on its way,
+ * and "0 unchanged versions" is itself the answer to the question being asked.
+ *
+ * @returns {void}
+ */
+function syncBulkMenu() {
+  btnDropSame.replaceChildren(tn('dropSame', bulk.same.length));
+  btnDropSame.disabled = bulk.same.length === 0;
+  btnDropOld.replaceChildren(tn('dropOld', bulk.old.length));
+  btnDropOld.disabled = bulk.old.length === 0;
+  paintIcons(elHMenu);
+}
+
+/**
+ * Opens or closes the History panel's own actions menu.
+ *
+ * @param {boolean} open
+ * @returns {void}
+ */
+function setBulkMenu(open) {
+  elHMenu.hidden = !open;
+  btnHMore.setAttribute('aria-expanded', String(open));
+  if (!open) return;
+  const first = elHMenu.querySelector('.mi:not([disabled])');
+  if (first) first.focus();
+}
+
+/**
+ * Deletes several versions of the page at once, after confirmation.
+ *
+ * The confirmation names the count, because neither action is reversible and
+ * the reader cannot see from the menu which rows are about to go.
+ *
+ * @param {string[]} keys
+ * @param {string} question - already-translated confirmation text.
+ * @returns {Promise<void>}
+ */
+async function deleteMany(keys, question) {
+  setBulkMenu(false);
+  if (keys.length === 0 || !confirm(question)) return;
+
+  await api.runtime.sendMessage({ type: 'pca:delete', keys });
+  announce(tn('versionsDeleted', keys.length));
+  await refresh({ keepSelection: true });
+}
+
+btnHMore.addEventListener('click', (e) => {
+  e.stopPropagation();
+  setBulkMenu(elHMenu.hidden);
+});
+
+btnDropSame.addEventListener('click', () => {
+  deleteMany(bulk.same, tn('confirmDropSame', bulk.same.length)).catch(console.error);
+});
+
+btnDropOld.addEventListener('click', () => {
+  deleteMany(bulk.old, tn('confirmDropOld', bulk.old.length)).catch(console.error);
+});
+
 btnMore.addEventListener('click', (e) => {
   e.stopPropagation();
   setMenu(elMenu.hidden);
@@ -1306,6 +1556,8 @@ btnMore.addEventListener('click', (e) => {
 
 // Click outside the menu closes it, without swallowing the click.
 document.addEventListener('click', (e) => {
+  if (!elHMenu.hidden && !e.target.closest('#hmore-wrap')) setBulkMenu(false);
+  if (verMenuOpen() && !e.target.closest('.ver')) setVerMenu(null);
   if (elMenu.hidden || e.target.closest('#more-wrap')) return;
   setMenu(false);
 });
@@ -1329,6 +1581,19 @@ document.addEventListener('keydown', (e) => {
     e.stopPropagation();
     endTitleEdit(false);
     elTitle.focus();
+    return;
+  }
+  if (!elHMenu.hidden) {
+    e.stopPropagation();
+    setBulkMenu(false);
+    btnHMore.focus();
+    return;
+  }
+  if (verMenuOpen()) {
+    e.stopPropagation();
+    const back = verMenuRow.querySelector('.ver-more');
+    setVerMenu(null);
+    back.focus();
     return;
   }
   if (!elMenu.hidden) {
