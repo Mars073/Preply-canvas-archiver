@@ -175,6 +175,25 @@ function cloneEditor(editor) {
     el.remove();
   }
 
+  // Nothing executable, nothing that styles beyond this document, nothing that
+  // reaches the network. innerHTML never runs a <script>, but a <style> applies
+  // at once and to the whole page it lands in — an archive could restyle the
+  // viewer around itself — and a <link> or an <iframe> would fetch from a page
+  // whose whole claim is that it never does. The print frame is the sharper
+  // case: srcdoc content is parsed normally, so a script there would run.
+  for (const el of clone.querySelectorAll('script,style,link,meta,base,iframe,object,embed')) {
+    el.remove();
+  }
+
+  // Inline handlers survive innerHTML as attributes and fire on their event.
+  // The default MV3 policy blocks them on extension pages, but the print frame
+  // inherits Preply's, which is not ours to rely on.
+  for (const el of clone.querySelectorAll('*')) {
+    for (const attr of [...el.attributes]) {
+      if (attr.name.startsWith('on')) el.removeAttribute(attr.name);
+    }
+  }
+
   for (const el of clone.querySelectorAll('[contenteditable]')) el.removeAttribute('contenteditable');
   for (const el of clone.querySelectorAll('[tabindex]')) el.removeAttribute('tabindex');
 

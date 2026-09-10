@@ -456,28 +456,38 @@ function blockNodes(root) {
  * @returns {{label: string, lines: string[]}}
  */
 /**
- * Strips collaboration carets from a parsed snapshot.
+ * Strips from a parsed snapshot everything that is not document.
  *
- * They are ProseMirror decorations, not document content: one per connected
- * peer, carrying that person's name in a label. Left in, the tutor's name
- * appears wedged mid-sentence, and because the label is real text it also
- * reaches the page list, the search excerpts and every diff.
+ * Two families, for two reasons.
  *
- * cloneEditor() removes them at capture time, so this only repairs snapshots
- * taken before that fix. It is cheap, it runs on a detached copy, and stored
- * data is never rewritten — an archive is not edited after the fact.
+ * Collaboration carets are ProseMirror decorations: one per connected peer,
+ * carrying that person's name in a label. Left in, the tutor's name appears
+ * wedged mid-sentence, and being real text it also reaches the page list, the
+ * search excerpts and every diff.
  *
- * .ProseMirror-widget is ProseMirror's own class for widget decorations and
- * the caret classes come from the Tiptap collaboration extension. Both are
- * upstream library names, not the content-hashed classes Preply generates per
- * build, so anchoring on them does not break the rule against doing so.
+ * The rest is what a document has no business carrying. innerHTML never runs a
+ * <script>, but a <style> applies at once and to the whole page it lands in —
+ * one archived snapshot could restyle the viewer around itself — and a <link>
+ * or an <iframe> would fetch from a page whose whole claim is that it never
+ * does. Inline handlers go too: the default MV3 policy blocks them here, but a
+ * standalone HTML export is opened outside that policy.
+ *
+ * cloneEditor() does the same at capture time, so this only repairs snapshots
+ * taken before it did. It is cheap, it runs on a detached copy, and stored data
+ * is never rewritten — an archive is not edited after the fact.
  *
  * @param {ParentNode} root
  * @returns {void}
  */
 function stripWidgets(root) {
-  for (const el of root.querySelectorAll('.ProseMirror-widget,[class*="collaboration-carets"]')) {
-    el.remove();
+  const junk = '.ProseMirror-widget,[class*="collaboration-carets"],'
+    + 'script,style,link,meta,base,iframe,object,embed';
+  for (const el of root.querySelectorAll(junk)) el.remove();
+
+  for (const el of root.querySelectorAll('*')) {
+    for (const attr of [...el.attributes]) {
+      if (attr.name.startsWith('on')) el.removeAttribute(attr.name);
+    }
   }
 }
 
@@ -830,11 +840,13 @@ async function showSnapshot(entry) {
   curSnap = { ...snap, key: entry.key };
   // The archived document is written as HTML because that is what it is. The
   // linter flags this, and the risk it names is real in principle: a tutor
-  // could paste an inline handler into the Canvas. Two things close it —
-  // innerHTML never executes a <script>, and the default MV3 CSP
-  // (script-src 'self', no override in either manifest) blocks inline
-  // handlers on extension pages. Declaring a content_security_policy that
-  // relaxes script-src would reopen it.
+  // could paste an inline handler into the Canvas. Three things close it, in
+  // this order — stripWidgets() below removes scripts, styles, frames and
+  // inline handlers outright; innerHTML never executes a <script> in any case;
+  // and the default MV3 CSP (script-src 'self', no override in either
+  // manifest) blocks inline handlers on extension pages. The first is the one
+  // that also covers a standalone export, which is opened outside that policy.
+  //
   // Built detached, then swapped in one go. Assigning innerHTML and resolving
   // the images afterwards paints an intermediate document: resolveImages()
   // awaits storage, so for a frame or two the images have no src and no

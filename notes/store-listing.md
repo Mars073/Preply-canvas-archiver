@@ -53,11 +53,17 @@ excerpts, one serialises a standalone HTML export. Only `showSnapshot()`
 writes into the live page.
 
 The content originates from the Preply Canvas, so a tutor could in principle
-paste an inline event handler into it. Two properties close that: `innerHTML`
-never executes a `<script>`, and the extension declares **no**
-`content_security_policy`, so the default MV3 policy (`script-src 'self'`)
-applies to extension pages and blocks inline handlers. No `eval`, no remote
-script, no inline script anywhere — `viewer.html` loads three local files.
+paste an inline event handler into it. Three things close that, in order.
+
+Every snapshot passes through `stripWidgets()` before it is displayed or
+exported: `script`, `style`, `link`, `meta`, `base`, `iframe`, `object` and
+`embed` are removed, along with every `on*` attribute. The same runs at capture
+time, so nothing of the sort is stored in the first place.
+
+Beyond that, `innerHTML` never executes a `<script>`, and the extension declares
+**no** `content_security_policy`, so the default MV3 policy (`script-src
+'self'`) applies to extension pages and blocks inline handlers. No `eval`, no
+remote script, no inline script anywhere — `viewer.html` loads four local files.
 
 The metadata also lists `content.js` and `viewer.js` under
 `unknownMinifiedFiles`. Neither is minified or generated: both are the
