@@ -121,6 +121,7 @@
   "srRemoved": { "message": "Удалено: " },
 
   "archiveButton": { "message": "Архивировать эту страницу Canvas" },
+  "printButton": { "message": "Быстрая печать / PDF" },
   "archiveDone": { "message": "Страница сохранена" },
   "archiveNoCanvas": { "message": "Canvas не открыт" },
   "archiveFailed": { "message": "Не удалось сохранить" }

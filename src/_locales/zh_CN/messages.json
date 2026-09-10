@@ -91,6 +91,7 @@
   "srRemoved": { "message": "删除：" },
 
   "archiveButton": { "message": "归档此 Canvas 页面" },
+  "printButton": { "message": "快速打印 / PDF" },
   "archiveDone": { "message": "页面已归档" },
   "archiveNoCanvas": { "message": "未打开 Canvas" },
   "archiveFailed": { "message": "归档失败" }

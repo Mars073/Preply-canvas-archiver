@@ -63,6 +63,12 @@ Facts established by inspecting a live lesson, not assumed:
   the tutor's name mid-sentence, and, being real text, in the page list, the
   search excerpts and every diff. Stripped at capture, and again on display so
   archives taken before that keep reading correctly.
+- **Not every Preply class is hashed.** The layout wrappers are
+  (`_TextEditorLayout_1mqtd_3`, `StyledEditorContentCore-sc-54cab196-0`), but
+  `TipTapEditor` and `CanvasThumbnailScreenshotTarget` are written by hand and
+  survive a build. They are worth a **second** alternative behind a
+  `data-qa-id`, never a first: surviving a build is not surviving a rename,
+  and only the data attributes are declared as test hooks.
 - **`.ProseMirror-widget` and `collaboration-carets__*` are the exception to the
   rule below.** They come from ProseMirror and from the Tiptap collaboration
   extension, not from Preply's build, so they are stable and safe to anchor on.

@@ -101,6 +101,7 @@
   "srRemoved": { "message": "Eliminado: " },
 
   "archiveButton": { "message": "Archivar esta página del Canvas" },
+  "printButton": { "message": "Impresión rápida / PDF" },
   "archiveDone": { "message": "Página archivada" },
   "archiveNoCanvas": { "message": "No hay ningún Canvas abierto" },
   "archiveFailed": { "message": "Error al archivar" }

@@ -3,8 +3,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 /**
- * Content script — injects an archive button into the Canvas toolbar and
- * serialises the ProseMirror document into standalone HTML.
+ * Content script — injects the archive and quick-print buttons into the Canvas
+ * toolbar, and serialises the ProseMirror document into standalone HTML.
  *
  * Anchoring: `[data-qa-id]` and `[data-preply-ds-component]` only. Preply's CSS
  * classes are content-hashed per build (`_CanvasLayout_5ah64_13`) and do not
@@ -24,13 +24,27 @@
 const api = globalThis.browser ?? globalThis.chrome;
 
 const SEL_TOOLBAR = '[data-qa-id="canvas-toolbar"]';
-const SEL_EDITOR = '[data-qa-id="text-editor"] .ProseMirror';
+// Two ways to the same node, which is the point: the editor div carries both
+// data-qa-id and a hand-written class, and losing this selector is the one
+// failure that stops everything — no snapshot, no autosave, and a yellow flash
+// for the whole explanation. TipTapEditor is not hashed like the layout
+// wrappers around it (_TextEditorLayout_1mqtd_3, StyledEditorContentCore-sc-…),
+// so it survives a build; whether it survives a rename is another matter, which
+// is why it is the second alternative and not the first.
+const SEL_EDITOR = '[data-qa-id="text-editor"] .ProseMirror, .TipTapEditor .ProseMirror';
 const SEL_THUMB = '[data-qa-id="canvas-thumbnail"]';
 // Reference icon button, cloned to inherit Preply's styling.
 const SEL_REF_BUTTON = '[data-qa-id="canvas-toolbar"] button[data-preply-ds-component="IconButton"]';
 const SEL_AVATAR = '[data-preply-ds-component="Avatar"] img';
 const SEL_ACTIVE_THUMB = '[data-qa-id="canvas-thumbnail"] a[data-active="true"]';
 const BTN_ID = 'pca-save-button';
+
+/**
+ * Whether the reader asked their system to stop moving things.
+ *
+ * Read on each use, not latched: the setting can change while a lesson is open.
+ */
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
 const AUTOSAVE_DELAY_MS = 60_000;
 
@@ -323,23 +337,123 @@ async function capture(manual) {
 }
 
 /**
- * Builds the archive button, modelled on the toolbar's icon buttons.
+
+/** Ids of what is injected, so nothing is added twice. */
+const BTN_PRINT_ID = 'pca-print-button';
+const BTN_GROUP_ID = 'pca-buttons';
+
+/**
+ * Scale the quick print is laid out at.
  *
- * Styling is inherited by cloning an existing button, never copied: Preply's
- * classes and the CSS custom properties they reference are hashed on every
- * build. A standalone fallback covers the case where the toolbar offers no
- * reference button.
+ * Preply composes for a screen at 20px, which on paper is generous and costs
+ * pages. `zoom` and not `font-size`, for the reason the viewer documents: the
+ * markup carries `font-size:20px` inline on its spans, and an inline value
+ * beats any rule a stylesheet can write. `zoom` scales every computed length
+ * instead, so the line breaks fall where Preply put them.
  *
+ * It arrived in Firefox 126 and this add-on supports 115. Below that the
+ * declaration is ignored and the page prints full size — larger than intended,
+ * never broken.
+ */
+const PRINT_ZOOM = 0.75;
+
+/**
+ * Style sheet the printed copy carries, and all it carries.
+ *
+ * Not the viewer's print sheet moved here — that one knows about comparison
+ * marks and a document header that do not exist on this side. What it holds is
+ * what Preply's own styling gave the document and a bare clone cannot inherit,
+ * measured rather than guessed: every rule below answers a drift found by
+ * comparing computed styles between the live editor and this frame.
+ *
+ * The margin resets are the ones that matter. A browser gives `p`, `ul` and
+ * `li` a margin of one em top and bottom; Preply removes it and spaces its
+ * blocks another way. Left in, every paragraph gained 20px above and below —
+ * an archive of a lesson printed half as many words per page.
+ *
+ * `break-spaces` is the editor's own value: a run of spaces is kept as typed,
+ * which in a language lesson is sometimes the point.
+ */
+const PRINT_CSS = `
+  @page{margin:16mm}
+  body{margin:0;color:#121117;zoom:${PRINT_ZOOM};white-space:break-spaces;
+    font:20px/1.4 "Figtree","Noto Sans",-apple-system,"Segoe UI",Roboto,sans-serif}
+  p,ul,ol,li,blockquote,h1,h2,h3,h4{margin:0}
+  /* Preply indents the item, not the list. Left to the browser it is the other
+     way round — 40px of list padding and no item margin — which shifts every
+     bullet and pulls the text away from it. */
+  ul,ol{padding-left:0}
+  li{margin-left:16px}
+  img{max-width:100%}
+  hr{border:1px solid #dcdce5;margin:8px 0}
+  table{border-collapse:collapse}
+  td,th{border:1px solid #dcdce5;padding:8px 16px}
+`;
+
+/**
+ * Prints the Canvas on screen, without archiving it.
+ *
+ * The quick way out, next to the archive button rather than instead of it: the
+ * viewer's export stays the reference copy, this one is for wanting a PDF
+ * before leaving the lesson.
+ *
+ * The document is cloned into an isolated iframe and that frame is printed, so
+ * nothing is written into Preply's page — no print style sheet injected into
+ * their document, nothing to keep in step with their markup. Printing the page
+ * itself would have meant hiding their entire interface by hand, which is a
+ * rule this add-on does not break.
+ *
+ * @returns {Promise<boolean>} false when there is no Canvas on the page.
+ */
+async function printCanvas() {
+  const editor = document.querySelector(SEL_EDITOR);
+  if (!editor) return false;
+
+  const clone = cloneEditor(editor);
+
+  const frame = document.createElement('iframe');
+  frame.setAttribute('aria-hidden', 'true');
+  frame.style.cssText = 'position:fixed;left:-9999px;width:0;height:0;border:0';
+
+  // srcdoc, never document.open(): the frame inherits the page's origin, and a
+  // content script writing into it is refused outright — "The operation is
+  // insecure". Setting an attribute is not a security-checked operation, and
+  // nothing here ever reaches for contentDocument.
+  frame.srcdoc = `<!doctype html><meta charset="utf-8">`
+    + `<style>${PRINT_CSS}</style>${clone.innerHTML}`;
+
+  // load fires once the frame's subresources have arrived, images included.
+  // They keep their original URLs, unlike an archived copy: those links are
+  // still valid in this session, and fetching them again to inline them would
+  // only make the reader wait. Printing before they land gives empty frames.
+  const ready = new Promise((done) => { frame.onload = done; });
+  document.body.append(frame);
+  await ready;
+
+  frame.contentWindow.focus();
+  frame.contentWindow.print();
+
+  // Removed after the dialog has had the document: taking it away too early
+  // cancels the print on some browsers.
+  setTimeout(() => frame.remove(), 1000);
+  return true;
+}
+/**
+ * Builds one toolbar button, modelled on the ones Preply already has there.
+ *
+ * Styling is inherited by cloning an existing button, never copied: their
+ * classes and the CSS custom properties those reference are hashed on every
+ * build. The clone brings the look and the :hover, :active and :focus-visible
+ * states with it, none of which we would otherwise know. A standalone fallback
+ * covers a toolbar that offers no reference button.
+ *
+ * @param {{id: string, glyph: string, label: string,
+ *          run: (flash: (color: string, label: string) => void) => Promise<void>}} spec
+ *   `run` receives the feedback function: a button with no text left has only
+ *   colour to answer with, and only the action knows what it should say.
  * @returns {HTMLButtonElement}
  */
-function makeButton() {
-  const LABEL = t('archiveButton');
-
-  // Cloning an existing icon button beats copying its classes: those are hashed
-  // per build (ButtonBase--variant-ghost__ezCgl), and so are the CSS variables
-  // they point at. The clone inherits the look AND the :hover, :active and
-  // :focus-visible states without us having to know any of them — and survives
-  // their deployments.
+function makeButton(spec) {
   const ref = document.querySelector(SEL_REF_BUTTON);
   const btn = ref ? ref.cloneNode(true) : document.createElement('button');
 
@@ -357,21 +471,21 @@ function makeButton() {
       + 'background:transparent;color:inherit;cursor:pointer';
   }
 
-  // The button sits against the right edge of the bar, so it needs an offset —
+  // The buttons sit against the right edge of the bar, so they need an offset —
   // which the clone cannot inherit, the original not being at the end of a row.
   btn.style.marginRight = '4px';
 
-  btn.id = BTN_ID;
+  btn.id = spec.id;
   btn.type = 'button';
   // Icon-only button: without an accessible name it is announced as "button"
   // and nothing else. The title doubles as a mouse tooltip.
-  btn.setAttribute('aria-label', LABEL);
-  btn.title = LABEL;
+  btn.setAttribute('aria-label', spec.label);
+  btn.title = spec.label;
 
   // icons.js is loaded before content.js in the manifest. `icon()` builds an SVG
   // with no intrinsic size, so we reuse the computed size of the one being
   // replaced — their stylesheet sizes it through a rule we should not guess.
-  const glyph = icon('tray-arrow-down-bold');
+  const glyph = icon(spec.glyph);
   const oldGlyph = btn.querySelector('svg');
   if (oldGlyph) {
     const cs = getComputedStyle(ref.querySelector('svg'));
@@ -384,6 +498,40 @@ function makeButton() {
     glyph.style.display = 'block';
     btn.append(glyph);
   }
+
+  /**
+   * Turns the icon into a spinner for as long as the action runs.
+   *
+   * Archiving fetches every image and a print waits on them too, which on a
+   * lesson full of screenshots is long enough for a motionless button to look
+   * like one that ignored the click.
+   *
+   * Animated through the Web Animations API rather than a keyframe rule: the
+   * button lives in Preply's page, and adding a stylesheet to somebody else's
+   * document to spin one icon is a poor trade — this touches nothing outside
+   * the element itself.
+   *
+   * @returns {() => void} puts the real icon back.
+   */
+  const spin = () => {
+    const spinner = icon('circle-notch-bold');
+    spinner.style.cssText = glyph.style.cssText;
+    // An <svg> takes its transform origin from the border box, which is what we
+    // want, but only once it has one: without an explicit centre a partial box
+    // makes it wobble around a corner instead of turning on itself.
+    spinner.style.transformOrigin = '50% 50%';
+    glyph.replaceWith(spinner);
+
+    const turn = reducedMotion.matches ? null : spinner.animate(
+      [{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }],
+      { duration: 800, iterations: Infinity, easing: 'linear' },
+    );
+
+    return () => {
+      if (turn) turn.cancel();
+      spinner.replaceWith(glyph);
+    };
+  };
 
   /**
    * Temporary feedback, carried by colour rather than by a label: there is no
@@ -401,37 +549,78 @@ function makeButton() {
       // Empty string, not 'inherit': removing the inline override hands control
       // back to Preply's classes, hover states included.
       btn.style.color = '';
-      btn.setAttribute('aria-label', LABEL);
-      btn.title = LABEL;
+      btn.setAttribute('aria-label', spec.label);
+      btn.title = spec.label;
       btn.disabled = false;
     }, 2000);
   };
 
   btn.addEventListener('click', async () => {
     btn.disabled = true;
+    const settle = spin();
     try {
-      const r = await capture(true);
-      if (r === 'saved') flash('#19ac91', t('archiveDone'));
-      else flash('#f6c823', t('archiveNoCanvas'));
+      await spec.run(flash);
     } catch (e) {
       flash('#f54238', t('archiveFailed'));
-      console.error('[pca] capture failed', e);
+      console.error('[pca]', spec.id, 'failed', e);
+    } finally {
+      // finally, not after the await: a failure has to give the icon back too,
+      // or the button spins for ever on the one occasion it matters.
+      settle();
     }
   });
 
   return btn;
 }
 
-/** Re-injects the button and (re)binds autosave when the Canvas is mounted. */
+/** Re-injects the buttons and (re)binds autosave when the Canvas is mounted. */
 function sync() {
   const toolbar = document.querySelector(SEL_TOOLBAR);
   const editor = document.querySelector(SEL_EDITOR);
 
   // Injected into the bar's parent, not the bar itself: that parent is a flex
-  // container with `justify-content: space-between`, so the button settles on
+  // container with `justify-content: space-between`, so what we add settles on
   // the right and stays visible when the toolbar scrolls horizontally.
   const host = toolbar ? (toolbar.parentElement || toolbar) : null;
-  if (host && !host.querySelector('#' + BTN_ID)) host.appendChild(makeButton());
+
+  // One group, never the buttons directly. space-between spreads whatever it
+  // holds: with the bar and a single button it pinned that button to the right,
+  // but a second one turned three children into left, centre and right, and the
+  // two icons ended up half a toolbar apart. Wrapped, the parent still counts
+  // two children and the pair stays together.
+  let group = host && host.querySelector('#' + BTN_GROUP_ID);
+  if (host && !group) {
+    group = document.createElement('div');
+    group.id = BTN_GROUP_ID;
+    group.style.cssText = 'display:flex;align-items:center;flex:0 0 auto';
+    host.appendChild(group);
+  }
+
+  // Print first, archive last: the archive button keeps the edge of the bar,
+  // where it has always been.
+  if (group && !group.querySelector('#' + BTN_PRINT_ID)) {
+    group.appendChild(makeButton({
+      id: BTN_PRINT_ID,
+      glyph: 'printer-bold',
+      label: t('printButton'),
+      run: async (flash) => {
+        if (await printCanvas()) flash('#19ac91', t('printButton'));
+        else flash('#f6c823', t('archiveNoCanvas'));
+      },
+    }));
+  }
+  if (group && !group.querySelector('#' + BTN_ID)) {
+    group.appendChild(makeButton({
+      id: BTN_ID,
+      glyph: 'tray-arrow-down-bold',
+      label: t('archiveButton'),
+      run: async (flash) => {
+        const r = await capture(true);
+        if (r === 'saved') flash('#19ac91', t('archiveDone'));
+        else flash('#f6c823', t('archiveNoCanvas'));
+      },
+    }));
+  }
 
   if (editor && !editorObserver) {
     editorObserver = new MutationObserver(() => {

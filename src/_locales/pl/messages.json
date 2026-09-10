@@ -121,6 +121,7 @@
   "srRemoved": { "message": "Usunięto: " },
 
   "archiveButton": { "message": "Zarchiwizuj tę stronę Canvas" },
+  "printButton": { "message": "Szybki wydruk / PDF" },
   "archiveDone": { "message": "Strona zarchiwizowana" },
   "archiveNoCanvas": { "message": "Canvas nie jest otwarty" },
   "archiveFailed": { "message": "Archiwizacja nie powiodła się" }
