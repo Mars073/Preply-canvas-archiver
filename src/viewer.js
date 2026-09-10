@@ -1219,16 +1219,31 @@ async function renderHistory() {
 
 /** Affiche l'occupation reelle du stockage de l'extension. @returns {Promise<void>} */
 async function renderUsage() {
-  let bytes = 0;
-  for (const room of rooms.values()) {
-    for (const page of room.pages.values()) {
-      for (const e of page.entries) bytes += e.chars;
-    }
-  }
   const versions = [...rooms.values()]
     .flatMap((r) => [...r.pages.values()])
     .reduce((n, p) => n + p.entries.length, 0);
-  elUsage.textContent = t('storageUsage', [tn('snapshotCount', versions), (bytes / 1048576).toFixed(2)]);
+
+  // Asked of the platform rather than added up from the index. The index
+  // knows each snapshot in characters, which is neither bytes nor the whole
+  // story: the pictures are stored apart and are what actually fills the
+  // quota, so a total built from it reads several times under the truth on
+  // exactly the archives where the figure would matter.
+  //
+  // storage.local.getBytesInUse landed in Firefox 144, and this add-on
+  // supports 115. Where it is missing the count stands alone: no figure is
+  // better than one that is wrong in the reassuring direction.
+  let bytes = null;
+  try {
+    if (typeof api.storage.local.getBytesInUse === 'function') {
+      bytes = await api.storage.local.getBytesInUse(null);
+    }
+  } catch (e) {
+    console.warn('[pca] storage size unavailable', e);
+  }
+
+  elUsage.textContent = bytes === null
+    ? tn('snapshotCount', versions)
+    : t('storageUsage', [tn('snapshotCount', versions), (bytes / 1048576).toFixed(2)]);
 }
 
 /* -------------------------------------------------------------- selection */

@@ -94,33 +94,52 @@ async function saveImages(blobs) {
   return count;
 }
 
+/** How many snapshots are read from storage at once while sweeping. */
+const SCAN_BATCH = 25;
+
 /**
- * Drops images no surviving snapshot refers to any more.
+ * Drops images the deleted snapshots were the last to refer to.
  *
  * Mark and sweep rather than reference counting: a counter drifts out of step
  * the first time a write fails halfway, and then either leaks forever or
- * deletes a picture still in use. Scanning what remains cannot be wrong, and at
- * this scale it costs one pass over the archive.
+ * deletes a picture still in use. Scanning what remains cannot be wrong.
  *
+ * Only the candidates are scanned for, not the whole store. The previous
+ * version read every snapshot and then every key in the profile — storage.local
+ * has no quota here, so after a couple of years of lessons that is hundreds of
+ * megabytes pulled into memory to delete one version. Now:
+ *
+ *   - deleting text-only versions costs nothing at all, there being no
+ *     candidate to look for;
+ *   - the surviving snapshots are read in batches, and the scan stops the
+ *     moment every candidate has been seen alive, which is the usual case
+ *     since a picture is normally in several versions of its page;
+ *   - the store is never enumerated: only the candidate keys are removed.
+ *
+ * @param {Set<string>} candidates - hashes the deleted snapshots referred to.
+ *   Consumed: what remains at the end is what got removed.
  * @returns {Promise<number>} how many were removed.
  */
-async function sweepImages() {
+async function sweepImages(candidates) {
+  if (candidates.size === 0) return 0;
+
   const stored = await api.storage.local.get(INDEX_KEY);
   const index = stored[INDEX_KEY] || [];
 
-  const snapshots = await api.storage.local.get(index.map((e) => e.key));
-  const live = new Set();
-  for (const snap of Object.values(snapshots)) {
-    if (!snap || typeof snap.html !== 'string') continue;
-    for (const m of snap.html.matchAll(IMAGE_REF)) live.add(m[1]);
+  for (let i = 0; i < index.length && candidates.size > 0; i += SCAN_BATCH) {
+    const keys = index.slice(i, i + SCAN_BATCH).map((e) => e.key);
+    const snapshots = await api.storage.local.get(keys);
+
+    for (const snap of Object.values(snapshots)) {
+      if (!snap || typeof snap.html !== 'string') continue;
+      for (const m of snap.html.matchAll(IMAGE_REF)) candidates.delete(m[1]);
+      if (candidates.size === 0) break;
+    }
   }
 
-  const all = await api.storage.local.get(null);
-  const orphans = Object.keys(all)
-    .filter((k) => k.startsWith(IMAGE_PREFIX) && !live.has(k.slice(IMAGE_PREFIX.length)));
-
-  if (orphans.length > 0) await api.storage.local.remove(orphans);
-  return orphans.length;
+  if (candidates.size === 0) return 0;
+  await api.storage.local.remove([...candidates].map((h) => IMAGE_PREFIX + h));
+  return candidates.size;
 }
 
 const AVATARS_KEY = 'pca:avatars';
@@ -200,14 +219,27 @@ async function deleteSnapshots(keys) {
   if (!Array.isArray(keys)) throw new TypeError('keys must be an array');
 
   const doomed = new Set(keys);
+
+  // Read before they are removed: once gone, nothing says which pictures they
+  // held, and the sweep would be back to scanning the whole archive to guess.
+  const going = await api.storage.local.get([...doomed]);
+  /** @type {Set<string>} */
+  const candidates = new Set();
+  for (const snap of Object.values(going)) {
+    if (!snap || typeof snap.html !== 'string') continue;
+    for (const m of snap.html.matchAll(IMAGE_REF)) candidates.add(m[1]);
+  }
+
   const stored = await api.storage.local.get(INDEX_KEY);
   const index = (stored[INDEX_KEY] || []).filter((e) => !doomed.has(e.key));
 
   await api.storage.local.remove(keys);
   await api.storage.local.set({ [INDEX_KEY]: index });
 
-  // Deleting a version may have orphaned its pictures.
-  const images = await sweepImages();
+  // After the index is written, never before: the sweep asks what survives,
+  // and a stale index would list the versions just deleted as living proof
+  // that their pictures are still needed.
+  const images = await sweepImages(candidates);
   return { removed: doomed.size, remaining: index.length, images };
 }
 
