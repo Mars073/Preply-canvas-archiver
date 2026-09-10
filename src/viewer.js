@@ -1798,7 +1798,12 @@ async function deletePage() {
 
 document.getElementById('btn-delete').addEventListener('click', () => { deletePage().catch(console.error); });
 
-document.getElementById('btn-export').addEventListener('click', async () => {
+/**
+ * Writes the snapshot on screen to a standalone HTML file.
+ *
+ * @returns {Promise<void>}
+ */
+async function exportSnapshot() {
   setMenu(false);
   if (!curSnap) return;
 
@@ -1828,7 +1833,9 @@ body{display:block;background:#fff;margin:0;padding:24px}
   a.download = `canvas-${curSnap.canvasId}-p${curSnap.page}-${curSnap.ts.slice(0, 10)}.html`;
   a.click();
   URL.revokeObjectURL(a.href);
-});
+}
+
+document.getElementById('btn-export').addEventListener('click', () => { exportSnapshot().catch(console.error); });
 
 /* ------------------------------------------------------------------- zoom */
 
