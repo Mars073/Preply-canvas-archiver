@@ -133,18 +133,20 @@
   .col-head{padding:16px 16px 10px;border-bottom:1px solid var(--line-soft)}
   .col-head h2{margin:0;font-size:13px;font-weight:650;letter-spacing:.01em}
   .head-row{display:flex;align-items:center;gap:8px}
-  /* Hidden by default: above the breakpoint both panels are on screen and
-     there is nowhere to go back to. Pulled left so the caret, not its
-     padding, lines up with the heading below it. */
-  /* No border: the caret sits inside a panel header, not in a toolbar, and a
-     framed button there reads as a second card edge. The hover cue moves to
-     the background, since the border was carrying it. The focus ring is
-     global and untouched — that one is not decoration. */
-  #back-rooms{display:none;width:26px;height:26px;min-width:0;padding:0;
-    margin-left:-4px;border:0;border-radius:6px;background:transparent;
-    color:var(--ink-2)}
-  #back-rooms:hover{background:var(--bg);color:var(--ink)}
-  #back-rooms .icon{width:13px;height:13px}
+  /* Quiet square buttons living inside a panel header rather than a toolbar.
+     No frame: one there reads as a second card edge, so the hover cue moves to
+     the background, which the border was carrying. The focus ring is global
+     and untouched — that one is not decoration. */
+  .head-btn{width:26px;height:26px;min-width:0;padding:0;border:0;
+    border-radius:6px;background:transparent;color:var(--ink-2);
+    align-items:center;justify-content:center;cursor:pointer}
+  .head-btn:hover{background:var(--bg);color:var(--ink)}
+  .head-btn .icon{width:13px;height:13px}
+
+  /* Both appear only at the width that needs them. The back caret is pulled
+     left so the glyph, not its hit area, lines up with the heading below. */
+  #back-rooms{display:none;margin-left:-4px}
+  .panel-fold{display:none;position:absolute;top:12px;right:12px;z-index:2}
   .col-head .sub{margin:2px 0 0;font-size:11.5px;color:var(--ink-3)}
   /* A flex column rather than margins on the <li>: gap only applies between
      items, so no orphan margin is left at the end of the list. */
@@ -540,6 +542,50 @@
       visibility:hidden;transition:visibility 0s var(--slide)}
   }
 
+  /* Narrower still: the panel stops taking a column and floats over the
+     document. Squeezing the reading column is the one thing that cannot be
+     absorbed — an archived page carries a fixed 1089px text column, so a
+     narrower pane does not reflow it, it makes it scroll sideways. Over the
+     top, the sheet keeps the geometry Preply gave it.
+
+     The fold has to change with it. Above this width it collapses a grid
+     track, which drags the panel out by geometry; with a single column there
+     is no track to collapse, so it travels on its own transform — the same
+     corridor the classrooms/pages swap already uses. */
+  @media (max-width:839px){
+    body,body.focus{grid-template-columns:1fr}
+    #classrooms,#pages,#main{grid-column:1;grid-row:1}
+    /* Pinned to the left edge, where the collapsing track used to hold it.
+       The shadow is the history panel's: both are now sheets over the work. */
+    #classrooms,#pages{justify-self:start;position:relative;
+      box-shadow:0 1px 2px rgba(18,17,23,.04), 0 16px 40px rgba(18,17,23,.10)}
+    /* The transition has to be restated: the fold rule above replaces the
+       shorthand with visibility alone, so a transform declared here and
+       nowhere else would snap. The .drill variant is listed for the same
+       reason — it outscores the plain one and would win otherwise. */
+    body.focus #classrooms,body.focus #pages,body.focus.drill #pages{
+      transform:translateX(calc(-100% - var(--gap)));
+      transition:transform var(--slide) var(--ease),visibility 0s var(--slide)}
+
+    /* The panel now hides the toolbar caret, so it carries its own — absolutely
+       placed, hence the relative panel above. */
+    .panel-fold{display:flex}
+  }
+
+  /* Narrow enough that the toolbar would wrap or push the zoom group off the
+     edge. The labels go, the icons stay, and the buttons square up like the
+     icon-only ones beside them.
+
+     Taken out of sight rather than out of the document: display:none would
+     drop the text from the accessible name too, leaving two buttons announced
+     as "button". The geometry is .sr-only's, which the interface already
+     uses for exactly this. */
+  @media (max-width:539px){
+    .act .lbl{position:absolute;width:1px;height:1px;margin:-1px;padding:0;
+      overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+    #btn-history,#btn-print{width:var(--btn-h);padding:0}
+  }
+
   /* Until the stored preferences have been applied, nothing moves: a panel
      must not be seen sliding away on a page that opened folded. The class is
      dropped one frame after boot. */
@@ -564,6 +610,11 @@
 <a class="skip" href="#doc" data-i18n="skipToContent"></a>
 
 <nav id="classrooms" class="card" aria-labelledby="rooms-head">
+  <!-- Only below the drawer breakpoint, where the panel floats over #main and
+       covers the toolbar caret that would otherwise fold it. Without this the
+       panel could be opened and never closed. -->
+  <button class="panel-fold head-btn" type="button" data-icon="caret-left"
+          data-i18n-label="focusHide" data-i18n-title="focusHide"></button>
   <div class="col-head">
     <h2 id="rooms-head" tabindex="-1" data-i18n="classroomsTitle"></h2>
     <p class="sub" data-i18n="classroomsSubtitle"></p>
@@ -581,12 +632,14 @@
 </nav>
 
 <nav id="pages" class="card" aria-labelledby="pages-head">
+  <button class="panel-fold head-btn" type="button" data-icon="caret-left"
+          data-i18n-label="focusHide" data-i18n-title="focusHide"></button>
   <div class="col-head">
     <div class="head-row">
       <!-- Shown only below the two-panel breakpoint, where this panel covers
            the classrooms one instead of sitting beside it. Hidden above it:
            there is nothing to go back to when both are on screen. -->
-      <button class="act iconly" id="back-rooms" type="button"
+      <button class="head-btn" id="back-rooms" type="button"
               data-icon="caret-left"
               data-i18n-label="backToRooms" data-i18n-title="backToRooms"></button>
       <h2 id="pages-head" data-i18n="pagesTitle"></h2>
@@ -607,9 +660,14 @@
                 data-i18n-title="zoomReset">100%</button>
         <button class="act iconly" id="zoom-in" type="button" data-i18n-label="zoomIn">+</button>
       </div>
+      <!-- The label lives in its own span so a narrow window can take it out of
+           sight without taking it out of the accessible name — and because
+           applyI18n writes textContent, which on the button itself would wipe
+           the icon painted into it. -->
       <button class="act" id="btn-history" data-icon="clock-counter-clockwise"
-              aria-pressed="false" data-i18n="historyBtn"></button>
-      <button class="act" id="btn-print" data-icon="printer" data-i18n="printBtn"></button>
+              aria-pressed="false"><span class="lbl" data-i18n="historyBtn"></span></button>
+      <button class="act" id="btn-print" data-icon="printer">
+        <span class="lbl" data-i18n="printBtn"></span></button>
       <!-- A link, not a button: it leads somewhere, so ctrl-click, middle-click
            and "open in new tab" have to work. Hidden until a snapshot with a
            usable address is on screen. The new-tab mention belongs to the

@@ -44,6 +44,8 @@ const btnFocus = document.getElementById('btn-focus');
 const elReading = document.getElementById('reading');
 const elScroll = document.getElementById('scroll');
 const linkPreply = document.getElementById('btn-preply');
+const navRooms = document.getElementById('classrooms');
+const navPages = document.getElementById('pages');
 const elHistory = document.getElementById('history');
 
 /**
@@ -1312,6 +1314,26 @@ async function selectRoom(room) {
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
 /**
+ * Width at which the navigation panel stops taking a column and floats over
+ * the document. Kept in step with the media query in viewer.html by hand;
+ * there is no way to ask CSS for it.
+ */
+const drawerWidth = matchMedia('(max-width: 839px)');
+
+/**
+ * Whether the navigation panel is currently a sheet over the document.
+ *
+ * Only then may Escape or a click outside fold it away. Wider than that it is
+ * a column the reader chose to keep, and dismissing it on a stray click in
+ * the document would take away a layout nobody asked to leave.
+ *
+ * @returns {boolean}
+ */
+function panelFloats() {
+  return drawerWidth.matches && !document.body.classList.contains('focus');
+}
+
+/**
  * Scrolls the reading area so a rectangle sits in its middle.
  *
  * Centred rather than merely brought on screen: something pinned against an
@@ -1467,6 +1489,7 @@ async function refresh(opts = {}) {
  * @returns {Promise<void>}
  */
 async function setHistory(open) {
+  markLayer('history', open);
   elHistory.classList.toggle('open', open);
   btnHistory.setAttribute('aria-pressed', String(open));
 
@@ -1529,6 +1552,7 @@ let liveMenu = null;
  * @returns {void}
  */
 function openMenu(menu) {
+  markLayer('menu', menu !== null);
   if (liveMenu) {
     liveMenu.panel.hidden = true;
     liveMenu.button.setAttribute('aria-expanded', 'false');
@@ -1644,7 +1668,29 @@ btnDropOld.addEventListener('click', () => {
 
 // A click anywhere the open menu does not own closes it, without swallowing it.
 document.addEventListener('click', (e) => {
-  if (liveMenu && !liveMenu.root.contains(e.target)) openMenu(null);
+  // The propagation path throughout, never e.target: a handler that has already
+  // run may have rebuilt the subtree the click came from — setFocusMode
+  // replaces the caret's icon, choosing a page rebuilds the list — and a
+  // detached node reports no ancestors at all. The path is fixed when the event
+  // is dispatched and still names every one of them.
+  const path = e.composedPath();
+
+  // One layer per gesture: a click that dismisses a menu has done its work and
+  // must not also take the drawer with it.
+  if (liveMenu && !path.includes(liveMenu.root)) {
+    openMenu(null);
+    return;
+  }
+  if (!panelFloats()) return;
+
+  // #btn-focus is excluded rather than merely being outside: it is the control
+  // that commands this state, so the click that opens the panel cannot also be
+  // the one that dismisses it.
+  const own = path.includes(btnFocus)
+    || path.includes(navRooms)
+    || path.includes(navPages);
+
+  if (!own) setFocusMode(true);
 });
 
 // Leaving by keyboard: without this a menu stayed open behind the user after a
@@ -1657,32 +1703,92 @@ document.addEventListener('focusout', (e) => {
 });
 
 /**
- * Escape closes the most recently opened layer, one per press: the menu first
- * if it is open, then the History panel.
+ * Layers Escape can dismiss, in the order they were opened.
+ *
+ * A fixed chain — menus, then history, then the panel — gives the right answer
+ * only while the reader opens things in the order it was written. Open the
+ * History panel and then the navigation panel and the chain closes History,
+ * which is not what was asked for. The stack answers "the most recent one"
+ * whatever the order.
+ *
+ * Names, not elements: each layer already has exactly one function that opens
+ * and closes it, and that is where the stack is kept up to date.
+ *
+ * @type {string[]}
  */
+let layers = [];
+
+/**
+ * Records a layer as the most recently opened, or as closed.
+ *
+ * Removing before pushing keeps a layer from appearing twice when it is
+ * reopened without having been closed through this path.
+ *
+ * @param {string} name
+ * @param {boolean} open
+ * @returns {void}
+ */
+function markLayer(name, open) {
+  layers = layers.filter((n) => n !== name);
+  if (open) layers.push(name);
+}
+
+/**
+ * What each layer means by open, and what closing it entails.
+ *
+ * Closing moves focus back to whatever the layer was opened from: leaving it
+ * on a panel that has just been hidden drops the keyboard at the top of the
+ * document, several tab stops from where the reader was.
+ */
+const LAYERS = {
+  title: {
+    open: () => elTitle.isContentEditable,
+    close: () => { endTitleEdit(false); elTitle.focus(); },
+  },
+  menu: {
+    open: () => liveMenu !== null,
+    close: () => { const back = liveMenu.button; openMenu(null); back.focus(); },
+  },
+  history: {
+    // Same path as the cross and the button: closing must also strip the
+    // comparison marks from the document.
+    open: historyOpen,
+    close: () => setHistory(false).catch(fail),
+  },
+  panel: {
+    open: panelFloats,
+    close: () => {
+      setFocusMode(true);
+      // Only when the caret is actually there: the toolbar is hidden until a
+      // page is on screen, and focus() inside a hidden container does nothing
+      // at all — the keyboard would drop silently back to <body>. With an
+      // empty archive there is nothing to move it to, so it stays put.
+      if (!elTopbar.hidden) btnFocus.focus();
+    },
+  },
+};
+
+// The panel can start floating with nobody having opened it: a window narrowed
+// past the breakpoint. It goes in at the BOTTOM, not the top — it was not a
+// gesture, and it must not displace a layer the reader did open.
+drawerWidth.addEventListener('change', () => {
+  if (!panelFloats()) markLayer('panel', false);
+  else if (!layers.includes('panel')) layers.unshift('panel');
+});
+
+/** Escape dismisses the most recently opened layer, one per press. */
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
 
-  if (elTitle.isContentEditable) {
+  // Walked from the top. A name can outlive its layer — something closed by a
+  // path that does not go through markLayer — so open() has the last word.
+  for (let i = layers.length - 1; i >= 0; i--) {
+    const layer = LAYERS[layers[i]];
+    if (!layer || !layer.open()) continue;
+
     e.stopPropagation();
-    endTitleEdit(false);
-    elTitle.focus();
+    layer.close();
     return;
-  }
-  // One branch for all three menus, where there were three that had to stay in
-  // agreement. Focus returns to the button that opened it, whichever it was.
-  if (liveMenu) {
-    e.stopPropagation();
-    const back = liveMenu.button;
-    openMenu(null);
-    back.focus();
-    return;
-  }
-  if (historyOpen()) {
-    e.stopPropagation();
-    // Same path as the cross and the button: closing must also strip the
-    // comparison marks from the document.
-    setHistory(false).catch(fail);
   }
 }, true);
 
@@ -1695,6 +1801,9 @@ document.addEventListener('keydown', (e) => {
  * @returns {void}
  */
 function setFocusMode(on) {
+  // The panel is a layer only while it floats; as a column it is not something
+  // Escape should take away.
+  markLayer('panel', !on && drawerWidth.matches);
   document.body.classList.toggle('focus', on);
   btnFocus.setAttribute('aria-pressed', String(on));
 
@@ -1731,6 +1840,12 @@ function backToRooms() {
 
 document.getElementById('back-rooms').addEventListener('click', backToRooms);
 
+// One per panel, since only one is on screen at a time below the drawer
+// breakpoint and an element cannot be in two places.
+for (const el of document.querySelectorAll('.panel-fold')) {
+  el.addEventListener('click', () => setFocusMode(true));
+}
+
 btnFocus.addEventListener('click', () => setFocusMode(!document.body.classList.contains('focus')));
 
 /* ------------------------------------------------------ renaming a page */
@@ -1741,6 +1856,10 @@ let titleBefore = null;
 /** Switches the title into editing and selects its content. @returns {void} */
 function startTitleEdit() {
   if (!curPage || elTitle.isContentEditable) return;
+
+  // After the guard: a call that opens nothing must not leave a layer on the
+  // stack for Escape to walk past.
+  markLayer('title', true);
   titleBefore = elTitle.textContent;
   elTitle.contentEditable = 'true';
   elTitle.focus();
@@ -1763,6 +1882,7 @@ function startTitleEdit() {
  * @returns {void}
  */
 function endTitleEdit(commit) {
+  markLayer('title', false);
   if (!elTitle.isContentEditable) return;
 
   const value = elTitle.textContent.replace(/\s+/g, ' ').trim();
