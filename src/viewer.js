@@ -1015,6 +1015,14 @@ const btnDropOld = document.getElementById('btn-drop-old');
  */
 let bulk = { same: [], old: [] };
 
+/**
+ * How many versions a sweep has to cover before the menu offering it appears.
+ *
+ * Strictly more than this, so the menu shows from three onwards. Below that,
+ * the row menus do the same job without an extra step.
+ */
+const BULK_FROM = 2;
+
 /** Row whose actions menu is open, or null. @type {HTMLElement|null} */
 let verMenuRow = null;
 
@@ -1500,6 +1508,15 @@ function syncBulkMenu() {
   btnDropSame.disabled = bulk.same.length === 0;
   btnDropOld.replaceChildren(tn('dropOld', bulk.old.length));
   btnDropOld.disabled = bulk.old.length === 0;
+
+  // The whole menu goes away below the threshold. Sweeping two versions is
+  // two clicks on the rows themselves, so the entry point would only add a
+  // step; it earns its place once the list is long enough that deleting one
+  // by one is the tedious way round.
+  const worth = bulk.same.length > BULK_FROM || bulk.old.length > BULK_FROM;
+  if (!worth) setBulkMenu(false);
+  btnHMore.hidden = !worth;
+
   paintIcons(elHMenu);
 }
 
