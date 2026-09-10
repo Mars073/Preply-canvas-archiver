@@ -144,6 +144,23 @@ function cloneEditor(editor) {
     if (reBg.test(inline)) dst[i].style.backgroundColor = computed.backgroundColor;
   }
 
+  // Collaboration carets are decorations, not content: ProseMirror injects one
+  // per connected peer, carrying that person's name in a label. Archived, the
+  // tutor's name ends up wedged mid-sentence, and being real text it reaches
+  // the page list, the search excerpts and every diff as well.
+  //
+  // Removed AFTER the colour walk above, never before: that loop pairs the two
+  // node lists by index, and deleting from the clone first would shift them
+  // apart and repaint the wrong elements.
+  //
+  // .ProseMirror-widget belongs to ProseMirror and the caret classes to the
+  // Tiptap collaboration extension. Both are upstream library names, stable
+  // across builds, unlike the content-hashed classes Preply generates — so
+  // this does not breach the rule against anchoring on their CSS.
+  for (const el of clone.querySelectorAll('.ProseMirror-widget,[class*="collaboration-carets"]')) {
+    el.remove();
+  }
+
   for (const el of clone.querySelectorAll('[contenteditable]')) el.removeAttribute('contenteditable');
   for (const el of clone.querySelectorAll('[tabindex]')) el.removeAttribute('tabindex');
 

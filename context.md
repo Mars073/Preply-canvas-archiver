@@ -56,6 +56,16 @@ Facts established by inspecting a live lesson, not assumed:
 - **The editor renders in Figtree at 20 px** over a 1089 px text column.
 - **The tutor's name exists only inside a localised sentence** — "Salle de
   classe avec Paula", "Classroom with Paula" — never as data.
+- **The live cursors of the other participants are inside the document.** Yjs
+  and Tiptap render one ProseMirror widget decoration per connected peer,
+  carrying that person's name in a label, and it sits between two words of
+  the paragraph being edited. Captured as-is it becomes part of the archive:
+  the tutor's name mid-sentence, and, being real text, in the page list, the
+  search excerpts and every diff. Stripped at capture, and again on display so
+  archives taken before that keep reading correctly.
+- **`.ProseMirror-widget` and `collaboration-carets__*` are the exception to the
+  rule below.** They come from ProseMirror and from the Tiptap collaboration
+  extension, not from Preply's build, so they are stable and safe to anchor on.
 - **CSS classes and CSS variable names are content-hashed per build.** Anchor on
   `data-qa-id`, `data-testid`, `data-preply-ds-component`, or resolve from the
   live DOM.

@@ -439,9 +439,36 @@ function blockNodes(root) {
  * @param {string} html
  * @returns {{label: string, lines: string[]}}
  */
+/**
+ * Strips collaboration carets from a parsed snapshot.
+ *
+ * They are ProseMirror decorations, not document content: one per connected
+ * peer, carrying that person's name in a label. Left in, the tutor's name
+ * appears wedged mid-sentence, and because the label is real text it also
+ * reaches the page list, the search excerpts and every diff.
+ *
+ * cloneEditor() removes them at capture time, so this only repairs snapshots
+ * taken before that fix. It is cheap, it runs on a detached copy, and stored
+ * data is never rewritten — an archive is not edited after the fact.
+ *
+ * .ProseMirror-widget is ProseMirror's own class for widget decorations and
+ * the caret classes come from the Tiptap collaboration extension. Both are
+ * upstream library names, not the content-hashed classes Preply generates per
+ * build, so anchoring on them does not break the rule against doing so.
+ *
+ * @param {ParentNode} root
+ * @returns {void}
+ */
+function stripWidgets(root) {
+  for (const el of root.querySelectorAll('.ProseMirror-widget,[class*="collaboration-carets"]')) {
+    el.remove();
+  }
+}
+
 function parseSnapshot(html) {
   const box = document.createElement('div');
   box.innerHTML = html;
+  stripWidgets(box);
 
   const lines = blockNodes(box).map(blockText);
   const first = lines[0] || '';
@@ -461,6 +488,7 @@ function parseSnapshot(html) {
 function excerpt(html) {
   const box = document.createElement('div');
   box.innerHTML = html;
+  stripWidgets(box);
   const t = box.textContent.replace(/\s+/g, ' ').trim();
   return t.length > 120 ? t.slice(0, 120) + '…' : t;
 }
@@ -772,6 +800,7 @@ async function showSnapshot(entry) {
   // the centred sheet slid sideways and back on every history toggle.
   const built = document.createElement('div');
   built.innerHTML = snap.html;
+  stripWidgets(built);
   await resolveImages(built);
   elDoc.replaceChildren(...built.childNodes);
   const tag = langOf(snap);
@@ -1429,6 +1458,7 @@ document.getElementById('btn-export').addEventListener('click', async () => {
   // on screen: that one may carry comparison marks.
   const sheet = document.createElement('div');
   sheet.innerHTML = curSnap.html;
+  stripWidgets(sheet);
   await resolveImages(sheet);
 
   const css = [...document.querySelectorAll('style')].map((s) => s.textContent).join('\n');
