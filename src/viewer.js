@@ -93,9 +93,14 @@ const PREFS_KEY = 'pca:prefs';
  * `zoom` at `null` means never chosen: the default step is resolved at
  * initialisation, once ZOOM_STEPS is known.
  *
- * @type {{zoom:number|null, roomId:string|null, pageId:string|null, focus:boolean}}
+ * `pages` is one page per classroom, not one overall. A single value cannot
+ * answer "where was I in this room", so leaving Prof 1 for Prof 2 and coming
+ * back dropped the reader on the first page of a room they had read halfway.
+ *
+ * @type {{zoom:number|null, roomId:string|null, pages:Record<string,string>,
+ *         focus:boolean, drill:boolean}}
  */
-let prefs = { zoom: null, roomId: null, pageId: null, focus: false };
+let prefs = { zoom: null, roomId: null, pages: {}, focus: false, drill: false };
 
 /**
  * Loads preferences. An unreadable store leaves the defaults in place.
@@ -106,6 +111,14 @@ async function loadPrefs() {
   try {
     const stored = await api.storage.local.get(PREFS_KEY);
     if (stored[PREFS_KEY]) prefs = { ...prefs, ...stored[PREFS_KEY] };
+
+    // Written before pages existed: the one page it knew belonged to the one
+    // room it knew, so it seeds the map rather than being thrown away.
+    if (!prefs.pages || typeof prefs.pages !== 'object') prefs.pages = {};
+    if (prefs.pageId && prefs.roomId && !prefs.pages[prefs.roomId]) {
+      prefs.pages[prefs.roomId] = prefs.pageId;
+    }
+    delete prefs.pageId;
   } catch (e) {
     console.warn('[pca] preferences unreadable', e);
   }
@@ -1216,23 +1229,47 @@ async function renderUsage() {
  * @param {Room} room
  * @returns {Promise<void>}
  */
+/**
+ * Moves between the classrooms level and the pages level, and remembers it.
+ *
+ * Above the breakpoint the class is inert — no rule outside the media query
+ * reads it — but it is still tracked there, so resizing the window down finds
+ * the reader where they actually were rather than at the top.
+ *
+ * @param {boolean} on - true for the pages level.
+ * @returns {void}
+ */
+function setDrill(on) {
+  document.body.classList.toggle('drill', on);
+  prefs.drill = on;
+  savePrefs();
+}
+
 async function selectRoom(room) {
   // Below the breakpoint the two panels share one column, and choosing a
   // classroom is what moves the pages panel over it. Above it the class is
   // inert: no rule outside the media query reads it.
-  document.body.classList.add('drill');
+  //
+  // Remembered next to roomId and pageId rather than in storage.session: the
+  // three answer one question between them, and split across two stores they
+  // can disagree — a page restored into a classroom list the reader had left.
+  setDrill(true);
   curRoom = room;
   curPage = null;
   await resolvePageContent(room);
   renderRooms();
   renderPages();
-  const first = pagesOf(room)[0];
-  if (first) {
-    await selectPage(first);
+  // Back to where the reader left this room, not to its first page. refresh()
+  // already restored that way; only this path did not, so stepping out to the
+  // classrooms and back in lost the position.
+  const wanted = prefs.pages[room.id];
+  const target = (wanted && room.pages.get(wanted)) || pagesOf(room)[0];
+  if (target) {
+    await selectPage(target);
   } else {
     // Classroom with no page: remember the classroom anyway.
     prefs.roomId = room.id;
-    prefs.pageId = null;
+    delete prefs.pages[room.id];
     savePrefs();
   }
 }
@@ -1356,7 +1393,7 @@ function revealMatch(needle) {
 async function selectPage(page, entryKey) {
   curPage = page;
   prefs.roomId = curRoom ? curRoom.id : null;
-  prefs.pageId = page.id;
+  if (curRoom) prefs.pages[curRoom.id] = page.id;
   savePrefs();
   renderPages();
 
@@ -1383,7 +1420,9 @@ async function refresh(opts = {}) {
   // become invalid — page deleted, classroom gone — falls back silently to the
   // first available entry.
   const roomId = (opts.keepSelection && curRoom?.id) || prefs.roomId;
-  const pageId = (opts.keepSelection && curPage?.id) || prefs.pageId;
+  // Resolved once the room is known: which page to restore is a question only
+  // that room can answer.
+  const held = opts.keepSelection && curPage?.id;
 
   await loadModel();
   renderRooms();
@@ -1405,6 +1444,7 @@ async function refresh(opts = {}) {
   await resolvePageContent(room);
   renderRooms();
 
+  const pageId = held || prefs.pages[room.id];
   const page = (pageId && room.pages.get(pageId)) || pagesOf(room)[0];
   if (page) await selectPage(page, opts.showKey);
   else renderPages();
@@ -1682,7 +1722,7 @@ function setFocusMode(on) {
  * @returns {void}
  */
 function backToRooms() {
-  document.body.classList.remove('drill');
+  setDrill(false);
   // preventScroll for the same reason as the history heading: the panel it
   // belongs to is still travelling, and #main is a scroll container.
   document.getElementById('rooms-head').focus({ preventScroll: true });
@@ -1980,17 +2020,27 @@ new ResizeObserver(updateScrollFades).observe(elDoc);
   applyI18n();
   paintIcons();
   await loadPrefs();
+
+  // Both are applied as soon as the preferences are read, before the archive is
+  // loaded. The panels are painted from the first frame, and settling the
+  // layout only once the model was built showed the classrooms list and then
+  // swapped it for the pages one, a fraction of a second later.
+  //
+  // Nothing in refresh() touches either: drilling in belongs to clicking a
+  // classroom, which is selectRoom's business alone.
+  setFocusMode(prefs.focus === true);
+  setDrill(prefs.drill === true);
+
   await loadLabels();
   await loadOrder();
   await loadAvatars();
-  setFocusMode(prefs.focus === true);
+  initZoom();
+  await refresh();
 
-  // Two frames, not one: the first still carries the pre-focus layout, so a
-  // class dropped there would let the collapse animate on a page that was
-  // meant to open already folded.
+  // Two frames, not one, and only once the panels hold their final state: the
+  // first still carries the layout from before, so dropping the class there
+  // would let a page that was meant to open folded animate its way into it.
   requestAnimationFrame(() => requestAnimationFrame(() => {
     document.body.classList.remove('booting');
   }));
-  initZoom();
-  await refresh();
 })().catch(console.error);
