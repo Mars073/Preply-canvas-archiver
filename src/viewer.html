@@ -51,6 +51,8 @@
        and what remains reads as a lurch. Leaving at full speed and settling
        is what makes a short move feel deliberate rather than hurried. */
     --slide-nav:.26s; --ease-nav:cubic-bezier(0,0,.2,1);
+    /* Every control in the document toolbar, whatever it holds. */
+    --btn-h:35px;
     /* Two layers: a tight contact shadow at the edge of the card, and a wide,
        very pale one for detachment. A single shadow gives either a dirty halo
        or a hard edge. */
@@ -234,8 +236,13 @@
   /* Icons inherit currentColor, so they follow the button through its states
      (hover, danger, active) with no file variant. */
   .icon{width:16px;height:16px;flex:0 0 auto}
-  .act{display:inline-flex;align-items:center;gap:6px;
-    padding:7px 13px;border:1px solid var(--line);border-radius:var(--radius-btn);
+  /* One height for every toolbar control, declared rather than left to the
+     content. A button holding text is as tall as its line box, ~19.4px here,
+     while one holding only a 16px icon is not — three and a half pixels apart,
+     which shows most inside the zoom group where the two kinds adjoin. */
+  .act{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    height:var(--btn-h);padding:0 13px;
+    border:1px solid var(--line);border-radius:var(--radius-btn);
     background:var(--panel);font-size:12.5px;cursor:pointer;white-space:nowrap}
   .act:hover{border-color:var(--ink-3)}
   /* Dark pink text: #d13d76 on #ffe5f0 is only 3.8:1, below the AA threshold. */
@@ -250,9 +257,9 @@
   #zoom .act:first-child{border-radius:var(--radius-btn) 0 0 var(--radius-btn);margin-left:0}
   #zoom .act:last-child{border-radius:0 var(--radius-btn) var(--radius-btn) 0}
   #zoom .act:focus-visible{position:relative;z-index:1}
-  /* Square button, holding a lone icon. */
-  .iconly{min-width:32px;padding:7px 0;justify-content:center}
-  .zval{min-width:62px;padding:7px 0;justify-content:center;
+  /* Square-ish, and the height now comes from .act. */
+  .iconly{width:var(--btn-h);min-width:0;padding:0}
+  .zval{min-width:62px;padding:0;
     font-variant-numeric:tabular-nums;color:var(--ink-2)}
 
   /* Secondary actions menu. Delete is no longer permanently exposed: a
