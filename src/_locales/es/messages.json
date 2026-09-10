@@ -47,6 +47,10 @@
   "versionsDeleted_other": { "message": "$1 versiones eliminadas" },
 
   "placeholderSelect": { "message": "Elige un aula y luego una página." },
+  "crashTitle": { "message": "Se ha producido un error" },
+  "crashReport": { "message": "Informar" },
+  "crashDismiss": { "message": "Ocultar este mensaje" },
+  "crashPrivacy": { "message": "El informe incluye la versión, tu navegador y el error, nunca tu archivo. Se abre como borrador que puedes revisar y editar antes de enviarlo." },
   "renameHint": { "message": "Haz doble clic, o pulsa Intro, para renombrar la página" },
   "repoLabel": { "message": "Código fuente del proyecto en GitHub, se abre en una pestaña nueva" },
   "repoTitle": { "message": "Código fuente del proyecto en GitHub" },

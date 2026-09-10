@@ -445,6 +445,23 @@
      list, which would otherwise clip the menu of the oldest version out of
      reach — and the oldest is the one most likely to be deleted. */
   .ver-menu.up{top:auto;bottom:30px}
+
+  /* Anchored to the window, not to a panel: an unhandled error can come from
+     anywhere, including a render that left the layout half built. */
+  #crash{position:fixed;left:var(--gap);right:var(--gap);bottom:var(--gap);
+    z-index:20;display:flex;align-items:flex-start;gap:12px;
+    padding:12px 14px;background:var(--panel);color:var(--ink);
+    border:1px solid var(--danger-line);border-radius:var(--radius);
+    box-shadow:0 1px 2px rgba(18,17,23,.06), 0 16px 40px rgba(18,17,23,.16)}
+  .crash-body{flex:1;min-width:0}
+  #crash strong{display:block;font-size:12.5px;color:var(--danger)}
+  #crash p{margin:3px 0 0;font-size:11.5px;color:var(--ink-2);
+    overflow-wrap:anywhere}
+  #crash .crash-note{color:var(--ink-3)}
+  #crash-close{flex:0 0 auto;border:0;background:transparent;cursor:pointer;
+    display:flex;padding:4px;border-radius:6px;color:var(--ink-3)}
+  #crash-close:hover{background:var(--bg);color:var(--ink)}
+  @media print{#crash{display:none}}
   .ver-menu{position:absolute;top:30px;right:6px;z-index:5;min-width:180px;
     padding:6px;background:var(--panel);border:1px solid var(--line-soft);
     border-radius:var(--radius);
@@ -667,7 +684,25 @@
   </aside>
 </main>
 
+<!-- Shown only when something failed with nobody to catch it. role="alert"
+     rather than the polite live region above: this one interrupts, because
+     the action the reader asked for did not happen. -->
+<div id="crash" role="alert" hidden>
+  <div class="crash-body">
+    <strong data-i18n="crashTitle"></strong>
+    <p id="crash-what"></p>
+    <p class="crash-note" data-i18n="crashPrivacy"></p>
+  </div>
+  <a id="crash-report" class="act" target="_blank" rel="noopener noreferrer"
+     data-i18n="crashReport"></a>
+  <button id="crash-close" type="button" data-icon="x"
+          data-i18n-label="crashDismiss"></button>
+</div>
+
 <!-- i18n.js first: viewer.js calls t() while wiring its handlers. -->
+<!-- crash.js before the rest: its handlers cannot guard code that has already
+     run, and a build that fails on load fails while viewer.js is being wired. -->
+<script src="crash.js"></script>
 <script src="i18n.js"></script>
 <script src="icons.js"></script>
 <script src="viewer.js"></script>

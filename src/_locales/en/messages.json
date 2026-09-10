@@ -47,6 +47,10 @@
   "versionsDeleted_other": { "message": "$1 versions deleted" },
 
   "placeholderSelect": { "message": "Pick a classroom, then a page." },
+  "crashTitle": { "message": "Something went wrong" },
+  "crashReport": { "message": "Report this" },
+  "crashDismiss": { "message": "Dismiss this message" },
+  "crashPrivacy": { "message": "The report carries the version, your browser and the error — never your archive. It opens as a draft you can read and edit before sending." },
   "renameHint": { "message": "Double-click, or press Enter, to rename the page" },
   "repoLabel": { "message": "Project source code on GitHub, opens in a new tab" },
   "repoTitle": { "message": "Project source code on GitHub" },

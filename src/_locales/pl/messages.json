@@ -57,6 +57,10 @@
   "versionsDeleted_other": { "message": "Usunięto $1 wersji" },
 
   "placeholderSelect": { "message": "Wybierz klasę, a potem stronę." },
+  "crashTitle": { "message": "Coś poszło nie tak" },
+  "crashReport": { "message": "Zgłoś" },
+  "crashDismiss": { "message": "Ukryj ten komunikat" },
+  "crashPrivacy": { "message": "Zgłoszenie zawiera wersję, przeglądarkę i treść błędu — nigdy twoje archiwum. Otwiera się jako szkic, który możesz przeczytać i zmienić przed wysłaniem." },
   "renameHint": { "message": "Kliknij dwukrotnie lub naciśnij Enter, aby zmienić nazwę strony" },
   "repoLabel": { "message": "Kod źródłowy projektu na GitHubie, otwiera się w nowej karcie" },
   "repoTitle": { "message": "Kod źródłowy projektu na GitHubie" },

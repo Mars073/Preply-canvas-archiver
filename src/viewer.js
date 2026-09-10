@@ -1142,7 +1142,7 @@ async function renderHistory() {
     // then, not await: the scroll has to happen once applyDiff has laid the
     // marks down, and showSnapshot is what runs it.
     open.addEventListener('click', () => {
-      showSnapshot(e).then(revealDiff).catch(console.error);
+      showSnapshot(e).then(revealDiff).catch(fail);
     });
 
     const more = document.createElement('button');
@@ -1176,7 +1176,7 @@ async function renderHistory() {
       announce(t('versionDeleted', [when]));
       await refresh({ keepSelection: true });
     };
-    del.addEventListener('click', () => { removeOne().catch(console.error); });
+    del.addEventListener('click', () => { removeOne().catch(fail); });
 
     menu.append(del);
     more.addEventListener('click', (ev) => {
@@ -1491,11 +1491,11 @@ async function setHistory(open) {
 }
 
 btnHistory.addEventListener('click', () => {
-  setHistory(!historyOpen()).catch(console.error);
+  setHistory(!historyOpen()).catch(fail);
 });
 
 document.getElementById('hclose').addEventListener('click', () => {
-  setHistory(false).catch(console.error);
+  setHistory(false).catch(fail);
 });
 
 /* ------------------------------------------------- secondary actions menu */
@@ -1635,11 +1635,11 @@ btnHMore.addEventListener('click', (e) => {
 });
 
 btnDropSame.addEventListener('click', () => {
-  deleteMany(bulk.same, tn('confirmDropSame', bulk.same.length)).catch(console.error);
+  deleteMany(bulk.same, tn('confirmDropSame', bulk.same.length)).catch(fail);
 });
 
 btnDropOld.addEventListener('click', () => {
-  deleteMany(bulk.old, tn('confirmDropOld', bulk.old.length)).catch(console.error);
+  deleteMany(bulk.old, tn('confirmDropOld', bulk.old.length)).catch(fail);
 });
 
 // A click anywhere the open menu does not own closes it, without swallowing it.
@@ -1682,7 +1682,7 @@ document.addEventListener('keydown', (e) => {
     e.stopPropagation();
     // Same path as the cross and the button: closing must also strip the
     // comparison marks from the document.
-    setHistory(false).catch(console.error);
+    setHistory(false).catch(fail);
   }
 }, true);
 
@@ -1835,7 +1835,7 @@ async function deletePage() {
   await refresh({ keepSelection: true });
 }
 
-document.getElementById('btn-delete').addEventListener('click', () => { deletePage().catch(console.error); });
+document.getElementById('btn-delete').addEventListener('click', () => { deletePage().catch(fail); });
 
 /**
  * Writes the snapshot on screen to a standalone HTML file.
@@ -1874,7 +1874,7 @@ body{display:block;background:#fff;margin:0;padding:24px}
   URL.revokeObjectURL(a.href);
 }
 
-document.getElementById('btn-export').addEventListener('click', () => { exportSnapshot().catch(console.error); });
+document.getElementById('btn-export').addEventListener('click', () => { exportSnapshot().catch(fail); });
 
 /* ------------------------------------------------------------------- zoom */
 
@@ -1957,7 +1957,7 @@ api.storage.onChanged.addListener((changes, area) => {
 
     refresh({ keepSelection: true, showKey: onNewest ? undefined : curSnap.key })
       .then(() => announce(t('archivesUpdated')))
-      .catch(console.error);
+      .catch(fail);
   }, 300);
 });
 
@@ -2014,6 +2014,7 @@ elScroll.addEventListener('scroll', updateScrollFades, { passive: true });
 new ResizeObserver(updateScrollFades).observe(elScroll);
 new ResizeObserver(updateScrollFades).observe(elDoc);
 
+
 /* ------------------------------------------------------------------- boot */
 
 (async () => {
@@ -2043,4 +2044,4 @@ new ResizeObserver(updateScrollFades).observe(elDoc);
   requestAnimationFrame(() => requestAnimationFrame(() => {
     document.body.classList.remove('booting');
   }));
-})().catch(console.error);
+})().catch(fail);

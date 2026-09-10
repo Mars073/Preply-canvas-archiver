@@ -57,6 +57,10 @@
   "versionsDeleted_other": { "message": "Удалено $1 версий" },
 
   "placeholderSelect": { "message": "Выберите класс, затем страницу." },
+  "crashTitle": { "message": "Произошла ошибка" },
+  "crashReport": { "message": "Сообщить" },
+  "crashDismiss": { "message": "Скрыть это сообщение" },
+  "crashPrivacy": { "message": "В отчёт попадают версия, браузер и текст ошибки — никогда ваш архив. Он откроется как черновик, который можно прочитать и изменить перед отправкой." },
   "renameHint": { "message": "Дважды щёлкните или нажмите Enter, чтобы переименовать страницу" },
   "repoLabel": { "message": "Исходный код проекта на GitHub, откроется в новой вкладке" },
   "repoTitle": { "message": "Исходный код проекта на GitHub" },

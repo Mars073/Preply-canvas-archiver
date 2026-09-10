@@ -42,6 +42,10 @@
   "versionsDeleted_other": { "message": "已删除 $1 个版本" },
 
   "placeholderSelect": { "message": "请先选择课堂，再选择页面。" },
+  "crashTitle": { "message": "出错了" },
+  "crashReport": { "message": "报告问题" },
+  "crashDismiss": { "message": "关闭此消息" },
+  "crashPrivacy": { "message": "报告包含版本、浏览器和错误信息，绝不包含你的归档。它会以草稿形式打开，你可以先阅读和修改再提交。" },
   "renameHint": { "message": "双击或按 Enter 键重命名页面" },
   "repoLabel": { "message": "在 GitHub 上查看项目源代码，将在新标签页中打开" },
   "repoTitle": { "message": "在 GitHub 上查看项目源代码" },
