@@ -1023,43 +1023,6 @@ let bulk = { same: [], old: [] };
  */
 const BULK_FROM = 2;
 
-/** Row whose actions menu is open, or null. @type {HTMLElement|null} */
-let verMenuRow = null;
-
-/**
- * Opens the actions menu of one version row, closing any other.
- *
- * Only ever one is open, so the state is a single reference rather than a
- * flag per row: closing the previous one cannot then be forgotten. Passing
- * null closes whatever is open.
- *
- * @param {HTMLElement|null} row - the <li> to open, or null to close.
- * @returns {void}
- */
-function setVerMenu(row) {
-  if (verMenuRow && verMenuRow !== row) {
-    verMenuRow.querySelector('.ver-menu').hidden = true;
-    verMenuRow.querySelector('.ver-more').setAttribute('aria-expanded', 'false');
-  }
-  verMenuRow = row;
-  if (!row) return;
-
-  row.querySelector('.ver-menu').hidden = false;
-  row.querySelector('.ver-more').setAttribute('aria-expanded', 'true');
-  // Measured after being shown: a hidden element has no box to measure.
-  const menu = row.querySelector('.ver-menu');
-  menu.classList.remove('up');
-  const list = elHList.getBoundingClientRect();
-  if (menu.getBoundingClientRect().bottom > list.bottom) menu.classList.add('up');
-
-  const first = row.querySelector('.ver-menu .mi');
-  if (first) first.focus();
-}
-
-/** Whether a version row menu is open. @returns {boolean} */
-function verMenuOpen() {
-  return verMenuRow !== null && !verMenuRow.querySelector('.ver-menu').hidden;
-}
 
 /**
  * First place two versions of a page diverge.
@@ -1099,8 +1062,7 @@ function firstChange(before, after) {
 async function renderHistory() {
   // The rows are about to be discarded: the reference to the open one must not
   // outlive them, or the next close would reach into a detached node.
-  setBulkMenu(false);
-  setVerMenu(null);
+  openMenu(null);
   elHList.textContent = '';
   if (!curPage) return;
 
@@ -1195,7 +1157,7 @@ async function renderHistory() {
     // Wrapped rather than attached as an async listener: the reply is now
     // checked, so this can reject, and an async listener rejects into nothing.
     const removeOne = async () => {
-      setVerMenu(null);
+      openMenu(null);
       const reply = await api.runtime.sendMessage({ type: 'pca:delete', keys: [e.key] });
       if (reply && reply.error) throw new Error(reply.error);
       announce(t('versionDeleted', [when]));
@@ -1206,7 +1168,7 @@ async function renderHistory() {
     menu.append(del);
     more.addEventListener('click', (ev) => {
       ev.stopPropagation();
-      setVerMenu(menu.hidden ? item : null);
+      openMenu(menuOpenFor(more) ? null : { button: more, panel: menu, root: item, clip: elHList });
     });
 
     item.append(open, more, menu);
@@ -1499,17 +1461,66 @@ document.getElementById('hclose').addEventListener('click', () => {
 /* ------------------------------------------------- secondary actions menu */
 
 /**
- * Opens or closes the menu, keeping the aria attribute in step.
+ * A menu that is currently open, described by the three elements any menu needs.
  *
- * @param {boolean} open
+ * `root` is what a click or a focus may land in without closing it: the wrapper
+ * for the toolbar and header menus, the whole row for a version's own. `clip`,
+ * when given, is the scrolling box the panel must stay inside.
+ *
+ * @typedef {{button: Element, panel: HTMLElement, root: Element, clip?: Element}} Menu
+ */
+
+/**
+ * The one menu open at a time, or null.
+ *
+ * A single reference rather than a flag per menu: three of them existed, each
+ * with its own open, close, outside-click and Escape path, and they had to
+ * agree. They drifted once already, which is why this file carries an
+ * invariant about the History panel having exactly one way to close.
+ *
+ * @type {Menu|null}
+ */
+let liveMenu = null;
+
+/**
+ * Opens one menu, closing whatever else was open.
+ *
+ * @param {Menu|null} menu - null closes without opening anything.
  * @returns {void}
  */
-function setMenu(open) {
-  elMenu.hidden = !open;
-  btnMore.setAttribute('aria-expanded', String(open));
-  if (!open) return;
-  const first = elMenu.querySelector('.mi');
+function openMenu(menu) {
+  if (liveMenu) {
+    liveMenu.panel.hidden = true;
+    liveMenu.button.setAttribute('aria-expanded', 'false');
+  }
+  liveMenu = menu;
+  if (!menu) return;
+
+  menu.panel.hidden = false;
+  menu.button.setAttribute('aria-expanded', 'true');
+
+  // Flipped above its button when it would fall out of the box it scrolls in.
+  // Measured after being shown: a hidden element has no box to measure.
+  menu.panel.classList.remove('up');
+  if (menu.clip && menu.panel.getBoundingClientRect().bottom
+      > menu.clip.getBoundingClientRect().bottom) {
+    menu.panel.classList.add('up');
+  }
+
+  // Skipping the disabled entries: focus has to land somewhere usable, and a
+  // sweep with nothing to sweep is still listed.
+  const first = menu.panel.querySelector('.mi:not([disabled])');
   if (first) first.focus();
+}
+
+/**
+ * Whether the open menu is the one this button owns.
+ *
+ * @param {Element} button
+ * @returns {boolean}
+ */
+function menuOpenFor(button) {
+  return liveMenu !== null && liveMenu.button === button;
 }
 
 
@@ -1533,25 +1544,12 @@ function syncBulkMenu() {
   // step; it earns its place once the list is long enough that deleting one
   // by one is the tedious way round.
   const worth = bulk.same.length > BULK_FROM || bulk.old.length > BULK_FROM;
-  if (!worth) setBulkMenu(false);
+  if (!worth && menuOpenFor(btnHMore)) openMenu(null);
   btnHMore.hidden = !worth;
 
   paintIcons(elHMenu);
 }
 
-/**
- * Opens or closes the History panel's own actions menu.
- *
- * @param {boolean} open
- * @returns {void}
- */
-function setBulkMenu(open) {
-  elHMenu.hidden = !open;
-  btnHMore.setAttribute('aria-expanded', String(open));
-  if (!open) return;
-  const first = elHMenu.querySelector('.mi:not([disabled])');
-  if (first) first.focus();
-}
 
 /**
  * Deletes several versions of the page at once, after confirmation.
@@ -1564,7 +1562,7 @@ function setBulkMenu(open) {
  * @returns {Promise<void>}
  */
 async function deleteMany(keys, question) {
-  setBulkMenu(false);
+  openMenu(null);
   if (keys.length === 0 || !confirm(question)) return;
 
   const reply = await api.runtime.sendMessage({ type: 'pca:delete', keys });
@@ -1573,9 +1571,27 @@ async function deleteMany(keys, question) {
   await refresh({ keepSelection: true });
 }
 
+const moreWrap = document.getElementById('more-wrap');
+const hmoreWrap = document.getElementById('hmore-wrap');
+
+/** @returns {Menu} the toolbar's secondary actions menu. */
+function toolbarMenu() {
+  return { button: btnMore, panel: elMenu, root: moreWrap };
+}
+
+/** @returns {Menu} the History panel's sweep menu. */
+function bulkMenu() {
+  return { button: btnHMore, panel: elHMenu, root: hmoreWrap };
+}
+
+btnMore.addEventListener('click', (e) => {
+  e.stopPropagation();
+  openMenu(menuOpenFor(btnMore) ? null : toolbarMenu());
+});
+
 btnHMore.addEventListener('click', (e) => {
   e.stopPropagation();
-  setBulkMenu(elHMenu.hidden);
+  openMenu(menuOpenFor(btnHMore) ? null : bulkMenu());
 });
 
 btnDropSame.addEventListener('click', () => {
@@ -1586,25 +1602,18 @@ btnDropOld.addEventListener('click', () => {
   deleteMany(bulk.old, tn('confirmDropOld', bulk.old.length)).catch(console.error);
 });
 
-btnMore.addEventListener('click', (e) => {
-  e.stopPropagation();
-  setMenu(elMenu.hidden);
-});
-
-// Click outside the menu closes it, without swallowing the click.
+// A click anywhere the open menu does not own closes it, without swallowing it.
 document.addEventListener('click', (e) => {
-  if (!elHMenu.hidden && !e.target.closest('#hmore-wrap')) setBulkMenu(false);
-  if (verMenuOpen() && !e.target.closest('.ver')) setVerMenu(null);
-  if (elMenu.hidden || e.target.closest('#more-wrap')) return;
-  setMenu(false);
+  if (liveMenu && !liveMenu.root.contains(e.target)) openMenu(null);
 });
 
-// Leaving by keyboard: without this the menu stayed open behind the user after
-// a tab, and kept aria-expanded at true.
-document.getElementById('more-wrap').addEventListener('focusout', (e) => {
-  if (elMenu.hidden) return;
-  if (e.relatedTarget && e.relatedTarget.closest('#more-wrap')) return;
-  setMenu(false);
+// Leaving by keyboard: without this a menu stayed open behind the user after a
+// tab, still claiming aria-expanded. Bound to the document rather than to each
+// wrapper, since the open menu already knows what counts as inside it.
+document.addEventListener('focusout', (e) => {
+  if (!liveMenu) return;
+  if (e.relatedTarget && liveMenu.root.contains(e.relatedTarget)) return;
+  openMenu(null);
 });
 
 /**
@@ -1620,23 +1629,13 @@ document.addEventListener('keydown', (e) => {
     elTitle.focus();
     return;
   }
-  if (!elHMenu.hidden) {
+  // One branch for all three menus, where there were three that had to stay in
+  // agreement. Focus returns to the button that opened it, whichever it was.
+  if (liveMenu) {
     e.stopPropagation();
-    setBulkMenu(false);
-    btnHMore.focus();
-    return;
-  }
-  if (verMenuOpen()) {
-    e.stopPropagation();
-    const back = verMenuRow.querySelector('.ver-more');
-    setVerMenu(null);
+    const back = liveMenu.button;
+    openMenu(null);
     back.focus();
-    return;
-  }
-  if (!elMenu.hidden) {
-    e.stopPropagation();
-    setMenu(false);
-    btnMore.focus();
     return;
   }
   if (historyOpen()) {
@@ -1782,7 +1781,7 @@ document.getElementById('btn-print').addEventListener('click', () => window.prin
  * @throws {Error} when the background reports the deletion failed.
  */
 async function deletePage() {
-  setMenu(false);
+  openMenu(null);
   if (!curPage) return;
 
   const n = curPage.entries.length;
@@ -1804,7 +1803,7 @@ document.getElementById('btn-delete').addEventListener('click', () => { deletePa
  * @returns {Promise<void>}
  */
 async function exportSnapshot() {
-  setMenu(false);
+  openMenu(null);
   if (!curSnap) return;
 
   // A copy is built and its images resolved, rather than reusing the document
