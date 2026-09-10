@@ -192,7 +192,8 @@ async function saveSnapshot(snap) {
  * Deletes one or more snapshots and their index entries in a single pass.
  *
  * @param {string[]} keys - `pca:snap:*` keys. Unknown keys are ignored.
- * @returns {Promise<{removed: number, remaining: number}>}
+ * @returns {Promise<{removed: number, remaining: number, images: number}>} `images`
+ *   counts the pictures the sweep dropped along with them.
  * @throws {TypeError} when `keys` is not an array.
  */
 async function deleteSnapshots(keys) {
@@ -210,11 +211,67 @@ async function deleteSnapshots(keys) {
   return { removed: doomed.size, remaining: index.length, images };
 }
 
-api.runtime.onMessage.addListener((msg) => {
-  if (msg?.type === 'pca:save') return saveSnapshot(msg.snapshot);
+/**
+ * Tail of the chain that serialises every write.
+ *
+ * saveSnapshot() and deleteSnapshots() both read pca:index, change it and
+ * write it back. storage.local offers no transaction, so two of them in
+ * flight together each write an index built before the other's change: one
+ * of the two disappears from the list while its snapshot stays in storage,
+ * occupying space and reachable by nothing.
+ *
+ * It is not a rare interleaving. The button forces a capture at the very
+ * moment the autosave timer may fire, and the panel's sweeps delete while
+ * that timer runs.
+ *
+ * @type {Promise<unknown>}
+ */
+let writes = Promise.resolve();
+
+/**
+ * Queues a write behind the ones already running.
+ *
+ * The chain absorbs rejections so one failure does not block every write
+ * after it; the caller still receives its own.
+ *
+ * @template T
+ * @param {() => Promise<T>} task
+ * @returns {Promise<T>}
+ */
+function serialise(task) {
+  const run = writes.then(task, task);
+  writes = run.catch(() => {});
+  return run;
+}
+
+/**
+ * Message entry point.
+ *
+ * `return true` with sendResponse(), not a returned promise. Firefox honours
+ * both; Chrome closes the channel on anything that is not literally true, so
+ * the sender resolves to undefined at once and the service worker is free to
+ * be shut down mid-write. saveSnapshot() alone makes five storage round trips,
+ * one of them carrying the images.
+ *
+ * That is also why the caller was being lied to: the viewer refreshed before
+ * a deletion had landed, and the content script flashed green on a capture
+ * that may never have been written.
+ */
+api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  /** @type {Promise<unknown>|null} */
+  let work = null;
+
+  if (msg?.type === 'pca:save') work = serialise(() => saveSnapshot(msg.snapshot));
   // `key` is still accepted, for calls from an older viewer build.
-  if (msg?.type === 'pca:delete') return deleteSnapshots(msg.keys || [msg.key]);
-  return undefined;
+  else if (msg?.type === 'pca:delete') work = serialise(() => deleteSnapshots(msg.keys || [msg.key]));
+
+  if (!work) return undefined;
+
+  work.then(sendResponse, (e) => {
+    console.error('[pca] request failed', msg?.type, e);
+    sendResponse({ error: String((e && e.message) || e) });
+  });
+  return true;
 });
 
 api.action.onClicked.addListener(() => {

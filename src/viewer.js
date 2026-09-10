@@ -1192,12 +1192,16 @@ async function renderHistory() {
     del.dataset.icon = 'trash';
     del.append(t('deleteVersion'));
     del.setAttribute('aria-label', t('deleteVersionLabel', [when]));
-    del.addEventListener('click', async () => {
+    // Wrapped rather than attached as an async listener: the reply is now
+    // checked, so this can reject, and an async listener rejects into nothing.
+    const removeOne = async () => {
       setVerMenu(null);
-      await api.runtime.sendMessage({ type: 'pca:delete', keys: [e.key] });
+      const reply = await api.runtime.sendMessage({ type: 'pca:delete', keys: [e.key] });
+      if (reply && reply.error) throw new Error(reply.error);
       announce(t('versionDeleted', [when]));
       await refresh({ keepSelection: true });
-    });
+    };
+    del.addEventListener('click', () => { removeOne().catch(console.error); });
 
     menu.append(del);
     more.addEventListener('click', (ev) => {
@@ -1548,7 +1552,8 @@ async function deleteMany(keys, question) {
   setBulkMenu(false);
   if (keys.length === 0 || !confirm(question)) return;
 
-  await api.runtime.sendMessage({ type: 'pca:delete', keys });
+  const reply = await api.runtime.sendMessage({ type: 'pca:delete', keys });
+  if (reply && reply.error) throw new Error(reply.error);
   announce(tn('versionsDeleted', keys.length));
   await refresh({ keepSelection: true });
 }
@@ -1755,16 +1760,28 @@ elFilter.addEventListener('input', renderPages);
 
 document.getElementById('btn-print').addEventListener('click', () => window.print());
 
-document.getElementById('btn-delete').addEventListener('click', async () => {
+/**
+ * Deletes every version of the page on screen.
+ *
+ * @returns {Promise<void>}
+ * @throws {Error} when the background reports the deletion failed.
+ */
+async function deletePage() {
   setMenu(false);
   if (!curPage) return;
+
   const n = curPage.entries.length;
   const label = pageName(curPage);
   if (!confirm(tn('confirmDeletePage', n, [label]))) return;
-  await api.runtime.sendMessage({ type: 'pca:delete', keys: curPage.entries.map((e) => e.key) });
+
+  const reply = await api.runtime.sendMessage({ type: 'pca:delete', keys: curPage.entries.map((e) => e.key) });
+  if (reply && reply.error) throw new Error(reply.error);
+
   curPage = null;
   await refresh({ keepSelection: true });
-});
+}
+
+document.getElementById('btn-delete').addEventListener('click', () => { deletePage().catch(console.error); });
 
 document.getElementById('btn-export').addEventListener('click', async () => {
   setMenu(false);

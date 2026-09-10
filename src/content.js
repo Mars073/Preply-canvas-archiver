@@ -312,7 +312,12 @@ async function capture(manual) {
     order: snap.order,
   });
 
-  await api.runtime.sendMessage({ type: 'pca:save', snapshot: snap });
+  // The reply is checked, now that there is one to check. Until the listener
+  // kept the channel open this resolved to undefined on Chrome whatever
+  // happened, and the button went green on a capture that was never written.
+  const reply = await api.runtime.sendMessage({ type: 'pca:save', snapshot: snap });
+  if (reply && reply.error) throw new Error(reply.error);
+
   lastSavedHtml = snap.html;
   return 'saved';
 }
@@ -441,6 +446,30 @@ function sync() {
   }
 }
 
-// The app is a SPA: the toolbar is unmounted and remounted with no page load.
-new MutationObserver(sync).observe(document.documentElement, { childList: true, subtree: true });
+/** Set while a sync is already scheduled for the next frame. */
+let syncQueued = false;
+
+/**
+ * Coalesces sync() to at most once per frame.
+ *
+ * The observer watches the whole document, because the app is a SPA and the
+ * toolbar is unmounted and remounted with no page load. During a lesson that
+ * document is a live collaborative editor: every keystroke of the tutor's, and
+ * every caret the server echoes back, delivers a batch. Running two
+ * querySelector calls on each of them is work done inside somebody else's
+ * page, several times a second, to answer a question whose answer changes
+ * perhaps twice in a lesson.
+ *
+ * @returns {void}
+ */
+function queueSync() {
+  if (syncQueued) return;
+  syncQueued = true;
+  requestAnimationFrame(() => {
+    syncQueued = false;
+    sync();
+  });
+}
+
+new MutationObserver(queueSync).observe(document.documentElement, { childList: true, subtree: true });
 sync();
