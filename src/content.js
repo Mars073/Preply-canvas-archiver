@@ -386,8 +386,15 @@ const PRINT_CSS = `
   li{margin-left:16px}
   img{max-width:100%}
   hr{border:1px solid #dcdce5;margin:8px 0}
-  table{border-collapse:collapse}
-  td,th{border:1px solid #dcdce5;padding:8px 16px}
+  /* None of this comes from the markup: it is Preply's stylesheet, which a
+     clone does not carry. Their tables span the column, where one left to
+     itself shrinks to its content; their header cells are tinted and read
+     left, where a browser leaves them plain and centres them; and the cell
+     stays bold while the paragraph inside it does not. */
+  table{border-collapse:collapse;width:100%}
+  td,th{border:1px solid #dcdce5;padding:8px 16px;background:#fff}
+  th{background:#f4f4f8;text-align:left}
+  th p{font-weight:400}
 `;
 
 /**

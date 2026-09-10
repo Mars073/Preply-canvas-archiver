@@ -318,8 +318,22 @@
     font-family:"Figtree","Noto Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
     font-size:20px;line-height:1.4;font-weight:400;
     font-feature-settings:"liga" 0;font-variant-ligatures:none}
-  #doc p{margin:0 0 .55em;min-height:1.55em}
-  #doc ul,#doc ol{margin:0 0 .8em;padding-left:1.5em}
+  /* Everything below is measured against a live Canvas, not chosen: the values
+     that were here before were invented, and every one of them was wrong.
+     Preply spaces its blocks with line-height alone and gives them no margin,
+     indents the list item rather than the list, and pads its cells twice as
+     generously as was guessed here.
+
+     `break-spaces` is the editor's own: a run of spaces is kept as typed, which
+     in a language lesson is sometimes the point. */
+  #doc{white-space:break-spaces}
+  #doc p{margin:0;min-height:1.55em}
+  /* The stylesheet resets `ul` for the interface, and that reset reached into
+     the archived document as well — every bullet in every lesson was gone. */
+  #doc ul{list-style:disc}
+  #doc ol{list-style:decimal}
+  #doc ul,#doc ol{margin:0;padding-left:0}
+  #doc li{margin-left:16px}
   #doc li p{margin:0}
   #doc img{max-width:100%;height:auto}
   /* A picture whose bytes are gone leaves a visible gap rather than nothing:
@@ -328,8 +342,20 @@
     display:inline-block;min-width:120px;min-height:60px;
     border:1px dashed var(--danger-line);border-radius:6px;
     background:#ffeceb}
-  #doc table{border-collapse:collapse;margin:0 0 1em}
-  #doc td,#doc th{border:1px solid var(--line);padding:6px 10px}
+  /* Their tables span the column. Left to itself a table shrinks to its
+     content, and an archived lesson showed one two thirds the width it had. */
+  #doc table{border-collapse:collapse;margin:0;width:100%}
+  #doc td,#doc th{border:1px solid var(--line);padding:8px 16px;
+    background:var(--panel)}
+  /* Header cells: tinted, and read left where a browser centres them. Neither
+     survives a capture — both come from Preply's stylesheet, and the clone only
+     rescues what an element carries inline.
+
+     The cell keeps the weight the browser gives it; it is the paragraph inside
+     that Preply sets back to regular. Reading the two as one measurement is
+     what made a first pass strip the bold from both. */
+  #doc th{background:var(--bg);text-align:left}
+  #doc th p{font-weight:400}
   #doc hr{border:1px solid var(--line);margin:8px 0}
 
   /* Comparison against the previous version.
