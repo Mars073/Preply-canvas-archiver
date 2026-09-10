@@ -555,6 +555,13 @@
       <button class="act" id="btn-history" data-icon="clock-counter-clockwise"
               aria-pressed="false" data-i18n="historyBtn"></button>
       <button class="act" id="btn-print" data-icon="printer" data-i18n="printBtn"></button>
+      <!-- A link, not a button: it leads somewhere, so ctrl-click, middle-click
+           and "open in new tab" have to work. Hidden until a snapshot with a
+           usable address is on screen. The new-tab mention belongs to the
+           label: a context switch has to be known before activation. -->
+      <a class="act iconly" id="btn-preply" data-icon="arrow-square-out"
+         target="_blank" rel="noopener noreferrer"
+         data-i18n-label="openOnPreply" data-i18n-title="openOnPreplyTitle" hidden></a>
       <!-- No role="menu": that role promises arrow-key navigation, Home, End
            and roving focus. Without the machinery the role lies to the screen
            reader. A plain group of buttons revealed by aria-expanded is walked

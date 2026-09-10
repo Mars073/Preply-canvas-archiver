@@ -43,6 +43,7 @@ const btnMore = document.getElementById('btn-more');
 const btnFocus = document.getElementById('btn-focus');
 const elReading = document.getElementById('reading');
 const elScroll = document.getElementById('scroll');
+const linkPreply = document.getElementById('btn-preply');
 const elHistory = document.getElementById('history');
 
 /**
@@ -772,6 +773,32 @@ function renderPages() {
  * @returns {Promise<void>}
  * @throws {Error} when the index references a snapshot missing from storage.
  */
+/**
+ * Address of an archived page back on Preply.
+ *
+ * The captured location is preferred: it is the page that was actually open.
+ * It is validated rather than trusted — it comes from storage, and an href is
+ * a place a hostile value could reach the browser.
+ *
+ * Older snapshots without one are rebuilt from the parts, which is possible
+ * only when the taught language is known: it is a path segment, and guessing
+ * it would send the reader somewhere that is not their classroom.
+ *
+ * @param {object} snap
+ * @returns {string|null} null when no address can be established.
+ */
+function preplyUrl(snap) {
+  if (typeof snap.url === 'string' && snap.url.startsWith('https://preply.com/')) {
+    return snap.url;
+  }
+  if (!snap.course || !snap.classroomId || snap.classroomId === 'unknown') return null;
+
+  const room = `https://preply.com/edu/${snap.course}/classroom-v2/${snap.classroomId}`;
+  return snap.canvasId && snap.canvasId !== 'unknown'
+    ? `${room}/canvas/${snap.canvasId}`
+    : room;
+}
+
 async function showSnapshot(entry) {
   const store = await api.storage.local.get(entry.key);
   const snap = store[entry.key];
@@ -811,6 +838,12 @@ async function showSnapshot(entry) {
   elPlaceholder.hidden = true;
   elTopbar.hidden = false;
   elTitle.textContent = pageName(curPage);
+
+  // Hidden rather than left dead when nothing can be built: a link that goes
+  // nowhere is worse than no link.
+  const back = preplyUrl(snap);
+  linkPreply.hidden = back === null;
+  if (back !== null) linkPreply.href = back;
 
   // A single discreet line: metadata must not compete with the title, which is
   // what the pills used to do.
@@ -1407,6 +1440,7 @@ function endTitleEdit(commit) {
 
   saveLabels();
   elTitle.textContent = pageName(curPage);
+
   announce(t('pageRenamed', [pageName(curPage)]));
   renderPages();
   titleBefore = null;

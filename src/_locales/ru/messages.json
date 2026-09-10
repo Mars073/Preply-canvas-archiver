@@ -24,6 +24,8 @@
 
   "historyBtn": { "message": "История" },
   "printBtn": { "message": "Печать / PDF" },
+  "openOnPreply": { "message": "Открыть эту страницу на Preply, в новой вкладке" },
+  "openOnPreplyTitle": { "message": "Открыть эту страницу на Preply" },
   "moreActions": { "message": "Другие действия" },
   "moreMenuLabel": { "message": "Дополнительные действия" },
   "exportBtn": { "message": "Экспорт в HTML" },

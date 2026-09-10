@@ -24,6 +24,8 @@
 
   "historyBtn": { "message": "历史记录" },
   "printBtn": { "message": "打印 / PDF" },
+  "openOnPreply": { "message": "在 Preply 上打开此页面，将在新标签页中打开" },
+  "openOnPreplyTitle": { "message": "在 Preply 上打开此页面" },
   "moreActions": { "message": "更多操作" },
   "moreMenuLabel": { "message": "次要操作" },
   "exportBtn": { "message": "导出为 HTML" },
