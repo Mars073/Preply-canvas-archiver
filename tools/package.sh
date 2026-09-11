@@ -56,13 +56,20 @@ for target in firefox chrome; do
     # format forbids (APPNOTE 4.4.17.1 requires "/") and which yields a package
     # a browser store may reject or extract flat. Entries are written one by one
     # with normalised names instead.
+    #
+    # Paths stay relative and PowerShell resolves them against its own working
+    # directory, which it inherits from this shell. cygpath was used here and is
+    # absent from some Git Bash installs, where it failed and handed PowerShell
+    # an empty -File.
     ps1="dist/.pack.ps1"
     cat > "$ps1" <<'PS'
 param([string]$Src, [string]$Out)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
-$root = (Resolve-Path $Src).Path
-$zip = [System.IO.Compression.ZipFile]::Open($Out, 'Create')
+$here = (Get-Location).Path
+$root = (Resolve-Path -LiteralPath (Join-Path $here $Src)).Path
+$dest = [System.IO.Path]::GetFullPath((Join-Path $here $Out))
+$zip = [System.IO.Compression.ZipFile]::Open($dest, 'Create')
 Get-ChildItem -LiteralPath $root -Recurse -File | ForEach-Object {
   $name = $_.FullName.Substring($root.Length + 1).Replace('\', '/')
   [void][System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $_.FullName, $name)
@@ -70,10 +77,11 @@ Get-ChildItem -LiteralPath $root -Recurse -File | ForEach-Object {
 $zip.Dispose()
 PS
     MSYS_NO_PATHCONV=1 powershell.exe -NoProfile -ExecutionPolicy Bypass \
-      -File "$(cygpath -w "$ps1")" \
-      -Src "$(cygpath -w "$out")" \
-      -Out "$(cygpath -w "$archive")" >/dev/null
+      -File "$ps1" -Src "$out" -Out "$archive" >/dev/null
     rm -f "$ps1"
+    # The zip is announced only once it exists. This printed the name whatever
+    # happened, so a failed pack looked like a successful one.
+    [ -s "$archive" ] || { echo "  FAILED to write $archive" >&2; exit 1; }
     echo "  $archive"
   else
     echo "  (no zip available: the $out folder is ready to load as-is)"
