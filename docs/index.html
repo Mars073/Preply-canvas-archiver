@@ -90,7 +90,7 @@
 
      The geometry is untouched. Both buttons keep the same box; only the finish
      of the one you can actually use has changed. */
-  .actions > a.glossy{position:relative;overflow:hidden;padding-right:32px;
+  .actions > a.glossy{position:relative;overflow:hidden;
     border-radius:6px;
     background:linear-gradient(#5590d6,#255ba6 49%,#123f80 50%,#1e4d96);
     box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),
@@ -115,27 +115,35 @@
     background:linear-gradient(#123f80,#255ba6 50%,#3f7cc0);
     box-shadow:inset 0 2px 3px rgba(0,0,0,.35), 0 0 0 1px #16407c}
   .actions > a.glossy:active::after{opacity:.35}
-  /* Edge runs this package unchanged — it is Chromium, and Microsoft's own
-     path for it is the Chrome Web Store. So the button already serves two
-     browsers and only named one. The corner says the second.
+  /* Edge has its own listing now, so the Chrome button no longer stands in for
+     it and the "or MS Edge" stamp it carried is gone with the padding that made
+     room for it.
 
-     White on the glossed blue measures 2.08:1 to 3.25:1 depending where the
-     corner falls on the gradient — under the bar for text this size. The
-     legibility is carried by the dark halo under the glyphs, against which
-     white holds 21:1. Nothing is lost if the corner still reads poorly: the
-     words are in the link's accessible name either way.
+     Each button in this row quotes its vendor's own era, which is why the
+     Chrome one wears 2008 glass. This is Fluent, the Microsoft of now: a 4px
+     radius rather than 8, a ground that is near-white and never white, a
+     near-invisible hairline, and a bottom stroke darker than the other three —
+     that asymmetry is what gives a Windows 11 control its slight lift. A pure
+     black outline read as a generic ghost button; the only thing saying
+     Microsoft was the logo.
 
-     14 degrees, and the line runs off the right edge rather than crossing the
-     corner: enough tilt to read as a stamp, not so much that a 9px monospace
-     starts to stair-step. Values measured on the rendered page. The clipping
-     is the parent's overflow:hidden, which the gloss already relies on. */
-  .actions > a.glossy .also{position:absolute;z-index:1;
-    top:7px;right:-26px;width:110px;transform:rotate(14deg);
-    text-align:center;padding:1px 0;color:#fff;
-    font:700 9px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-    letter-spacing:.04em;
-    text-shadow:0 0 3px rgba(0,0,0,.9), 0 1px 1px rgba(0,0,0,.8),
-                0 0 6px rgba(0,0,0,.55)}
+     The edges are inset shadows, not borders: a border would add 2px to the box
+     and break the row's alignment, which nothing else in it carries. The label
+     holds 15.5:1 at its worst state.
+
+     Not the Fluent primary button (solid #0078d4, white label), which would be
+     more Microsoft still and would put a second blue beside the glossed one.
+     The row already has its blue. */
+  .actions > a.edge{border-radius:4px;color:#1b1b1b;
+    background:linear-gradient(#fdfdfd,#f3f3f3);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.07),
+               inset 0 -1px 0 rgba(0,0,0,.13),
+               0 1px 2px rgba(0,0,0,.06)}
+  .actions > a.edge:hover{background:linear-gradient(#f6f6f6,#ededed)}
+  /* Pressed: the ground flattens and the bottom stroke goes, so the lift the
+     other states have is what disappears. */
+  .actions > a.edge:active{background:#eaeaea;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.09)}
   /* The logos are decoration: the label already says which browser, and an alt
      text would have a screen reader announce it twice. */
   .actions img{display:block;flex:0 0 auto;width:32px;height:32px}
@@ -212,10 +220,14 @@
       <a class="glossy" href="https://chromewebstore.google.com/detail/preply-canvas-archiver/clhcjjambcaodbnaenpimnbedlhohmdj">
         <img src="icons/chrome.svg" width="32" height="32" alt="" aria-hidden="true">
         Add to Chrome
-        <!-- Last in the DOM on purpose: the accessible name becomes "Add to
-             Chrome or MS Edge", which is exactly what the link does. Reading
-             it out is the point, so it is not hidden from assistive tech. -->
-        <span class="also">or MS Edge</span>
+      </a>
+      <a class="edge" href="https://microsoftedge.microsoft.com/addons/detail/preply-canvas-archiver/ocbalfmganjedonhaekgbpkiljhiongf">
+        <!-- The slug is Microsoft's, derived from the listing; the id is the
+             one Partner Center shows, not the Chrome Web Store's, since each
+             store derives its own from its own key. The id alone also resolves,
+             which is how this link existed before the listing did. -->
+        <img src="icons/edge.svg" width="32" height="32" alt="" aria-hidden="true">
+        Add to MS Edge
       </a>
       <!-- A span, not a link: it looks unavailable because it is. A disabled
            button that still goes somewhere is the one combination that lies to
