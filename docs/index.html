@@ -45,6 +45,7 @@
   :root{
     --bg:#fff; --ink:#101014; --ink-2:#54525c; --ink-3:#8b8892;
     --rule:#e8e6ea; --accent:#c2185b; --tint:#fdf2f6;
+    --ease-out:cubic-bezier(.22,.61,.36,1);
     --w:64rem;
   }
   *{box-sizing:border-box}
@@ -76,8 +77,8 @@
   .actions{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin:32px 0 0}
   /* inline-flex, not inline-block: the logo and the label have to sit on the
      same centre line, which a baseline alignment does not give. Both routes
-     share the shape — the difference between them is availability, not rank. */
-  .actions > a,.actions .off{display:inline-flex;align-items:center;gap:12px;
+     share the shape; only the finish separates them. */
+  .actions > a{display:inline-flex;align-items:center;gap:12px;
     background:var(--ink);color:#fff;
     padding:13px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px}
   .actions > a:hover{background:var(--accent)}
@@ -147,19 +148,47 @@
   /* The logos are decoration: the label already says which browser, and an alt
      text would have a screen reader announce it twice. */
   .actions img{display:block;flex:0 0 auto;width:32px;height:32px}
-  /* Unavailable, and saying so in three ways at once rather than colour alone:
-     drained logo, drained ground, and no hover to promise anything. It is a
-     span, so there is nothing to click and nothing in the tab order either.
-     The way in meanwhile lives in the note beside it.
+  /* The Firefox button, in Alpenglow's dawn: violet into rose into peach,
+     pulled back from the theme's real colours (#9059ff / #ff4aa2 / #ffbd4f).
+     Those put the label at 4.57:1 — passing AA by 0.07, one font-smoothing
+     change away from failing. These stops hold 7.46:1 at rest and 5.77:1 on
+     hover. Same reason the label is --ink and not --ink-2: on a ground this
+     saturated the muted grey drops to 3.02:1.
 
-     It briefly wore an Alpenglow finish as a working link; that is gone from
-     the file, and comes back when the listing is approved. */
-  .actions .off{background:var(--rule);color:var(--ink-3)}
-  .actions .off img{filter:grayscale(1);opacity:.5}
-  .actions small{font-size:14px;color:var(--ink-3);max-width:34ch}
-  /* The child combinator above keeps this one out of the button styling: it is
-     a sentence with a link in it, not a third route. */
-  .actions small a{color:inherit}
+     No border and no inner edge, unlike the Chrome chip beside it. That one is
+     a period reproduction and needs its bevel; this is a gradient that ends
+     where it ends, lifted by a violet-tinted drop shadow alone.
+
+     The gradient is a palindrome on an oversized canvas, so whatever window
+     the button shows always holds the whole dawn and can slide either way
+     without running out of colour. Hover slides it corner to corner. That
+     slide is also why there is no second, deeper palette on hover:
+     background-position animates, background-image does not, and a hover that
+     cross-faded one gradient into another could not move at the same time. */
+  .actions > a.alpenglow{color:var(--ink);overflow:hidden;
+    background:linear-gradient(115deg,#b98cff,#ff9ecd 25%,#ffc58c 50%,#ff9ecd 75%,#b98cff);
+    background-size:220% 220%;background-position:0% 0%;
+    box-shadow:0 2px 8px rgba(64,20,90,.2);
+    transition:background-position .6s var(--ease-out), box-shadow .3s var(--ease-out)}
+  /* Parallax: the face moves, the box does not. The logo and the label scale
+     as one piece, gap included — scaled separately they read as two things
+     drifting apart rather than one thing coming closer. At 6% the content
+     grows about 5px each side, which the 24px padding absorbs, so nothing
+     reaches the clip. */
+  .actions > a.alpenglow .face{display:inline-flex;align-items:center;gap:12px;
+    transition:transform .3s var(--ease-out)}
+  .actions > a.alpenglow:hover{background-position:100% 100%;
+    box-shadow:0 5px 14px rgba(64,20,90,.26)}
+  .actions > a.alpenglow:hover .face{transform:scale(1.06)}
+  .actions > a.alpenglow:active{box-shadow:0 1px 3px rgba(64,20,90,.22)}
+  .actions > a.alpenglow:active .face{transform:scale(1.02)}
+  /* The page's only animation. Asked to sit still it sits still — the colours,
+     the shadow and the layout are identical, only the motion goes. */
+  @media (prefers-reduced-motion: reduce){
+    .actions > a.alpenglow,.actions > a.alpenglow .face{transition:none}
+    .actions > a.alpenglow:hover .face,
+    .actions > a.alpenglow:active .face{transform:none}
+  }
 
   .shot{margin:56px 0 0;border:1px solid var(--rule);border-radius:12px;
     overflow:hidden;background:var(--bg)}
@@ -229,15 +258,19 @@
         <img src="icons/edge.svg" width="32" height="32" alt="" aria-hidden="true">
         Add to MS Edge
       </a>
-      <!-- A span, not a link: it looks unavailable because it is. A disabled
-           button that still goes somewhere is the one combination that lies to
-           both kinds of reader, so the way in meanwhile lives in the note. -->
-      <span class="off">
-        <img src="icons/firefox.svg" width="32" height="32" alt="" aria-hidden="true">
-        Add to Firefox
-      </span>
-      <small>The Firefox listing is under review. Until it lands, load it from the
-        <a href="https://github.com/Mars073/Preply-canvas-archiver/releases/latest">latest release</a>.</small>
+      <a class="alpenglow" href="https://addons.mozilla.org/firefox/addon/preply-canvas-archiver/">
+        <!-- No locale in the path: AMO sends the visitor to their own language,
+             and this extension ships six of them. The Chrome link above has no
+             locale either.
+
+             The logo and the label have to scale as one piece, gap included,
+             or the hover reads as two things drifting apart rather than one
+             thing coming closer. That takes an element to hold them. -->
+        <span class="face">
+          <img src="icons/firefox.svg" width="32" height="32" alt="" aria-hidden="true">
+          Add to Firefox
+        </span>
+      </a>
     </div>
 
     <div class="shot">
