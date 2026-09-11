@@ -162,7 +162,12 @@
   section{padding:64px 0 0}
   h2{font-size:clamp(24px,3vw,32px);line-height:1.15;letter-spacing:-.025em;
     font-weight:660;margin:0 0 18px;max-width:22ch}
-  p{margin:0 0 16px;max-width:62ch;color:var(--ink-2)}
+  /* Justified, so hyphenated: nine inline <code> runs and words like
+     "content-addressed" never break, and at this measure an unhyphenated
+     justification opens rivers between them. Hyphenation needs the language
+     declared, which <html lang="en"> does. */
+  p{margin:0 0 16px;max-width:64ch;color:var(--ink-2);
+    text-align:justify;hyphens:auto}
   p strong{color:var(--ink);font-weight:600}
 
   .pair{display:grid;gap:36px;grid-template-columns:1fr}
