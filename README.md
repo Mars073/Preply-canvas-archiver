@@ -8,7 +8,7 @@ Unofficial tool, not affiliated with Preply.
 
 > **Status.** Published on the
 > [Chrome Web Store](https://chromewebstore.google.com/detail/preply-canvas-archiver/clhcjjambcaodbnaenpimnbedlhohmdj)
-> and on [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/ocbalfmganjedonhaekgbpkiljhiongf).
+> and on [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/preply-canvas-archiver/ocbalfmganjedonhaekgbpkiljhiongf).
 > The Firefox version is still under review on addons.mozilla.org.
 >
 > Project page: <https://mars073.github.io/Preply-canvas-archiver/>
@@ -43,7 +43,7 @@ send it yourself. See [PRIVACY.md](PRIVACY.md).
 [Chrome Web Store](https://chromewebstore.google.com/detail/preply-canvas-archiver/clhcjjambcaodbnaenpimnbedlhohmdj).
 
 **Edge** — install it from
-[Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/ocbalfmganjedonhaekgbpkiljhiongf).
+[Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/preply-canvas-archiver/ocbalfmganjedonhaekgbpkiljhiongf).
 
 **Firefox** — the listing is still under review, so it has to be loaded by
 hand for now. Take the `-firefox-` zip from the
