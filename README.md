@@ -6,8 +6,8 @@ them.
 
 Unofficial tool, not affiliated with Preply.
 
-> **Status: pre-release.** Version 0.2.0 is under review on addons.mozilla.org
-> and on the Chrome Web Store.
+> **Status.** Published on the [Chrome Web Store](https://chromewebstore.google.com/detail/preply-canvas-archiver/clhcjjambcaodbnaenpimnbedlhohmdj).
+> The Firefox version is still under review on addons.mozilla.org.
 >
 > Project page: <https://mars073.github.io/Preply-canvas-archiver/>
 
@@ -37,19 +37,18 @@ send it yourself. See [PRIVACY.md](PRIVACY.md).
 
 ## Install
 
-Store listings are not live yet: version 0.2.0 is under review on both
-addons.mozilla.org and the Chrome Web Store. Until then, both browsers can load
-it manually.
+**Chrome** — install it from the
+[Chrome Web Store](https://chromewebstore.google.com/detail/preply-canvas-archiver/clhcjjambcaodbnaenpimnbedlhohmdj).
 
-Download the two packages from the [latest release](https://github.com/Mars073/Preply-canvas-archiver/releases/latest),
-or build them yourself with `bash tools/package.sh` — see [BUILD.md](BUILD.md).
+**Firefox** — the listing is still under review, so it has to be loaded by
+hand for now. Take the `-firefox-` zip from the
+[latest release](https://github.com/Mars073/Preply-canvas-archiver/releases/latest),
+then `about:debugging` → *This Firefox* → *Load Temporary Add-on*. It is removed
+when Firefox restarts: an add-on installs permanently only once signed, which is
+what the review is for.
 
-- **Firefox** — `about:debugging` → *This Firefox* → *Load Temporary Add-on*,
-  then pick the `-firefox-` zip. It is removed when Firefox restarts: an
-  add-on only installs permanently once signed, which is what the review
-  under way is for.
-- **Chrome** — unzip the `-chrome-` package, then `chrome://extensions` →
-  enable *Developer mode* → *Load unpacked* → pick the unzipped folder.
+Either package can also be built with `bash tools/package.sh` — see
+[BUILD.md](BUILD.md).
 
 ## Usage
 

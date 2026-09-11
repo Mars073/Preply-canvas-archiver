@@ -74,10 +74,84 @@
   .sub{font-size:clamp(18px,2.1vw,22px);line-height:1.5;color:var(--ink-2);
     max-width:46ch;margin:22px 0 0}
   .actions{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin:32px 0 0}
-  .actions a{display:inline-block;background:var(--ink);color:#fff;
+  /* inline-flex, not inline-block: the logo and the label have to sit on the
+     same centre line, which a baseline alignment does not give. Both routes
+     share the shape — the difference between them is availability, not rank. */
+  .actions > a,.actions .off{display:inline-flex;align-items:center;gap:12px;
+    background:var(--ink);color:#fff;
     padding:13px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px}
-  .actions a:hover{background:var(--accent)}
-  .actions small{font-size:14px;color:var(--ink-3)}
+  .actions > a:hover{background:var(--accent)}
+
+  /* The Chrome button wears the finish of the logo beside it: that mark is the
+     2008 original, and a flat modern chip next to it looked like two different
+     decades sharing a row. Four layers make the era — a gradient that breaks
+     sharply at the midline, a white inner edge along the top, a dark one along
+     the bottom, and a gloss over the upper half only.
+
+     The geometry is untouched. Both buttons keep the same box; only the finish
+     of the one you can actually use has changed. */
+  .actions > a.glossy{position:relative;overflow:hidden;padding-right:32px;
+    border-radius:6px;
+    background:linear-gradient(#5590d6,#255ba6 49%,#123f80 50%,#1e4d96);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),
+               0 0 0 1px #16407c,
+               0 1px 2px rgba(0,0,0,.35);
+    text-shadow:0 -1px 0 rgba(0,0,0,.35)}
+  /* Upper half only: a gloss over the whole face reads as a gradient, not as a
+     curved surface. pointer-events:none so it never swallows the click.
+
+     The palette is darker than the era would have it, and the gloss weaker:
+     with the original blues the white label sat at 3.2:1 over the glossed half,
+     where the text begins. Measured across the band the letters occupy, this
+     holds 4.63:1 — the period look survives, the label stays readable. */
+  .actions > a.glossy::after{content:"";position:absolute;
+    left:0;right:0;top:0;height:50%;pointer-events:none;
+    background:linear-gradient(rgba(255,255,255,.35),rgba(255,255,255,.05))}
+  .actions > a.glossy:hover{
+    background:linear-gradient(#6ba2e2,#2e69b8 49%,#174a90 50%,#2557a6)}
+  /* Pressed: the light comes from the other side, which is what a real button
+     does when it goes in. */
+  .actions > a.glossy:active{
+    background:linear-gradient(#123f80,#255ba6 50%,#3f7cc0);
+    box-shadow:inset 0 2px 3px rgba(0,0,0,.35), 0 0 0 1px #16407c}
+  .actions > a.glossy:active::after{opacity:.35}
+  /* Edge runs this package unchanged — it is Chromium, and Microsoft's own
+     path for it is the Chrome Web Store. So the button already serves two
+     browsers and only named one. The corner says the second.
+
+     White on the glossed blue measures 2.08:1 to 3.25:1 depending where the
+     corner falls on the gradient — under the bar for text this size. The
+     legibility is carried by the dark halo under the glyphs, against which
+     white holds 21:1. Nothing is lost if the corner still reads poorly: the
+     words are in the link's accessible name either way.
+
+     14 degrees, and the line runs off the right edge rather than crossing the
+     corner: enough tilt to read as a stamp, not so much that a 9px monospace
+     starts to stair-step. Values measured on the rendered page. The clipping
+     is the parent's overflow:hidden, which the gloss already relies on. */
+  .actions > a.glossy .also{position:absolute;z-index:1;
+    top:7px;right:-26px;width:110px;transform:rotate(14deg);
+    text-align:center;padding:1px 0;color:#fff;
+    font:700 9px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    letter-spacing:.04em;
+    text-shadow:0 0 3px rgba(0,0,0,.9), 0 1px 1px rgba(0,0,0,.8),
+                0 0 6px rgba(0,0,0,.55)}
+  /* The logos are decoration: the label already says which browser, and an alt
+     text would have a screen reader announce it twice. */
+  .actions img{display:block;flex:0 0 auto;width:32px;height:32px}
+  /* Unavailable, and saying so in three ways at once rather than colour alone:
+     drained logo, drained ground, and no hover to promise anything. It is a
+     span, so there is nothing to click and nothing in the tab order either.
+     The way in meanwhile lives in the note beside it.
+
+     It briefly wore an Alpenglow finish as a working link; that is gone from
+     the file, and comes back when the listing is approved. */
+  .actions .off{background:var(--rule);color:var(--ink-3)}
+  .actions .off img{filter:grayscale(1);opacity:.5}
+  .actions small{font-size:14px;color:var(--ink-3);max-width:34ch}
+  /* The child combinator above keeps this one out of the button styling: it is
+     a sentence with a link in it, not a third route. */
+  .actions small a{color:inherit}
 
   .shot{margin:56px 0 0;border:1px solid var(--rule);border-radius:12px;
     overflow:hidden;background:var(--bg)}
@@ -130,8 +204,23 @@
       every version.
     </p>
     <div class="actions">
-      <a href="https://github.com/Mars073/Preply-canvas-archiver">Get it on GitHub</a>
-      <small>Firefox and Chrome · store listings coming</small>
+      <a class="glossy" href="https://chromewebstore.google.com/detail/preply-canvas-archiver/clhcjjambcaodbnaenpimnbedlhohmdj">
+        <img src="icons/chrome.svg" width="32" height="32" alt="" aria-hidden="true">
+        Add to Chrome
+        <!-- Last in the DOM on purpose: the accessible name becomes "Add to
+             Chrome or MS Edge", which is exactly what the link does. Reading
+             it out is the point, so it is not hidden from assistive tech. -->
+        <span class="also">or MS Edge</span>
+      </a>
+      <!-- A span, not a link: it looks unavailable because it is. A disabled
+           button that still goes somewhere is the one combination that lies to
+           both kinds of reader, so the way in meanwhile lives in the note. -->
+      <span class="off">
+        <img src="icons/firefox.svg" width="32" height="32" alt="" aria-hidden="true">
+        Add to Firefox
+      </span>
+      <small>The Firefox listing is under review. Until it lands, load it from the
+        <a href="https://github.com/Mars073/Preply-canvas-archiver/releases/latest">latest release</a>.</small>
     </div>
 
     <div class="shot">
