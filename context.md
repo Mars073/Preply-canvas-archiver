@@ -196,14 +196,6 @@ the `browser_specific_settings` key.
 - **Accessibility deviations**, deliberate and documented: non-text contrast
   below 3:1 on control borders (WCAG 1.4.11), no reflow at 320 px (1.4.10), and
   diff additions signalled by colour alone (1.4.1).
-- **Not published on Microsoft Edge Add-ons.** Edge is Chromium and runs
-  `dist/chrome/` unchanged; Microsoft's documented path is the Chrome Web Store
-  with "Allow extensions from other stores", so Edge users are already served,
-  at the cost of two extra confirmations. Registering with the Edge program at
-  Partner Center carries no fee, unlike Chrome's one-off $5. Deferred on
-  purpose: a third dashboard is a third listing to resynchronise at every
-  release, and the two existing ones are not settled yet. The landing page says
-  "or MS Edge" on the Chrome button in the meantime.
 - **Retroactive archiving is impossible.** Only pages visited while the
   extension is active can be captured, and snapshots taken before images were
   content-addressed still point at URLs that expired long ago.
