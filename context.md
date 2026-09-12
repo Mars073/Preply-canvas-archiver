@@ -170,11 +170,16 @@ and Polish need three forms. See `src/context.md`.
 
 ## Packaging
 
-One source, two packages. `tools/package.sh` copies `src/` and swaps the
-manifest: Firefox uses `manifest.json` directly — so `src/` can be loaded as-is
-during development — while Chrome gets `manifest.chrome.json` renamed. The
-divergences are `background.scripts` vs `service_worker`, SVG vs PNG icons, and
-the `browser_specific_settings` key.
+One source, two packages, three stores. `tools/package.sh` copies `src/` and
+swaps the manifest: Firefox uses `manifest.json` directly — so `src/` can be
+loaded as-is during development — while Chrome gets `manifest.chrome.json`
+renamed. The divergences are `background.scripts` vs `service_worker`, SVG vs
+PNG icons, and the `browser_specific_settings` key.
+
+Microsoft Edge Add-ons takes the Chrome package unchanged: Edge is Chromium and
+reads the same MV3 manifest, so there is no third build and no third manifest.
+What differs per store is the listing, and the extension id — each store derives
+its own from its own key, so the three ids have nothing in common.
 
 ## Known gaps
 

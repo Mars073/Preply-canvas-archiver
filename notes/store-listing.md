@@ -1,20 +1,26 @@
 # Store listing copy
 
-Text to paste into the AMO and Chrome Web Store submission forms. Kept in the
-repository so the wording stays consistent between the two stores and across
-versions — it is submission material, not documentation of the code.
+Text to paste into the AMO, Chrome Web Store and Microsoft Edge Add-ons
+submission forms. Kept in the repository so the wording stays consistent across
+the three stores and across versions — it is submission material, not
+documentation of the code.
 
 The store dashboards hold the live copy, not this file. Text is kept here only
-when it is used more than once — across the two stores, across locales, or
+when it is used more than once — across the three stores, across locales, or
 across versions. A field that exists once, in one dashboard that remembers it,
 does not belong here: the duplicate would drift the first time it is edited
 there and never here.
 
 Short descriptions are held under **132 characters**, the Chrome Web Store
-limit; AMO allows 250 but there is no reason to diverge.
+limit; AMO allows 250 and Edge takes its short description from the manifest,
+but there is no reason to diverge.
+
+Long descriptions must clear **250 characters** for Edge, which is the only
+store with a floor. Every one of them does, by a wide margin.
 
 Screenshots live in `docs/screenshots/`. The `store-` prefixed files are 1280x800,
-the size the Chrome Web Store expects; AMO accepts the originals as they are.
+the size the Chrome Web Store expects, and one of the two sizes Edge accepts;
+AMO accepts the originals as they are.
 
 ---
 
@@ -222,10 +228,17 @@ Preply 只允许在上课期间打开课程的 Canvas，课后就无法访问。
 
 ---
 
-## Chrome Web Store — Privacy practices tab
+## Chrome Web Store and Edge — Privacy practices
 
 Chrome asks for each of these as a separate field, where AMO inferred them from
-the reviewer notes. Kept here so both stores answer identically.
+the reviewer notes. Partner Center asks the same set again on its **Privacy**
+page: single purpose, one justification per permission, remote code, data usage
+certification, privacy policy URL. Kept here so all three stores answer
+identically.
+
+Edge additionally requires a **Privacy Policy URL**, which Chrome leaves
+optional for an extension collecting nothing:
+https://github.com/Mars073/Preply-canvas-archiver/blob/master/PRIVACY.md
 
 ### Single purpose description
 
@@ -260,7 +273,7 @@ rather than being compacted into fragile delta chains.
 
 **No, I am not using remote code.** Every line of JavaScript that runs ships
 inside the package. There is no bundler, no CDN, no eval, no remotely hosted
-script and no inline script; viewer.html loads three local files. The images
+script and no inline script; viewer.html loads four local files. The images
 fetched from preply.com are data, not code: they are inlined as `data:` URIs and
 never executed. The extension declares no `content_security_policy`, so the
 default MV3 policy (`script-src 'self'`) applies unchanged.

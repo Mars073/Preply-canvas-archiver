@@ -8,12 +8,19 @@ For Mozilla add-on reviewers, and for anyone reproducing the packages.
   Windows 11 through Git Bash.
 - **Programs:** `bash` (4.0 or later) and the POSIX tools it comes with —
   `sed`, `awk`, `grep`, `printf`, `cp`, `mkdir`. Plus one of `zip` (any
-  version) or PowerShell 5.1 with `Compress-Archive`, whichever is present.
+  version) or PowerShell 5.1, whichever is present.
+
+  On the PowerShell path the script does **not** use `Compress-Archive`:
+  PowerShell 5.1 writes `\` as the entry separator, which the ZIP format
+  forbids — APPNOTE 4.4.17.1 requires `/` — and which yields a package a store
+  may reject or extract flat. The entries are written one at a time through
+  `System.IO.Compression` with normalised names instead. Nothing has to be
+  installed for that; it ships with Windows.
 - **No `node`, no `npm`, no bundler, no transpiler, no minifier.** There is no
   package manager step and no dependency to install. The JavaScript that ships
   is the JavaScript in this repository.
 
-## Reproducing the submitted package
+## Reproducing the submitted packages
 
 From the repository root:
 
@@ -22,7 +29,11 @@ bash tools/build-icons.sh   # regenerates src/icons.js
 bash tools/package.sh       # writes dist/*.zip
 ```
 
-`dist/preply-canvas-archiver-firefox-<version>.zip` is the submitted file.
+Two packages come out. `dist/preply-canvas-archiver-firefox-<version>.zip` is
+the file submitted to addons.mozilla.org; the `-chrome-` one goes to both the
+Chrome Web Store and Microsoft Edge Add-ons, which take the same MV3 package
+unchanged.
+
 `tools/package.sh` copies `src/` verbatim, minus `manifest.chrome.json`,
 `globals.d.ts` and `context.md`, and adds `THIRD-PARTY.md` and `LICENSE`. It
 compiles nothing.

@@ -335,18 +335,27 @@
     </section>
 
     <section>
-      <h2>Running it today.</h2>
-      <p>Neither store listing is live yet, so it runs from source.</p>
+      <h2>Running it from source.</h2>
+      <p>
+        The three store listings are the way in. This is the other one — for
+        reading the code, changing it, or running what is on <code>master</code>
+        before a store has it. Review takes days; a branch takes none.
+      </p>
       <dl class="steps">
         <dt>Firefox</dt>
         <dd><code>about:debugging</code> → This Firefox → Load Temporary Add-on →
-            pick <code>src/manifest.json</code></dd>
-        <dt>Chrome</dt>
+            pick <code>src/manifest.json</code>. It goes when Firefox restarts:
+            a permanent install has to be signed.</dd>
+        <dt>Chrome and Edge</dt>
         <dd>run <code>bash tools/package.sh</code>, then
-            <code>chrome://extensions</code> → Developer mode → Load unpacked →
-            pick <code>dist/chrome/</code></dd>
+            <code>chrome://extensions</code> (or <code>edge://extensions</code>)
+            → Developer mode → Load unpacked → pick <code>dist/chrome/</code></dd>
       </dl>
       <p style="margin-top:20px">
+        No build step, no bundler, no minifier: <code>src/</code> is what ships.
+        What you read is what runs.
+      </p>
+      <p>
         Only pages you open while it is installed can be captured. Lessons
         already past are out of reach.
       </p>
