@@ -8,8 +8,8 @@ Unofficial tool, not affiliated with Preply.
 
 > **Status.** Published on the
 > [Chrome Web Store](https://chromewebstore.google.com/detail/preply-canvas-archiver/clhcjjambcaodbnaenpimnbedlhohmdj),
-> on [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/preply-canvas-archiver/ocbalfmganjedonhaekgbpkiljhiongf)
-> and on [addons.mozilla.org](https://addons.mozilla.org/firefox/addon/preply-canvas-archiver/).
+> on [addons.mozilla.org](https://addons.mozilla.org/firefox/addon/preply-canvas-archiver/)
+> and on [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/preply-canvas-archiver/ocbalfmganjedonhaekgbpkiljhiongf).
 >
 > Project page: <https://mars073.github.io/Preply-canvas-archiver/>
 
@@ -42,11 +42,11 @@ send it yourself. See [PRIVACY.md](PRIVACY.md).
 **Chrome** — install it from the
 [Chrome Web Store](https://chromewebstore.google.com/detail/preply-canvas-archiver/clhcjjambcaodbnaenpimnbedlhohmdj).
 
-**Edge** — install it from
-[Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/preply-canvas-archiver/ocbalfmganjedonhaekgbpkiljhiongf).
-
 **Firefox** — install it from
 [addons.mozilla.org](https://addons.mozilla.org/firefox/addon/preply-canvas-archiver/).
+
+**Edge** — install it from
+[Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/preply-canvas-archiver/ocbalfmganjedonhaekgbpkiljhiongf).
 
 Either package can also be built with `bash tools/package.sh` — see
 [BUILD.md](BUILD.md).
