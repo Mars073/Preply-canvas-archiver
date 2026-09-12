@@ -1,8 +1,9 @@
 # CLAUDE.md — working rules for this repository
 
 Browser extension that archives the Canvas pages of a Preply lesson and reads
-them back outside class hours. Firefox is the primary target, Chrome is a port
-built from the same source.
+them back outside class hours. Firefox is the primary target; Chrome is a port
+built from the same source, and Microsoft Edge takes the Chrome package
+unchanged. Three listings, two packages, one source.
 
 **Read `context.md` before touching architecture, and `src/context.md` before
 editing any file under `src/`.** Update both when a change affects them.
@@ -54,9 +55,9 @@ While the version stays `0.x`, the storage format is explicitly unstable and a
 minor bump may still break archives. Say so in the release notes when it does.
 
 **The version string must be one to four dot-separated integers**, each below
-65536. Chrome accepts nothing else — no `-beta`, no `+build`, no leading zeros.
-Firefox is more permissive, but a single format across both stores avoids
-maintaining two numbering schemes.
+65536. Chrome accepts nothing else — no `-beta`, no `+build`, no leading zeros,
+and Edge enforces the same rule, being the same engine. Firefox is more
+permissive, but one format for all three stores costs nothing.
 
 `src/manifest.json` and `src/manifest.chrome.json` must always carry the same
 version. The release workflow refuses to build when they disagree, or when the
