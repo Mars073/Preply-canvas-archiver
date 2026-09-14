@@ -12,6 +12,7 @@ Read `../context.md` first for architecture and stored data.
 | `manifest.chrome.json` | Chrome overrides, renamed at packaging | — |
 | `i18n.js` | `t()`, `tn()`, `applyI18n()`, `tutorFromTitle()` | content script + viewer |
 | `icons.js` | **generated** — Phosphor paths, `icon()`, `paintIcons()` | content script + viewer |
+| `sanitize.js` | `sanitizeTree()`, `parseArchived()` — what an archived document may contain | content script + viewer |
 | `content.js` | button injection, capture, page order, avatar | Preply pages |
 | `background.js` | the only writer to `storage.local` | service worker / event page |
 | `viewer.html` / `viewer.js` | the archive reader | extension page |
@@ -19,6 +20,12 @@ Read `../context.md` first for architecture and stored data.
 
 Load order matters: `i18n.js` comes first everywhere, because `content.js` calls
 `t()` while building its button and `viewer.js` calls it while wiring handlers.
+`sanitize.js` comes before `content.js` and `viewer.js`, in both manifests and in
+`viewer.html`.
+
+Files loaded into the same context share one global scope, and a top-level
+`const` declared twice throws before the second file runs a line. Keep
+`sanitize.js`'s names prefixed (`SANITIZE_*`, `sanitize*`).
 
 ## Preply selectors
 

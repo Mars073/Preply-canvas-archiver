@@ -447,42 +447,6 @@ function blockNodes(root) {
 }
 
 /**
- * Strips from a parsed snapshot everything that is not document.
- *
- * Two families, for two reasons.
- *
- * Collaboration carets are ProseMirror decorations: one per connected peer,
- * carrying that person's name in a label. Left in, the tutor's name appears
- * wedged mid-sentence, and being real text it also reaches the page list, the
- * search excerpts and every diff.
- *
- * The rest is what a document has no business carrying. innerHTML never runs a
- * <script>, but a <style> applies at once and to the whole page it lands in —
- * one archived snapshot could restyle the viewer around itself — and a <link>
- * or an <iframe> would fetch from a page whose whole claim is that it never
- * does. Inline handlers go too: the default MV3 policy blocks them here, but a
- * standalone HTML export is opened outside that policy.
- *
- * cloneEditor() does the same at capture time, so this only repairs snapshots
- * taken before it did. It is cheap, it runs on a detached copy, and stored data
- * is never rewritten — an archive is not edited after the fact.
- *
- * @param {ParentNode} root
- * @returns {void}
- */
-function stripWidgets(root) {
-  const junk = '.ProseMirror-widget,[class*="collaboration-carets"],'
-    + 'script,style,link,meta,base,iframe,object,embed';
-  for (const el of root.querySelectorAll(junk)) el.remove();
-
-  for (const el of root.querySelectorAll('*')) {
-    for (const attr of [...el.attributes]) {
-      if (attr.name.startsWith('on')) el.removeAttribute(attr.name);
-    }
-  }
-}
-
-/**
  * Splits a snapshot into logical lines and derives the page label from them.
  *
  * Preply does not name its pages — the thumbnail bar only gives a number. The
@@ -492,11 +456,7 @@ function stripWidgets(root) {
  * @returns {{label: string, lines: string[]}}
  */
 function parseSnapshot(html) {
-  const box = document.createElement('div');
-  box.innerHTML = html;
-  stripWidgets(box);
-
-  const lines = blockNodes(box).map(blockText);
+  const lines = blockNodes(parseArchived(html)).map(blockText);
   const first = lines[0] || '';
 
   return {
@@ -824,23 +784,16 @@ async function showSnapshot(entry) {
   const keptScroll = sameDocument ? elScroll.scrollTop : 0;
 
   curSnap = { ...snap, key: entry.key };
-  // The archived document is written as HTML because that is what it is. The
-  // linter flags this, and the risk it names is real in principle: a tutor
-  // could paste an inline handler into the Canvas. Three things close it, in
-  // this order — stripWidgets() below removes scripts, styles, frames and
-  // inline handlers outright; innerHTML never executes a <script> in any case;
-  // and the default MV3 CSP (script-src 'self', no override in either
-  // manifest) blocks inline handlers on extension pages. The first is the one
-  // that also covers a standalone export, which is opened outside that policy.
+  // Parsed inert and cleaned by parseArchived() before any of it reaches the
+  // page; the default MV3 policy (script-src 'self', no override in either
+  // manifest) stays behind it as a second line.
   //
   // Built detached, then swapped in one go. Assigning innerHTML and resolving
   // the images afterwards paints an intermediate document: resolveImages()
   // awaits storage, so for a frame or two the images have no src and no
   // height. The page was visibly shorter, the scrollbar came and went, and
   // the centred sheet slid sideways and back on every history toggle.
-  const built = document.createElement('div');
-  built.innerHTML = snap.html;
-  stripWidgets(built);
+  const built = parseArchived(snap.html);
   await resolveImages(built);
   elDoc.replaceChildren(...built.childNodes);
   const tag = langOf(snap);
@@ -1980,9 +1933,7 @@ async function exportSnapshot() {
 
   // A copy is built and its images resolved, rather than reusing the document
   // on screen: that one may carry comparison marks.
-  const sheet = document.createElement('div');
-  sheet.innerHTML = curSnap.html;
-  stripWidgets(sheet);
+  const sheet = parseArchived(curSnap.html);
   await resolveImages(sheet);
 
   const css = [...document.querySelectorAll('style')].map((s) => s.textContent).join('\n');

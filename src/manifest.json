@@ -21,7 +21,7 @@
   "content_scripts": [
     {
       "matches": ["https://preply.com/*"],
-      "js": ["i18n.js", "icons.js", "content.js"],
+      "js": ["i18n.js", "icons.js", "sanitize.js", "content.js"],
       "run_at": "document_idle"
     }
   ],

@@ -183,7 +183,7 @@ async function harvestImages(clone) {
  * the images, which is asynchronous, before the markup is final.
  *
  * @param {Element} editor - the live `.ProseMirror` node.
- * @returns {Element} a detached clone, cleaned of editing attributes.
+ * @returns {Element} a detached clone, passed through sanitizeTree().
  * @throws {TypeError} when `editor` is not an Element.
  */
 function cloneEditor(editor) {
@@ -204,44 +204,15 @@ function cloneEditor(editor) {
     if (reBg.test(inline)) dst[i].style.backgroundColor = computed.backgroundColor;
   }
 
-  // Collaboration carets are decorations, not content: ProseMirror injects one
-  // per connected peer, carrying that person's name in a label. Archived, the
-  // tutor's name ends up wedged mid-sentence, and being real text it reaches
-  // the page list, the search excerpts and every diff as well.
+  // Cleaned AFTER the colour walk above, never before: that loop pairs the two
+  // node lists by index, and removing or unwrapping anything in the clone
+  // first would shift them apart and repaint the wrong elements.
   //
-  // Removed AFTER the colour walk above, never before: that loop pairs the two
-  // node lists by index, and deleting from the clone first would shift them
-  // apart and repaint the wrong elements.
-  //
-  // .ProseMirror-widget belongs to ProseMirror and the caret classes to the
-  // Tiptap collaboration extension. Both are upstream library names, stable
-  // across builds, unlike the content-hashed classes Preply generates — so
-  // this does not breach the rule against anchoring on their CSS.
-  for (const el of clone.querySelectorAll('.ProseMirror-widget,[class*="collaboration-carets"]')) {
-    el.remove();
-  }
-
-  // Nothing executable, nothing that styles beyond this document, nothing that
-  // reaches the network. innerHTML never runs a <script>, but a <style> applies
-  // at once and to the whole page it lands in — an archive could restyle the
-  // viewer around itself — and a <link> or an <iframe> would fetch from a page
-  // whose whole claim is that it never does. The print frame is the sharper
-  // case: srcdoc content is parsed normally, so a script there would run.
-  for (const el of clone.querySelectorAll('script,style,link,meta,base,iframe,object,embed')) {
-    el.remove();
-  }
-
-  // Inline handlers survive innerHTML as attributes and fire on their event.
-  // The default MV3 policy blocks them on extension pages, but the print frame
-  // inherits Preply's, which is not ours to rely on.
-  for (const el of clone.querySelectorAll('*')) {
-    for (const attr of [...el.attributes]) {
-      if (attr.name.startsWith('on')) el.removeAttribute(attr.name);
-    }
-  }
-
-  for (const el of clone.querySelectorAll('[contenteditable]')) el.removeAttribute('contenteditable');
-  for (const el of clone.querySelectorAll('[tabindex]')) el.removeAttribute('tabindex');
+  // Remote image sources are kept: harvestImages() still has to download them,
+  // and the print frame shows them straight from Preply. The print frame is
+  // also why this matters here and not only in the viewer — srcdoc content is
+  // parsed normally, under Preply's policy rather than ours.
+  sanitizeTree(clone, { remoteImages: true });
 
   return clone;
 }
