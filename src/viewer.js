@@ -272,10 +272,16 @@ const elStatus = document.getElementById('sr-status');
  * signals that you are looking at something else. The text is cleared then set
  * again on the next tick, or two identical announcements in a row go unnoticed.
  *
+ * Silent while booting. Restoring the zoom, the panels and the last page all
+ * go through the same functions as the reader's own gestures, and announced at
+ * load they read out a burst of state nobody asked about — the page itself is
+ * what a screen reader reads on arrival.
+ *
  * @param {string} message
  * @returns {void}
  */
 function announce(message) {
+  if (document.body.classList.contains('booting')) return;
   elStatus.textContent = '';
   requestAnimationFrame(() => { elStatus.textContent = message; });
 }
