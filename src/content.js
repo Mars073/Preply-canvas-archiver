@@ -68,6 +68,8 @@ let dirtySince = 0;
 let editorObserver = null;
 /** Editor node the observer is bound to. @type {Element|null} */
 let observedEditor = null;
+/** URL path of the Canvas page the pending autosave belongs to. */
+let observedPage = '';
 
 /** Refuses anything larger than this as an inline lesson image. */
 const MAX_IMAGE_BYTES = 4_000_000;
@@ -392,11 +394,13 @@ async function capture(manual) {
   // The reply is checked, now that there is one to check. Until the listener
   // kept the channel open this resolved to undefined on Chrome whatever
   // happened, and the button went green on a capture that was never written.
-  const reply = await api.runtime.sendMessage({ type: 'pca:save', snapshot: snap });
+  const reply = await api.runtime.sendMessage({ type: 'pca:save', snapshot: snap, manual });
   if (reply && reply.error) throw new Error(reply.error);
 
   lastSavedHtml = snap.html;
-  return 'saved';
+  // The background compares with what is stored, which this script cannot
+  // see: a page reopened as it was archived is found unchanged there.
+  return reply && reply.unchanged ? 'unchanged' : 'saved';
 }
 
 /** Ids of what is injected, so nothing is added twice. */
@@ -690,6 +694,23 @@ function sync() {
     }));
   }
 
+  // A pending save belongs to a page, and a page is its URL — not the node that
+  // happens to render it. Keyed to the node, as it first was, any remount on
+  // the same page threw the pending save away and restarted the clock, and a
+  // node that changes often enough kept autosave from ever firing.
+  //
+  // On a real change of page it has to go: the document it was waiting for is
+  // gone, and left to fire it would archive the page just opened, unedited.
+  // What it held is lost unless the button was used — AUTOSAVE_MAX_WAIT_MS
+  // bounds how much.
+  const page = location.pathname;
+  if (page !== observedPage) {
+    observedPage = page;
+    lastSavedHtml = null;
+    clearTimeout(autosaveTimer);
+    dirtySince = 0;
+  }
+
   // Compared by identity, not by presence. Checking only whether an observer
   // existed kept it on the first editor ever found: if Preply replaces the node
   // without a frame in between where none is mounted, the observer went on
@@ -698,19 +719,21 @@ function sync() {
     if (editorObserver) editorObserver.disconnect();
     editorObserver = null;
     observedEditor = editor;
-    lastSavedHtml = null;
 
-    // A pending save belongs to the document being left, and cannot be taken
-    // from it any more: the URL already names the next page, and a detached
-    // node has no computed style to resolve colours from. Left to fire, it
-    // would archive the page just opened, unedited. What it held is lost
-    // unless the button was used — AUTOSAVE_MAX_WAIT_MS bounds how much.
-    clearTimeout(autosaveTimer);
-    dirtySince = 0;
+    // Traced, like the archiving itself: how often Preply swaps this node is
+    // not known, and a line per swap is how to find out. console.debug, so it
+    // shows only with the console's verbose level.
+    console.debug('[pca] editor', editor ? 'bound' : 'lost', page);
 
     if (editor) {
       editorObserver = new MutationObserver(scheduleAutosave);
       editorObserver.observe(editor, { childList: true, subtree: true, characterData: true });
+
+      // A page is archived for being opened, not only for being edited: a
+      // lesson moves through pages nobody types on, and those are part of it.
+      // Counted as a change, so it waits for the document to settle like any
+      // other; the background drops it if that version is already stored.
+      scheduleAutosave();
     }
   }
 }
@@ -740,7 +763,11 @@ function scheduleAutosave() {
  */
 function autosave() {
   dirtySince = 0;
-  capture(false).catch(console.error);
+  // The outcome is traced: 'unchanged' and 'no-canvas' are silent otherwise,
+  // and from the outside they look exactly like an autosave that never ran.
+  capture(false)
+    .then((outcome) => console.debug('[pca] autosave', outcome))
+    .catch(console.error);
 }
 
 /** Set while a sync is already scheduled for the next frame. */

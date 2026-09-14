@@ -185,16 +185,35 @@ async function saveAvatar(classroomId, dataUri) {
 /**
  * Stores a snapshot and updates the index.
  *
+ * An automatic capture identical to the newest stored version of its page is
+ * not written: autosave archives every page the reader opens, and revisiting
+ * one would otherwise add a copy per visit. The page order and the avatar are
+ * still merged, since each reading of the thumbnail bar may know more. A manual
+ * capture is always written — the reader asked for that version by name.
+ *
  * @param {{canvasId: string, classroomId: string, page: string, title: string, url: string, ts: string, html: string, order?: object[], avatar?: string}} snap
- * @returns {Promise<{key: string, count: number}>}
+ * @param {boolean} manual - true when the reader pressed the button.
+ * @returns {Promise<{key: string, count: number, unchanged: boolean}>} `key` is
+ *   the newest version of the page, which is the existing one when unchanged.
  * @throws {TypeError} when the snapshot has no `html` field.
  */
-async function saveSnapshot(snap) {
+async function saveSnapshot(snap, manual) {
   if (!snap || typeof snap.html !== 'string') throw new TypeError('snapshot.html is required');
 
   const key = `pca:snap:${snap.canvasId}:${snap.ts}`;
   const stored = await api.storage.local.get(INDEX_KEY);
   const index = stored[INDEX_KEY] || [];
+
+  if (!manual) {
+    // The index is newest first, so the first entry for the page is its latest.
+    const latest = index.find((e) => e.canvasId === snap.canvasId);
+    const previous = latest ? (await api.storage.local.get(latest.key))[latest.key] : null;
+    if (previous && previous.html === snap.html) {
+      await mergeOrder(snap.classroomId, snap.order);
+      await saveAvatar(snap.classroomId, snap.avatar);
+      return { key: latest.key, count: index.length, unchanged: true };
+    }
+  }
 
   index.unshift({
     key,
@@ -224,7 +243,7 @@ async function saveSnapshot(snap) {
   await api.storage.local.set({ [key]: snap, [INDEX_KEY]: index });
   await mergeOrder(snap.classroomId, snap.order);
   await saveAvatar(snap.classroomId, avatar);
-  return { key, count: index.length };
+  return { key, count: index.length, unchanged: false };
 }
 
 /**
@@ -313,7 +332,7 @@ api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   /** @type {Promise<unknown>|null} */
   let work = null;
 
-  if (msg?.type === 'pca:save') work = serialise(() => saveSnapshot(msg.snapshot));
+  if (msg?.type === 'pca:save') work = serialise(() => saveSnapshot(msg.snapshot, msg.manual === true));
   // `key` is still accepted, for calls from an older viewer build.
   else if (msg?.type === 'pca:delete') work = serialise(() => deleteSnapshots(msg.keys || [msg.key]));
 
