@@ -42,23 +42,6 @@ const REPO_URL = 'https://github.com/Mars073/Preply-canvas-archiver';
 const REPORT_MAX = 1400;
 
 /**
- * Builds a link that opens a GitHub issue with the details already filled in.
- *
- * `labels` is deliberately not passed: setting one needs write access to the
- * repository, and GitHub answers 404 to anyone else — the reporter would meet
- * a dead link instead of a form.
- *
- * What goes in is the version, the browser and the failure. No archived
- * content, no page name, no tutor: an add-on whose whole claim is that nothing
- * leaves the browser cannot hand a lesson to a public issue tracker. An error
- * message may still carry an identifier of its own, which is why the form is
- * opened for review rather than submitted.
- *
- * @param {string} what - the failure, already reduced to one line.
- * @param {string} stack - stack trace, or an empty string.
- * @returns {string}
- */
-/**
  * The failure as one block, without repeating its first line.
  *
  * V8 opens a stack with `Error: <message>`, SpiderMonkey opens it with the
@@ -76,6 +59,23 @@ function trace(what, stack) {
   return first.includes(what) ? clean : `${what}\n${clean}`;
 }
 
+/**
+ * Builds a link that opens a GitHub issue with the details already filled in.
+ *
+ * `labels` is deliberately not passed: setting one needs write access to the
+ * repository, and GitHub answers 404 to anyone else — the reporter would meet
+ * a dead link instead of a form.
+ *
+ * What goes in is the version, the browser and the failure. No archived
+ * content, no page name, no tutor: an add-on whose whole claim is that nothing
+ * leaves the browser cannot hand a lesson to a public issue tracker. An error
+ * message may still carry an identifier of its own, which is why the form is
+ * opened for review rather than submitted.
+ *
+ * @param {string} what - the failure, already reduced to one line.
+ * @param {string} stack - stack trace, or an empty string.
+ * @returns {string}
+ */
 function reportUrl(what, stack) {
   const version = crashApi.runtime.getManifest().version;
   const body = [

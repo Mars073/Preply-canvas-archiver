@@ -355,8 +355,6 @@ async function capture(manual) {
   return 'saved';
 }
 
-/**
-
 /** Ids of what is injected, so nothing is added twice. */
 const BTN_PRINT_ID = 'pca-print-button';
 const BTN_GROUP_ID = 'pca-buttons';

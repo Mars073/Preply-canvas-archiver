@@ -399,7 +399,7 @@ function foldWithMap(s) {
   for (const ch of s) {
     const f = fold(ch);
     for (let k = 0; k < f.length; k++) { out += f[k]; map.push(i); }
-    i += ch.length; // 1 ou 2 unites UTF-16
+    i += ch.length; // one or two UTF-16 units
   }
   return { out, map };
 }
@@ -447,15 +447,6 @@ function blockNodes(root) {
 }
 
 /**
- * Splits a snapshot into logical lines and derives the page label from them.
- *
- * Preply does not name its pages — the thumbnail bar only gives a number. The
- * label is therefore reconstructed from the first non-empty line.
- *
- * @param {string} html
- * @returns {{label: string, lines: string[]}}
- */
-/**
  * Strips from a parsed snapshot everything that is not document.
  *
  * Two families, for two reasons.
@@ -491,6 +482,15 @@ function stripWidgets(root) {
   }
 }
 
+/**
+ * Splits a snapshot into logical lines and derives the page label from them.
+ *
+ * Preply does not name its pages — the thumbnail bar only gives a number. The
+ * label is therefore reconstructed from the first non-empty line.
+ *
+ * @param {string} html
+ * @returns {{label: string, lines: string[]}}
+ */
 function parseSnapshot(html) {
   const box = document.createElement('div');
   box.innerHTML = html;
@@ -503,20 +503,6 @@ function parseSnapshot(html) {
     label: first ? (first.length > 44 ? first.slice(0, 44) + '…' : first) : t('pageNoText'),
     lines,
   };
-}
-
-/**
- * Extracts a short text preview of a snapshot.
- *
- * @param {string} html
- * @returns {string}
- */
-function excerpt(html) {
-  const box = document.createElement('div');
-  box.innerHTML = html;
-  stripWidgets(box);
-  const t = box.textContent.replace(/\s+/g, ' ').trim();
-  return t.length > 120 ? t.slice(0, 120) + '…' : t;
 }
 
 /* ------------------------------------------------------------------ model */
@@ -792,13 +778,6 @@ function renderPages() {
 }
 
 /**
- * Shows a snapshot in the main pane.
- *
- * @param {IndexEntry} entry
- * @returns {Promise<void>}
- * @throws {Error} when the index references a snapshot missing from storage.
- */
-/**
  * Address of an archived page back on Preply.
  *
  * The captured location is preferred: it is the page that was actually open.
@@ -824,6 +803,13 @@ function preplyUrl(snap) {
     : room;
 }
 
+/**
+ * Shows a snapshot in the main pane.
+ *
+ * @param {IndexEntry} entry
+ * @returns {Promise<void>}
+ * @throws {Error} when the index references a snapshot missing from storage.
+ */
 async function showSnapshot(entry) {
   const store = await api.storage.local.get(entry.key);
   const snap = store[entry.key];
@@ -1205,7 +1191,7 @@ async function renderHistory() {
   syncBulkMenu();
 }
 
-/** Affiche l'occupation reelle du stockage de l'extension. @returns {Promise<void>} */
+/** Shows the archive's size in the footer. @returns {Promise<void>} */
 async function renderUsage() {
   const versions = [...rooms.values()]
     .flatMap((r) => [...r.pages.values()])
@@ -1237,12 +1223,6 @@ async function renderUsage() {
 /* -------------------------------------------------------------- selection */
 
 /**
- * Selects a classroom and its most recently archived page.
- *
- * @param {Room} room
- * @returns {Promise<void>}
- */
-/**
  * Moves between the classrooms level and the pages level, and remembers it.
  *
  * Above the breakpoint the class is inert — no rule outside the media query
@@ -1258,6 +1238,12 @@ function setDrill(on) {
   savePrefs();
 }
 
+/**
+ * Selects a classroom and the page last read in it, else its first page.
+ *
+ * @param {Room} room
+ * @returns {Promise<void>}
+ */
 async function selectRoom(room) {
   // Below the breakpoint the two panels share one column, and choosing a
   // classroom is what moves the pages panel over it. Above it the class is
@@ -1287,31 +1273,6 @@ async function selectRoom(room) {
   }
 }
 
-/**
- * Selects a page and shows one of its versions, the newest by default.
- *
- * @param {Page} page
- * @param {string} [entryKey] - version to restore instead of the newest.
- * @returns {Promise<void>}
- */
-/**
- * Brings the first occurrence of the search term to the middle of the reading
- * area and flashes it.
- *
- * Folds accents and case exactly as the page filter does, so a search for
- * "slonce" lands on "słońce". Folding can change length — "œ" becomes two
- * characters — so the position is mapped back through foldWithMap() rather
- * than reused as-is.
- *
- * Lines the diff inserted are skipped: a deleted line is no longer part of the
- * document, and sending the reader to struck-through text would misdirect.
- *
- * Does nothing when the term matches only the page title, or nothing at all.
- * The reader is then left at the top, where a document normally opens.
- *
- * @param {string} needle - already folded, as fold() returns it.
- * @returns {void}
- */
 /**
  * Whether the reader asked their system to stop moving things.
  *
@@ -1383,6 +1344,24 @@ function revealDiff() {
   if (first) centreOn(first.getBoundingClientRect());
 }
 
+/**
+ * Brings the first occurrence of the search term to the middle of the reading
+ * area and flashes it.
+ *
+ * Folds accents and case exactly as the page filter does, so a search for
+ * "slonce" lands on "słońce". Folding can change length — "œ" becomes two
+ * characters — so the position is mapped back through foldWithMap() rather
+ * than reused as-is.
+ *
+ * Lines the diff inserted are skipped: a deleted line is no longer part of the
+ * document, and sending the reader to struck-through text would misdirect.
+ *
+ * Does nothing when the term matches only the page title, or nothing at all.
+ * The reader is then left at the top, where a document normally opens.
+ *
+ * @param {string} needle - already folded, as fold() returns it.
+ * @returns {void}
+ */
 function revealMatch(needle) {
   if (!needle) return;
 
@@ -1423,6 +1402,13 @@ function revealMatch(needle) {
   }
 }
 
+/**
+ * Selects a page and shows one of its versions, the newest by default.
+ *
+ * @param {Page} page
+ * @param {string} [entryKey] - version to restore instead of the newest.
+ * @returns {Promise<void>}
+ */
 async function selectPage(page, entryKey) {
   curPage = page;
   prefs.roomId = curRoom ? curRoom.id : null;
