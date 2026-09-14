@@ -185,16 +185,17 @@ its own from its own key, so the three ids have nothing in common.
 
 - **Nothing here has ever been executed by an agent.** Every change is
   unverified until loaded in a browser.
-- **The capture path has never run end to end.** The viewer is exercised
-  constantly, in Firefox against `src/` and in Chrome against `dist/chrome/`:
-  it opens, renders, navigates and localises. Button injection, capture, page
-  order, avatar and image harvesting have been exercised in neither browser —
-  they all need a live lesson, which is the one thing no test here can fake.
+- **The capture path has run end to end, in live lessons only.** Firefox and
+  Chromium 153 (September 2026): button injection, manual and automatic
+  capture, every page of the lesson, images included on Chromium — so the
+  presigned image host answers the content script's cross-origin fetch. A
+  one-hour lesson produced nine distinct autosaves, so the one-minute quiet
+  window does occur during real teaching.
 
-  This is the gap that matters. Everything under `content.js` and
-  `background.js` has been rewritten since it was last near a lesson: the
-  message protocol, the write queue, the observer, the button factory, the
-  print path, the node stripping. None of it has run.
+  Still unobserved: whether autosave keeps running after switching Canvas page
+  (the observer is bound to the first editor node it finds), whether the last
+  minute before leaving is captured without the manual button, and the quick
+  print path. Nothing automates any of it.
 - **`tools/serialize.js` is not wired in.** It inlines every computed style, not
   colours alone, which would raise fidelity further. `cloneEditor()` handles
   colours and images; the rest awaits a console test during a lesson.
