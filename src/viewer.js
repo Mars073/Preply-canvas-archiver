@@ -1158,6 +1158,7 @@ async function renderHistory() {
     const menu = document.createElement('div');
     menu.className = 'ver-menu';
     menu.hidden = true;
+    menu.setAttribute('role', 'group');
     menu.setAttribute('aria-label', t('versionActions', [when]));
 
     const del = document.createElement('button');
