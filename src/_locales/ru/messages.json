@@ -12,6 +12,7 @@
   "pagesTitle": { "message": "Страницы" },
   "filterPlaceholder": { "message": "Фильтр страниц…" },
   "filterLabel": { "message": "Фильтровать страницы" },
+  "filterClear": { "message": "Очистить фильтр" },
 
   "focusHide": { "message": "Скрыть панели навигации" },
   "focusShow": { "message": "Показать панели навигации" },

@@ -185,9 +185,21 @@
 
   /* ---------- column 2: pages ---------- */
   #pages{display:flex;flex-direction:column}
-  #filter{width:100%;margin-top:8px;padding:7px 11px;border:1px solid var(--line);
+  .filter-wrap{position:relative;margin-top:8px}
+  /* Right padding leaves room for the clear button, so a long term never runs
+     underneath it. */
+  #filter{width:100%;padding:7px 34px 7px 11px;border:1px solid var(--line);
     border-radius:var(--radius-btn);background:var(--bg);font:inherit;font-size:12.5px;
     -webkit-user-select:text;user-select:text}
+  /* Chromium draws its own cross in a search field and Firefox draws none: one
+     button of ours in both, rather than two crosses in one of them. */
+  #filter::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none}
+  #filter-clear{position:absolute;top:50%;right:5px;transform:translateY(-50%);
+    width:24px;height:24px;padding:0;display:flex;align-items:center;
+    justify-content:center;border:0;border-radius:6px;background:transparent;
+    color:var(--ink-3);cursor:pointer}
+  #filter-clear:hover{background:var(--line-soft);color:var(--ink)}
+  #filter-clear .icon{width:13px;height:13px}
   .page{display:flex;gap:10px;width:100%;text-align:left;padding:9px 10px;
     border:0;border-radius:var(--radius);background:transparent;cursor:pointer}
   .page:hover{background:var(--bg)}
@@ -677,8 +689,14 @@
               data-i18n-label="backToRooms" data-i18n-title="backToRooms"></button>
       <h2 id="pages-head" data-i18n="pagesTitle"></h2>
     </div>
-    <input id="filter" type="search"
-           data-i18n-placeholder="filterPlaceholder" data-i18n-label="filterLabel">
+    <div class="filter-wrap">
+      <input id="filter" type="search"
+             data-i18n-placeholder="filterPlaceholder" data-i18n-label="filterLabel">
+      <!-- Hidden while the field is empty: a control that clears nothing is one
+           more tab stop for nothing. -->
+      <button id="filter-clear" type="button" data-icon="x"
+              data-i18n-label="filterClear" data-i18n-title="filterClear" hidden></button>
+    </div>
   </div>
   <ul class="col-body" id="page-list"></ul>
 </nav>

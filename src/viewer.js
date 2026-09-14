@@ -1928,7 +1928,21 @@ elTitle.addEventListener('paste', (e) => {
   document.execCommand('insertText', false, text.replace(/\s+/g, ' ').trim());
 });
 
-elFilter.addEventListener('input', renderPages);
+const btnFilterClear = document.getElementById('filter-clear');
+
+elFilter.addEventListener('input', () => {
+  btnFilterClear.hidden = elFilter.value === '';
+  renderPages();
+});
+
+btnFilterClear.addEventListener('click', () => {
+  elFilter.value = '';
+  btnFilterClear.hidden = true;
+  renderPages();
+  // Back to the field: the button just hid itself, and focus left on it would
+  // fall to the top of the page.
+  elFilter.focus();
+});
 
 document.getElementById('btn-print').addEventListener('click', () => window.print());
 

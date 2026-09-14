@@ -12,6 +12,7 @@
   "pagesTitle": { "message": "Strony" },
   "filterPlaceholder": { "message": "Filtruj strony…" },
   "filterLabel": { "message": "Filtruj strony" },
+  "filterClear": { "message": "Wyczyść filtr" },
 
   "focusHide": { "message": "Ukryj panele nawigacji" },
   "focusShow": { "message": "Pokaż panele nawigacji" },

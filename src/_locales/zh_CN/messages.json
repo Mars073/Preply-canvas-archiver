@@ -12,6 +12,7 @@
   "pagesTitle": { "message": "页面" },
   "filterPlaceholder": { "message": "筛选页面…" },
   "filterLabel": { "message": "筛选页面" },
+  "filterClear": { "message": "清除筛选" },
 
   "focusHide": { "message": "隐藏导航面板" },
   "focusShow": { "message": "显示导航面板" },
