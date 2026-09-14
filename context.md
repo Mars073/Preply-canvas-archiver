@@ -143,8 +143,15 @@ settles the rest. 115 is a deliberate reach down to the extended-support
 release, so an add-on about keeping lesson notes still installs on a machine
 someone else administers.
 
-It is paid for twice, and both are handled by feature detection rather than
-by raising the floor:
+It is paid for three times, and each is handled by detection rather than by
+raising the floor:
+
+- MV3 host permissions are granted at install only from Firefox 127, and every
+  browser lets the user withdraw them later. Without them the content script
+  is never injected and the Preply page shows nothing. The background marks
+  the toolbar icon with a badge, opens the viewer on a first install without
+  access, and the viewer shows a notice whose button calls
+  `permissions.request()` — from the click itself, which the API requires.
 
 - `zoom` arrives in Firefox 126. Below it the zoom group hides itself
   (`CSS.supports`) rather than offering three dead buttons.
@@ -152,7 +159,8 @@ by raising the floor:
   shows the snapshot count with no size, since the only figure that could be
   computed instead would be wrong in the reassuring direction.
 
-Raising the floor would buy those two back and cost every ESR user. If it is
+Raising the floor would buy the last two back — not the first, since a
+withdrawn permission happens on any version — and cost every ESR user. If it is
 ever raised, it should be because something cannot be detected and degraded,
 not to tidy away a warning.
 

@@ -2101,6 +2101,52 @@ api.storage.onChanged.addListener((changes, area) => {
   }, 300);
 });
 
+/* ------------------------------------------------------- host access */
+
+/** Same origins as the manifest's host_permissions, and background.js's copy. */
+const PREPLY_ACCESS = { origins: ['https://preply.com/*'] };
+
+const elAccess = document.getElementById('access');
+const btnAccess = document.getElementById('access-grant');
+
+/**
+ * Shows the access notice while the browser withholds preply.com.
+ *
+ * When it hides with focus inside it, focus is moved on rather than left on a
+ * button that no longer exists for the keyboard: to the document toolbar when
+ * one is on screen, else to the classrooms heading.
+ *
+ * @returns {Promise<void>}
+ */
+async function renderAccess() {
+  const granted = await api.permissions.contains(PREPLY_ACCESS);
+  if (elAccess.hidden === granted) return;
+
+  const hadFocus = elAccess.contains(document.activeElement);
+  elAccess.hidden = granted;
+  if (!granted || !hadFocus) return;
+
+  if (!elTopbar.hidden) btnFocus.focus();
+  else document.getElementById('rooms-head').focus({ preventScroll: true });
+}
+
+btnAccess.addEventListener('click', () => {
+  // Called straight from the click, before any await: the browser grants a
+  // request only inside the user gesture, and awaiting first would spend it.
+  api.permissions.request(PREPLY_ACCESS)
+    .then((granted) => {
+      // Content scripts declared in the manifest reach only pages loaded from
+      // now on; a lesson already open has to be reloaded, and the reader told.
+      if (granted) announce(t('accessGranted'));
+      return renderAccess();
+    })
+    .catch(fail);
+});
+
+// Granted or withdrawn from the browser's own settings while the viewer is open.
+api.permissions.onAdded.addListener(() => { renderAccess().catch(fail); });
+api.permissions.onRemoved.addListener(() => { renderAccess().catch(fail); });
+
 /* --------------------------------------------------------- scroll fades */
 
 /**
@@ -2176,6 +2222,7 @@ new ResizeObserver(updateScrollFades).observe(elDoc);
   await loadOrder();
   await loadAvatars();
   initZoom();
+  await renderAccess();
   await refresh();
 
   // Two frames, not one, and only once the panels hold their final state: the

@@ -392,6 +392,13 @@
   #doc .pca-del{background:#ffeceb;box-shadow:-14px 0 0 #ffeceb;border-radius:2px;
     color:var(--ink-2);text-decoration:line-through;text-decoration-color:#f87e77}
 
+  #access{display:flex;align-items:center;gap:12px;margin:0 6px 8px;
+    padding:10px 14px;background:var(--panel);
+    border:1px solid var(--danger-line);border-radius:var(--radius)}
+  .access-body{flex:1;min-width:0}
+  #access strong{display:block;font-size:12.5px;color:var(--danger)}
+  #access p{margin:3px 0 0;font-size:11.5px;color:var(--ink-2)}
+
   #placeholder{display:grid;place-items:center;height:100%;color:var(--ink-3);
     font-size:13px;text-align:center;padding:40px}
 
@@ -489,7 +496,7 @@
   #crash-close{flex:0 0 auto;border:0;background:transparent;cursor:pointer;
     display:flex;padding:4px;border-radius:6px;color:var(--ink-3)}
   #crash-close:hover{background:var(--bg);color:var(--ink)}
-  @media print{#crash{display:none}}
+  @media print{#crash,#access{display:none}}
   .ver-menu{position:absolute;top:30px;right:6px;z-index:5;min-width:180px;
     padding:6px;background:var(--panel);border:1px solid var(--line-soft);
     border-radius:var(--radius);
@@ -722,6 +729,18 @@
       </div>
     </div>
   </div>
+
+  <!-- Shown while the browser withholds access to preply.com. In #main rather
+       than fixed over the window: it must stay visible with the panels folded
+       and never cover the crash banner, and nothing is more relevant to the
+       reading area than the reason it will not fill up. -->
+  <section id="access" aria-labelledby="access-title" hidden>
+    <div class="access-body">
+      <strong id="access-title" data-i18n="accessTitle"></strong>
+      <p data-i18n="accessBody"></p>
+    </div>
+    <button class="act" id="access-grant" type="button" data-i18n="accessGrant"></button>
+  </section>
 
   <!-- Pages change without a reload: with no live region nothing is announced
        and the user never learns the document swapped under them. -->

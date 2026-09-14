@@ -329,3 +329,56 @@ api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 api.action.onClicked.addListener(() => {
   api.tabs.create({ url: api.runtime.getURL('viewer.html') });
 });
+
+/**
+ * The host access every capture depends on.
+ *
+ * Declared in host_permissions, which is not the same as granted. Firefox
+ * before 127 does not grant MV3 host permissions at install, and every browser
+ * lets the user withdraw them later. Without it the content script is never
+ * injected: no button, no autosave, and nothing on screen to say why.
+ */
+const PREPLY_ACCESS = { origins: ['https://preply.com/*'] };
+
+/**
+ * Marks the toolbar icon while access is missing, and clears it once granted.
+ *
+ * The badge is the only place a missing permission can surface unprompted: the
+ * Preply page shows nothing, precisely because nothing was injected into it.
+ * The title says in words what the badge says in a glyph.
+ *
+ * @returns {Promise<boolean>} whether access is granted.
+ */
+async function syncAccessBadge() {
+  const granted = await api.permissions.contains(PREPLY_ACCESS);
+  await api.action.setBadgeText({ text: granted ? '' : '!' });
+  if (!granted) await api.action.setBadgeBackgroundColor({ color: '#c9160d' });
+  await api.action.setTitle({
+    title: api.i18n.getMessage(granted ? 'actionTitle' : 'accessBadgeTitle'),
+  });
+  return granted;
+}
+
+/** @returns {void} */
+function onAccessChanged() {
+  syncAccessBadge().catch((e) => console.error('[pca] access check failed', e));
+}
+
+api.permissions.onAdded.addListener(onAccessChanged);
+api.permissions.onRemoved.addListener(onAccessChanged);
+api.runtime.onStartup.addListener(onAccessChanged);
+
+// The onboarding step MDN recommends: on a first install without access, the
+// viewer opens and its notice offers the grant — a request has to come from a
+// click, which a background cannot supply. Only then: an update or a browser
+// that granted at install opens nothing.
+api.runtime.onInstalled.addListener((details) => {
+  syncAccessBadge()
+    .then((granted) => {
+      if (!granted && details.reason === 'install') {
+        return api.tabs.create({ url: api.runtime.getURL('viewer.html') });
+      }
+      return undefined;
+    })
+    .catch((e) => console.error('[pca] access check failed', e));
+});
