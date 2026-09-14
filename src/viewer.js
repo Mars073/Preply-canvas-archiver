@@ -2079,6 +2079,13 @@ api.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local') return;
   if (!['pca:index', 'pca:order', 'pca:avatars'].some((k) => k in changes)) return;
 
+  // refresh() rebuilds the model from the index alone; these two caches are
+  // read once at boot. Taken from the change itself, or a classroom archived
+  // while the viewer is open shows its initial until a reload, and its pages
+  // in archiving order rather than Preply's.
+  if (ORDER_KEY in changes) order = changes[ORDER_KEY].newValue || {};
+  if (AVATARS_KEY in changes) avatars = changes[AVATARS_KEY].newValue || {};
+
   clearTimeout(liveTimer);
   liveTimer = setTimeout(() => {
     // Reading the newest version is the normal state during a lesson, so the
