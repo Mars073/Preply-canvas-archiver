@@ -26,11 +26,17 @@
  *
  * Redeclared in each file rather than shared: Chrome's service worker loads a
  * single script and cannot import a common module without a build step.
+ *
+ * Prefixed, like the storage keys below, although this file shares its scope
+ * with no other at runtime. The editor checks every file under src/ as one
+ * global program, and a name declared here and in viewer.js reads there as a
+ * redeclaration — noise that would hide the real one, inside a single context,
+ * which throws before the second file runs.
  */
-const api = globalThis.browser ?? globalThis.chrome;
+const bgApi = globalThis.browser ?? globalThis.chrome;
 
-const INDEX_KEY = 'pca:index';
-const ORDER_KEY = 'pca:order';
+const BG_INDEX_KEY = 'pca:index';
+const BG_ORDER_KEY = 'pca:order';
 
 /**
  * Merges the page order read from the thumbnail bar.
@@ -47,8 +53,8 @@ const ORDER_KEY = 'pca:order';
 async function mergeOrder(classroomId, entries) {
   if (!classroomId || !Array.isArray(entries) || entries.length === 0) return;
 
-  const stored = await api.storage.local.get(ORDER_KEY);
-  const all = stored[ORDER_KEY] || {};
+  const stored = await bgApi.storage.local.get(BG_ORDER_KEY);
+  const all = stored[BG_ORDER_KEY] || {};
   const room = all[classroomId] || {};
 
   for (const e of entries) {
@@ -57,10 +63,10 @@ async function mergeOrder(classroomId, entries) {
   }
 
   all[classroomId] = room;
-  await api.storage.local.set({ [ORDER_KEY]: all });
+  await bgApi.storage.local.set({ [BG_ORDER_KEY]: all });
 }
 
-const IMAGE_PREFIX = 'pca:img:';
+const BG_IMAGE_PREFIX = 'pca:img:';
 
 /** Matches the hash a captured image was rewritten to. */
 const IMAGE_REF = /data-pca-img="([0-9a-f]{64})"/g;
@@ -93,17 +99,17 @@ async function saveImages(blobs) {
   const hashes = Object.keys(blobs || {}).filter((h) => !storedImages.has(h));
   if (hashes.length === 0) return 0;
 
-  const keys = hashes.map((h) => IMAGE_PREFIX + h);
-  const known = await api.storage.local.get(keys);
+  const keys = hashes.map((h) => BG_IMAGE_PREFIX + h);
+  const known = await bgApi.storage.local.get(keys);
 
   /** @type {Record<string, string>} */
   const fresh = {};
   for (const h of hashes) {
-    if (known[IMAGE_PREFIX + h] === undefined) fresh[IMAGE_PREFIX + h] = blobs[h];
+    if (known[BG_IMAGE_PREFIX + h] === undefined) fresh[BG_IMAGE_PREFIX + h] = blobs[h];
   }
 
   const count = Object.keys(fresh).length;
-  if (count > 0) await api.storage.local.set(fresh);
+  if (count > 0) await bgApi.storage.local.set(fresh);
   for (const h of hashes) storedImages.add(h);
   return count;
 }
@@ -137,12 +143,12 @@ const SCAN_BATCH = 25;
 async function sweepImages(candidates) {
   if (candidates.size === 0) return 0;
 
-  const stored = await api.storage.local.get(INDEX_KEY);
-  const index = stored[INDEX_KEY] || [];
+  const stored = await bgApi.storage.local.get(BG_INDEX_KEY);
+  const index = stored[BG_INDEX_KEY] || [];
 
   for (let i = 0; i < index.length && candidates.size > 0; i += SCAN_BATCH) {
     const keys = index.slice(i, i + SCAN_BATCH).map((e) => e.key);
-    const snapshots = await api.storage.local.get(keys);
+    const snapshots = await bgApi.storage.local.get(keys);
 
     for (const snap of Object.values(snapshots)) {
       if (!snap || typeof snap.html !== 'string') continue;
@@ -155,11 +161,11 @@ async function sweepImages(candidates) {
   // Forgotten before the removal: should it fail halfway, the set must not go
   // on vouching for pictures that may be gone.
   for (const h of candidates) storedImages.delete(h);
-  await api.storage.local.remove([...candidates].map((h) => IMAGE_PREFIX + h));
+  await bgApi.storage.local.remove([...candidates].map((h) => BG_IMAGE_PREFIX + h));
   return candidates.size;
 }
 
-const AVATARS_KEY = 'pca:avatars';
+const BG_AVATARS_KEY = 'pca:avatars';
 
 /**
  * Stores a tutor's avatar, once per classroom.
@@ -174,12 +180,12 @@ const AVATARS_KEY = 'pca:avatars';
 async function saveAvatar(classroomId, dataUri) {
   if (!classroomId || !dataUri) return;
 
-  const stored = await api.storage.local.get(AVATARS_KEY);
-  const all = stored[AVATARS_KEY] || {};
+  const stored = await bgApi.storage.local.get(BG_AVATARS_KEY);
+  const all = stored[BG_AVATARS_KEY] || {};
   if (all[classroomId] === dataUri) return;
 
   all[classroomId] = dataUri;
-  await api.storage.local.set({ [AVATARS_KEY]: all });
+  await bgApi.storage.local.set({ [BG_AVATARS_KEY]: all });
 }
 
 /**
@@ -201,13 +207,13 @@ async function saveSnapshot(snap, manual) {
   if (!snap || typeof snap.html !== 'string') throw new TypeError('snapshot.html is required');
 
   const key = `pca:snap:${snap.canvasId}:${snap.ts}`;
-  const stored = await api.storage.local.get(INDEX_KEY);
-  const index = stored[INDEX_KEY] || [];
+  const stored = await bgApi.storage.local.get(BG_INDEX_KEY);
+  const index = stored[BG_INDEX_KEY] || [];
 
   if (!manual) {
     // The index is newest first, so the first entry for the page is its latest.
     const latest = index.find((e) => e.canvasId === snap.canvasId);
-    const previous = latest ? (await api.storage.local.get(latest.key))[latest.key] : null;
+    const previous = latest ? (await bgApi.storage.local.get(latest.key))[latest.key] : null;
     if (previous && previous.html === snap.html) {
       await mergeOrder(snap.classroomId, snap.order);
       await saveAvatar(snap.classroomId, snap.avatar);
@@ -240,7 +246,7 @@ async function saveSnapshot(snap, manual) {
   // leaves unreferenced pictures, which cost space and nothing else, rather
   // than a listed version whose pictures never arrived.
   await saveImages(images);
-  await api.storage.local.set({ [key]: snap, [INDEX_KEY]: index });
+  await bgApi.storage.local.set({ [key]: snap, [BG_INDEX_KEY]: index });
   await mergeOrder(snap.classroomId, snap.order);
   await saveAvatar(snap.classroomId, avatar);
   return { key, count: index.length, unchanged: false };
@@ -261,7 +267,7 @@ async function deleteSnapshots(keys) {
 
   // Read before they are removed: once gone, nothing says which pictures they
   // held, and the sweep would be back to scanning the whole archive to guess.
-  const going = await api.storage.local.get([...doomed]);
+  const going = await bgApi.storage.local.get([...doomed]);
   /** @type {Set<string>} */
   const candidates = new Set();
   for (const snap of Object.values(going)) {
@@ -269,11 +275,11 @@ async function deleteSnapshots(keys) {
     for (const m of snap.html.matchAll(IMAGE_REF)) candidates.add(m[1]);
   }
 
-  const stored = await api.storage.local.get(INDEX_KEY);
-  const index = (stored[INDEX_KEY] || []).filter((e) => !doomed.has(e.key));
+  const stored = await bgApi.storage.local.get(BG_INDEX_KEY);
+  const index = (stored[BG_INDEX_KEY] || []).filter((e) => !doomed.has(e.key));
 
-  await api.storage.local.remove(keys);
-  await api.storage.local.set({ [INDEX_KEY]: index });
+  await bgApi.storage.local.remove(keys);
+  await bgApi.storage.local.set({ [BG_INDEX_KEY]: index });
 
   // After the index is written, never before: the sweep asks what survives,
   // and a stale index would list the versions just deleted as living proof
@@ -328,7 +334,7 @@ function serialise(task) {
  * a deletion had landed, and the content script flashed green on a capture
  * that may never have been written.
  */
-api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+bgApi.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   /** @type {Promise<unknown>|null} */
   let work = null;
 
@@ -345,8 +351,8 @@ api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   return true;
 });
 
-api.action.onClicked.addListener(() => {
-  api.tabs.create({ url: api.runtime.getURL('viewer.html') });
+bgApi.action.onClicked.addListener(() => {
+  bgApi.tabs.create({ url: bgApi.runtime.getURL('viewer.html') });
 });
 
 /**
@@ -357,7 +363,7 @@ api.action.onClicked.addListener(() => {
  * lets the user withdraw them later. Without it the content script is never
  * injected: no button, no autosave, and nothing on screen to say why.
  */
-const PREPLY_ACCESS = { origins: ['https://preply.com/*'] };
+const BG_PREPLY_ACCESS = { origins: ['https://preply.com/*'] };
 
 /**
  * Marks the toolbar icon while access is missing, and clears it once granted.
@@ -369,11 +375,11 @@ const PREPLY_ACCESS = { origins: ['https://preply.com/*'] };
  * @returns {Promise<boolean>} whether access is granted.
  */
 async function syncAccessBadge() {
-  const granted = await api.permissions.contains(PREPLY_ACCESS);
-  await api.action.setBadgeText({ text: granted ? '' : '!' });
-  if (!granted) await api.action.setBadgeBackgroundColor({ color: '#c9160d' });
-  await api.action.setTitle({
-    title: api.i18n.getMessage(granted ? 'actionTitle' : 'accessBadgeTitle'),
+  const granted = await bgApi.permissions.contains(BG_PREPLY_ACCESS);
+  await bgApi.action.setBadgeText({ text: granted ? '' : '!' });
+  if (!granted) await bgApi.action.setBadgeBackgroundColor({ color: '#c9160d' });
+  await bgApi.action.setTitle({
+    title: bgApi.i18n.getMessage(granted ? 'actionTitle' : 'accessBadgeTitle'),
   });
   return granted;
 }
@@ -383,19 +389,19 @@ function onAccessChanged() {
   syncAccessBadge().catch((e) => console.error('[pca] access check failed', e));
 }
 
-api.permissions.onAdded.addListener(onAccessChanged);
-api.permissions.onRemoved.addListener(onAccessChanged);
-api.runtime.onStartup.addListener(onAccessChanged);
+bgApi.permissions.onAdded.addListener(onAccessChanged);
+bgApi.permissions.onRemoved.addListener(onAccessChanged);
+bgApi.runtime.onStartup.addListener(onAccessChanged);
 
 // The onboarding step MDN recommends: on a first install without access, the
 // viewer opens and its notice offers the grant — a request has to come from a
 // click, which a background cannot supply. Only then: an update or a browser
 // that granted at install opens nothing.
-api.runtime.onInstalled.addListener((details) => {
+bgApi.runtime.onInstalled.addListener((details) => {
   syncAccessBadge()
     .then((granted) => {
       if (!granted && details.reason === 'install') {
-        return api.tabs.create({ url: api.runtime.getURL('viewer.html') });
+        return bgApi.tabs.create({ url: bgApi.runtime.getURL('viewer.html') });
       }
       return undefined;
     })

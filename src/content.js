@@ -20,8 +20,11 @@
  *
  * Redeclared in each file rather than shared: Chrome's service worker loads a
  * single script and cannot import a common module without a build step.
+ *
+ * Prefixed because the editor checks every file under src/ as one global
+ * program: the viewer's `api` would otherwise read as a redeclaration of this.
  */
-const api = globalThis.browser ?? globalThis.chrome;
+const contentApi = globalThis.browser ?? globalThis.chrome;
 
 const SEL_TOOLBAR = '[data-qa-id="canvas-toolbar"]';
 // Two ways to the same node, which is the point: the editor div carries both
@@ -44,7 +47,7 @@ const BTN_ID = 'pca-save-button';
  *
  * Read on each use, not latched: the setting can change while a lesson is open.
  */
-const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const contentReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
 const AUTOSAVE_DELAY_MS = 60_000;
 
@@ -365,7 +368,7 @@ async function capture(manual) {
   // The reply is checked, now that there is one to check. Until the listener
   // kept the channel open this resolved to undefined on Chrome whatever
   // happened, and the button went green on a capture that was never written.
-  const reply = await api.runtime.sendMessage({ type: 'pca:save', snapshot: snap, manual });
+  const reply = await contentApi.runtime.sendMessage({ type: 'pca:save', snapshot: snap, manual });
   if (reply && reply.error) throw new Error(reply.error);
 
   lastSavedHtml = snap.html;
@@ -565,7 +568,7 @@ function makeButton(spec) {
     spinner.style.transformOrigin = '50% 50%';
     glyph.replaceWith(spinner);
 
-    const turn = reducedMotion.matches ? null : spinner.animate(
+    const turn = contentReducedMotion.matches ? null : spinner.animate(
       [{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }],
       { duration: 800, iterations: Infinity, easing: 'linear' },
     );

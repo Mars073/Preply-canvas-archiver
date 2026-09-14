@@ -27,6 +27,15 @@ Files loaded into the same context share one global scope, and a top-level
 `const` declared twice throws before the second file runs a line. Keep
 `sanitize.js`'s names prefixed (`SANITIZE_*`, `sanitize*`).
 
+Across contexts nothing collides at runtime, but `jsconfig.json` checks all of
+`src/` as one global program, so a name declared in two files is flagged as a
+redeclaration either way — and that noise would hide the one that is real.
+Top-level names are therefore unique across the whole folder: `viewer.js` keeps
+the plain ones (`api`, `INDEX_KEY`…), `background.js` prefixes its own (`bgApi`,
+`BG_INDEX_KEY`…) and `content.js` its own (`contentApi`), as `crash.js` and
+`i18n.js` already did (`crashApi`, `i18nApi`). The editor still cannot tell a
+function from another context apart from one in this context.
+
 ## Preply selectors
 
 Never anchor on a CSS class. These are the stable hooks, all verified against a
