@@ -1163,7 +1163,6 @@ async function renderHistory() {
     more.type = 'button';
     more.className = 'ver-more';
     more.dataset.icon = 'dots-three';
-    more.setAttribute('aria-haspopup', 'true');
     more.setAttribute('aria-expanded', 'false');
     // The visible control repeats from row to row: the accessible name has to
     // say which version it acts on, or the list announces the same thing
@@ -1986,14 +1985,29 @@ async function exportSnapshot() {
   await resolveImages(sheet);
 
   const css = [...document.querySelectorAll('style')].map((s) => s.textContent).join('\n');
-  const label = pageName(curPage);
+
+  // Escaped: the name is either typed by hand or the first line of the lesson,
+  // and this file is opened outside any content policy. Written as text into a
+  // detached node and read back as markup, which is the browser's own escaping.
+  const title = document.createElement('div');
+  title.textContent = pageName(curPage);
+
+  // The file holds the lesson and nothing of the interface, so it speaks the
+  // lesson's language when that is known.
+  const lang = langOf(curSnap) || UI_LOCALE;
+
   // The viewer stylesheet is taken as-is, then neutralised on the points
   // specific to the application. The overrides come AFTER `css`: at equal
   // specificity, the last rule wins.
+  //
+  // The viewer's body is a fixed-height grid with overflow:hidden, and a body's
+  // overflow is handed to the viewport: left in, a long lesson could not be
+  // scrolled at all.
   const html = `<!doctype html>
-<html lang="pl"><head><meta charset="utf-8"><title>${label}</title>
+<html lang="${lang}"><head><meta charset="utf-8"><title>${title.innerHTML}</title>
 <style>
 ${css}
+html,body{height:auto;overflow:visible}
 body{display:block;background:#fff;margin:0;padding:24px}
 #sheet{margin:0 auto}
 </style></head>

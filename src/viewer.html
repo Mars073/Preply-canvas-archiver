@@ -701,13 +701,14 @@
       <a class="act iconly" id="btn-preply" data-icon="arrow-square-out"
          target="_blank" rel="noopener noreferrer"
          data-i18n-label="openOnPreply" data-i18n-title="openOnPreplyTitle" hidden></a>
-      <!-- No role="menu": that role promises arrow-key navigation, Home, End
-           and roving focus. Without the machinery the role lies to the screen
-           reader. A plain group of buttons revealed by aria-expanded is walked
-           with Tab, which is what a user expects here anyway. -->
+      <!-- No role="menu", and no aria-haspopup either, whose "true" means
+           "menu": both promise arrow-key navigation, Home, End and roving
+           focus. Without the machinery they lie to the screen reader. A plain
+           group of buttons revealed by aria-expanded is walked with Tab, which
+           is what a user expects here anyway. -->
       <div id="more-wrap">
         <button class="act iconly" id="btn-more" type="button" data-icon="dots-three"
-                data-i18n-label="moreActions" aria-haspopup="true" aria-expanded="false"></button>
+                data-i18n-label="moreActions" aria-expanded="false"></button>
         <div id="more-menu" data-i18n-label="moreMenuLabel" hidden>
           <button class="mi" id="btn-export" type="button" data-icon="file-html"
                   data-i18n="exportBtn"></button>
@@ -751,8 +752,7 @@
              every version, not on the one they would sit next to. -->
         <div id="hmore-wrap">
           <button id="hmore" type="button" data-icon="dots-three"
-                  data-i18n-label="historyActions"
-                  aria-haspopup="true" aria-expanded="false"></button>
+                  data-i18n-label="historyActions" aria-expanded="false"></button>
           <div id="hmenu" data-i18n-label="historyActions" hidden>
             <button class="mi danger" id="btn-drop-same" type="button"
                     data-icon="trash"></button>

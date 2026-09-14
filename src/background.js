@@ -200,10 +200,13 @@ async function saveSnapshot(snap) {
   const images = snap.images;
   delete snap.images;
 
+  // Images before the snapshot that points at them. A failure in between then
+  // leaves unreferenced pictures, which cost space and nothing else, rather
+  // than a listed version whose pictures never arrived.
+  await saveImages(images);
   await api.storage.local.set({ [key]: snap, [INDEX_KEY]: index });
   await mergeOrder(snap.classroomId, snap.order);
   await saveAvatar(snap.classroomId, avatar);
-  await saveImages(images);
   return { key, count: index.length };
 }
 
