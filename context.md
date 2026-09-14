@@ -22,9 +22,11 @@ background.js  ──►  storage.local  ──►  storage.onChanged  ──►
 ```
 
 The viewer never talks to Preply, and the content script never reads storage.
-Everything crosses through the background, which owns every write — serialised,
-since `storage.local` offers no transaction and two writers would each rewrite
-an index built before the other's change.
+The archive itself — index, snapshots, order, avatars, images — is written by
+the background alone, serialised, since `storage.local` offers no transaction
+and two writers would each rewrite an index built before the other's change.
+The viewer writes only its own two keys, `pca:labels` and `pca:prefs`, which
+nothing else touches.
 
 ## Storage layout
 
@@ -97,15 +99,27 @@ principle covers colours, the archive button's styling — cloned from a live
 Preply button rather than copied by class name — and images, inlined as data
 URIs because Preply's asset URLs are presigned and expire.
 
-**Nothing executable survives a capture.** `script`, `style`, `link`, `meta`,
-`base`, `iframe`, `object` and `embed` are removed, along with every `on*`
-attribute — at capture and again on display, so archives taken before the rule
-existed are covered too. `<script>` was never the exposure, `innerHTML` not
-running one; a `<style>` was, applying at once to the whole page it lands in,
-and so were `<link>` and `<iframe>`, which would fetch from a page whose whole
-claim is that it never does. The two places with no extension CSP to fall back
-on are the print frame, whose srcdoc content is parsed normally, and the
-standalone HTML export, opened outside any policy at all.
+**An archived document is allowlisted, not scrubbed.** `sanitize.js` is the
+one definition, loaded by the content script and the viewer alike, and applied
+at capture and again on display, so archives taken under an older rule are
+covered too. Elements, attributes and URL schemes survive only if named;
+an unknown element is unwrapped rather than dropped, because Preply may add a
+node to its editor at any deployment and losing its text would be worse than
+losing its tag. Only containers that are dangerous or empty without their tag
+(`script`, `style`, `iframe`, `svg`, `form`…) go whole. CSS is the one
+denylist: inline styles carry the archive's look in Preply's own vocabulary,
+so only what could position content over the viewer or fetch (`url()`,
+`image-set()`) is removed.
+
+The viewer parses stored markup with `DOMParser`, which is inert: markup
+assigned to an element of the live page starts loading its images and fires
+handlers before any cleaning runs. Image sources other than `data:image/` are
+kept only at capture, where they still have to be downloaded, and in the print
+frame; on display the viewer reaches no network. Links open in a new tab, and
+only `http`, `https` and `mailto` survive — a `javascript:` link was the hole
+the denylist left, live in a standalone export opened outside any policy. The
+print frame is the other place with no extension CSP behind it: its srcdoc is
+parsed under Preply's.
 
 **Quick print goes through an isolated frame.** The clone is handed to an iframe
 by `srcdoc` and that frame is printed. Never `document.open()`: a content script
@@ -216,6 +230,12 @@ its own from its own key, so the three ids have nothing in common.
 - **Accessibility deviations**, deliberate and documented: non-text contrast
   below 3:1 on control borders (WCAG 1.4.11), no reflow at 320 px (1.4.10), and
   diff additions signalled by colour alone (1.4.1).
+
+  The two buttons injected into Preply's toolbar report their outcome by
+  tinting the icon: green `#19ac91` (about 2.9:1 on white) and yellow `#f6c823`
+  (about 1.6:1), below 1.4.11, and colour alone (1.4.1). The accessible name
+  changes with it, but nothing announces the change. Accepted: the spinner
+  shows the action is running, and the outcome is judged minor next to it.
 - **Retroactive archiving is impossible.** Only pages visited while the
   extension is active can be captured, and snapshots taken before images were
   content-addressed still point at URLs that expired long ago.
