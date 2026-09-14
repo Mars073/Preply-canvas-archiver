@@ -48,12 +48,26 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
 const AUTOSAVE_DELAY_MS = 60_000;
 
+/**
+ * Longest an edited document waits for its autosave, however busy the lesson.
+ *
+ * The delay above restarts on every mutation, and the other participants'
+ * carets are mutations too. A lesson where someone is always typing or moving
+ * would never go quiet for a whole minute, and would only be archived once it
+ * was over — if the tab was still open by then.
+ */
+const AUTOSAVE_MAX_WAIT_MS = 180_000;
+
 /** Last serialisation stored, so an unchanged document is not duplicated. @type {string|null} */
 let lastSavedHtml = null;
 /** @type {number|undefined} */
 let autosaveTimer;
+/** When the oldest unsaved mutation arrived, in ms since the epoch; 0 when none. */
+let dirtySince = 0;
 /** @type {MutationObserver|null} */
 let editorObserver = null;
+/** Editor node the observer is bound to. @type {Element|null} */
+let observedEditor = null;
 
 /** Refuses anything larger than this as an inline lesson image. */
 const MAX_IMAGE_BYTES = 4_000_000;
@@ -68,6 +82,21 @@ async function sha256(buffer) {
   const digest = await crypto.subtle.digest('SHA-256', buffer);
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
+
+/**
+ * Images already captured on this page, by absolute URL.
+ *
+ * Autosave runs for the whole lesson, and each run used to download, hash and
+ * encode every picture again only to find the same hashes — inside somebody
+ * else's page, on a document where usually only the text had moved. A URL that
+ * has answered once is taken at its word for the rest of the page's life; a
+ * picture served under a new link is fetched again.
+ *
+ * Only successes are kept: an image that failed is retried on the next capture.
+ *
+ * @type {Map<string, {hash: string, uri: string}>}
+ */
+const capturedImages = new Map();
 
 /**
  * Downloads the images of a serialised document and replaces their `src` with
@@ -98,25 +127,40 @@ async function harvestImages(clone) {
     img.removeAttribute('sizes');
     if (!src || src.startsWith('data:')) return;
 
+    const url = new URL(src, location.href).href;
+
+    // The blob is sent every time; the background writes it only when the
+    // hash is unknown, so a recurring image costs one message and no storage.
+    const known = capturedImages.get(url);
+    if (known) {
+      img.removeAttribute('src');
+      img.setAttribute('data-pca-img', known.hash);
+      blobs[known.hash] = known.uri;
+      return;
+    }
+
     try {
-      const res = await fetch(new URL(src, location.href).href, { credentials: 'same-origin' });
+      const res = await fetch(url, { credentials: 'same-origin' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const buffer = await res.arrayBuffer();
       if (buffer.byteLength > MAX_IMAGE_BYTES) throw new Error(`${buffer.byteLength} bytes`);
 
       const hash = await sha256(buffer);
-      img.removeAttribute('src');
-      img.setAttribute('data-pca-img', hash);
-
-      // The blob is sent every time; the background writes it only when the
-      // hash is unknown, so a recurring image costs one message and no storage.
-      blobs[hash] = await new Promise((resolve, reject) => {
+      /** @type {string} */
+      const uri = await new Promise((resolve, reject) => {
         const fr = new FileReader();
         fr.onload = () => resolve(fr.result);
         fr.onerror = () => reject(fr.error);
         fr.readAsDataURL(new Blob([buffer], { type: res.headers.get('content-type') || 'image/png' }));
       });
+
+      // Rewritten only once the bytes are in hand. Done before the encoding, a
+      // failure there left markup pointing at a hash with no picture behind it.
+      img.removeAttribute('src');
+      img.setAttribute('data-pca-img', hash);
+      blobs[hash] = uri;
+      capturedImages.set(url, { hash, uri });
     } catch (e) {
       img.setAttribute('data-pca-unreachable', src);
       console.warn('[pca] image not captured', src, e);
@@ -646,17 +690,57 @@ function sync() {
     }));
   }
 
-  if (editor && !editorObserver) {
-    editorObserver = new MutationObserver(() => {
-      clearTimeout(autosaveTimer);
-      autosaveTimer = setTimeout(() => capture(false).catch(console.error), AUTOSAVE_DELAY_MS);
-    });
-    editorObserver.observe(editor, { childList: true, subtree: true, characterData: true });
-  } else if (!editor && editorObserver) {
-    editorObserver.disconnect();
+  // Compared by identity, not by presence. Checking only whether an observer
+  // existed kept it on the first editor ever found: if Preply replaces the node
+  // without a frame in between where none is mounted, the observer went on
+  // watching a detached tree and autosave stopped for the rest of the lesson.
+  if (editor !== observedEditor) {
+    if (editorObserver) editorObserver.disconnect();
     editorObserver = null;
+    observedEditor = editor;
     lastSavedHtml = null;
+
+    // A pending save belongs to the document being left, and cannot be taken
+    // from it any more: the URL already names the next page, and a detached
+    // node has no computed style to resolve colours from. Left to fire, it
+    // would archive the page just opened, unedited. What it held is lost
+    // unless the button was used — AUTOSAVE_MAX_WAIT_MS bounds how much.
+    clearTimeout(autosaveTimer);
+    dirtySince = 0;
+
+    if (editor) {
+      editorObserver = new MutationObserver(scheduleAutosave);
+      editorObserver.observe(editor, { childList: true, subtree: true, characterData: true });
+    }
   }
+}
+
+/**
+ * Debounces autosave, but never past AUTOSAVE_MAX_WAIT_MS from the first
+ * unsaved change.
+ *
+ * @returns {void}
+ */
+function scheduleAutosave() {
+  const now = Date.now();
+  if (dirtySince === 0) dirtySince = now;
+
+  clearTimeout(autosaveTimer);
+  const wait = Math.min(AUTOSAVE_DELAY_MS, dirtySince + AUTOSAVE_MAX_WAIT_MS - now);
+  autosaveTimer = setTimeout(autosave, Math.max(0, wait));
+}
+
+/**
+ * Runs the automatic capture.
+ *
+ * Marked clean before capturing, not after: a mutation arriving while the
+ * images are fetched belongs to the next save, and must start its own clock.
+ *
+ * @returns {void}
+ */
+function autosave() {
+  dirtySince = 0;
+  capture(false).catch(console.error);
 }
 
 /** Set while a sync is already scheduled for the next frame. */

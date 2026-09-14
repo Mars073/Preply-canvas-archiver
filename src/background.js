@@ -66,6 +66,19 @@ const IMAGE_PREFIX = 'pca:img:';
 const IMAGE_REF = /data-pca-img="([0-9a-f]{64})"/g;
 
 /**
+ * Hashes known to be in storage, for as long as this background lives.
+ *
+ * storage.local cannot say whether a key exists without returning its value,
+ * and an image's value is the whole picture: every autosave read megabytes back
+ * only to learn they were already there. The background is the only context
+ * that writes or removes images, so this set cannot vouch for a picture that is
+ * gone. A restart merely empties it, which costs one read.
+ *
+ * @type {Set<string>}
+ */
+const storedImages = new Set();
+
+/**
  * Stores captured images, one entry per distinct content hash.
  *
  * Content-addressed rather than inlined into each snapshot: the same picture
@@ -77,7 +90,7 @@ const IMAGE_REF = /data-pca-img="([0-9a-f]{64})"/g;
  * @returns {Promise<number>} how many were new.
  */
 async function saveImages(blobs) {
-  const hashes = Object.keys(blobs || {});
+  const hashes = Object.keys(blobs || {}).filter((h) => !storedImages.has(h));
   if (hashes.length === 0) return 0;
 
   const keys = hashes.map((h) => IMAGE_PREFIX + h);
@@ -91,6 +104,7 @@ async function saveImages(blobs) {
 
   const count = Object.keys(fresh).length;
   if (count > 0) await api.storage.local.set(fresh);
+  for (const h of hashes) storedImages.add(h);
   return count;
 }
 
@@ -138,6 +152,9 @@ async function sweepImages(candidates) {
   }
 
   if (candidates.size === 0) return 0;
+  // Forgotten before the removal: should it fail halfway, the set must not go
+  // on vouching for pictures that may be gone.
+  for (const h of candidates) storedImages.delete(h);
   await api.storage.local.remove([...candidates].map((h) => IMAGE_PREFIX + h));
   return candidates.size;
 }

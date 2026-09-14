@@ -192,10 +192,14 @@ its own from its own key, so the three ids have nothing in common.
   one-hour lesson produced nine distinct autosaves, so the one-minute quiet
   window does occur during real teaching.
 
-  Still unobserved: whether autosave keeps running after switching Canvas page
-  (the observer is bound to the first editor node it finds), whether the last
-  minute before leaving is captured without the manual button, and the quick
-  print path. Nothing automates any of it.
+  Still unobserved: whether Preply replaces the editor node when switching
+  Canvas page (the observer now follows it either way), and the quick print
+  path. Nothing automates any of it.
+- **Autosave can lose the last minute of a page.** It waits for a minute
+  without mutation, or three minutes after the first unsaved change, whichever
+  comes first. Changes still pending when the reader leaves the page or closes
+  the tab are not captured: by then the URL names another page and a detached
+  node has no computed style. The manual button is the only guarantee.
 - **`tools/serialize.js` is not wired in.** It inlines every computed style, not
   colours alone, which would raise fidelity further. `cloneEditor()` handles
   colours and images; the rest awaits a console test during a lesson.
