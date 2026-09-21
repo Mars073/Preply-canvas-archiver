@@ -210,8 +210,8 @@ its own from its own key, so the three ids have nothing in common.
 shape — the build fails when another lacks a field), and `build.js`, which
 writes one static page per language and the sitemap.
 
-One URL per language, plain HTML: `/` is English and `x-default`, then `/fr/`,
-`/es/`, `/pl/`, `/ru/`, `/zh/`. No script, no redirect, no language detection —
+One URL per language, plain HTML: `/` is English and `x-default`, then `/de/`,
+`/fr/`, `/es/`, `/pl/`, `/ru/`, `/zh/` — the same languages as the extension. No script, no redirect, no language detection —
 the menu is ordinary links. Every page carries a self canonical and the full,
 reciprocal `hreflang` set; the sitemap repeats it. Chinese is Simplified, as the
 extension's `zh_CN` locale is, hence `zh-Hans`.

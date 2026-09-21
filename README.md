@@ -28,7 +28,7 @@ Unofficial tool, not affiliated with Preply.
 - Reads your archive **offline**, from a viewer that never contacts Preply.
 - From the viewer, **prints a clean PDF** or exports a self-contained HTML file.
 - Search across a classroom's pages, accent- and case-insensitive.
-- Available in English, French, Spanish, Russian, Polish and Chinese.
+- Available in English, German, French, Spanish, Russian, Polish and Chinese.
 
 ## Privacy
 

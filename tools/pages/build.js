@@ -26,7 +26,7 @@ const STORE = {
 };
 
 /** Page order in the language menu and in every hreflang block. English first: it is x-default. */
-const PAGES = ['en', 'fr', 'es', 'pl', 'ru', 'zh'].map((id) => require(`./${id}.js`));
+const PAGES = ['en', 'de', 'fr', 'es', 'pl', 'ru', 'zh'].map((id) => require(`./${id}.js`));
 
 const HEADER = `<!-- This Source Code Form is subject to the terms of the Mozilla Public
      License, v. 2.0. If a copy of the MPL was not distributed with this

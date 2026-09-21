@@ -114,6 +114,30 @@ Everything stays in your browser. No account, no server, no tracking.
 
 Unofficial tool. Not affiliated with, nor endorsed by, Preply.
 
+### Deutsch
+
+**Short**
+Speichern Sie die Canvas-Seiten Ihrer Preply-Stunden und lesen Sie sie jederzeit offline.
+
+**Long**
+Ihr Canvas existiert vielleicht noch bei Preply – es später wiederzufinden, ist
+eine andere Sache. Diese Erweiterung legt eine lokale Kopie an, solange Sie noch
+Zugriff haben, damit Ihre Notizen Ihnen gehören.
+
+• Ein Klick auf die Archiv-Schaltfläche in der Canvas-Symbolleiste speichert die
+Seite. Jede Seite, die Sie öffnen oder bearbeiten, wird außerdem automatisch
+gespeichert, sobald sie eine Minute lang unverändert war.
+• Jede Version bleibt erhalten, und der Verlauf zeigt genau, was Ihre Lehrkraft
+seit der vorherigen ergänzt oder korrigiert hat.
+• Lesen Sie Ihr Archiv offline, in einer Ansicht, die Preply nie kontaktiert.
+• Drucken Sie als PDF oder exportieren Sie eine eigenständige HTML-Datei.
+• Durchsuchen Sie ein ganzes Klassenzimmer, ohne auf Akzente oder Groß- und
+Kleinschreibung zu achten: Tippen Sie „slonce“ und finden Sie „słońce“.
+
+Alles bleibt in Ihrem Browser. Kein Konto, kein Server, kein Tracking.
+
+Inoffizielles Werkzeug, nicht mit Preply verbunden und nicht von Preply unterstützt.
+
 ### Français
 
 **Short**
@@ -290,7 +314,7 @@ WHAT CAN BE TESTED WITHOUT AN ACCOUNT
 Click the toolbar icon. It opens the archive viewer in a new tab (there is no
 popup). With nothing archived yet it shows its empty state, which confirms the
 service worker starts, the page loads and the interface is localised — the
-extension ships English, French, Spanish, Russian, Polish and Chinese.
+extension ships English, German, French, Spanish, Russian, Polish and Chinese.
 On any site other than preply.com the extension does nothing at all: no script
 runs, no storage is written.
 

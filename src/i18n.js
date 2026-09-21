@@ -6,7 +6,7 @@
  * Localisation — message lookup and markup substitution.
  *
  * The WebExtension i18n API has no plural support: `getMessage` returns one
- * fixed string. That is fine for French, English and Spanish, which need two
+ * fixed string. That is fine for English, German, French and Spanish, which need two
  * forms, but wrong for Russian and Polish, which need three, and wasteful for
  * Chinese, which needs one. `Intl.PluralRules` picks the right category and we
  * look up a suffixed key, so each locale declares exactly the forms it uses.
@@ -22,9 +22,9 @@ const PLURAL_RULES = new Intl.PluralRules(UI_LOCALE);
 /**
  * Percentage formatter.
  *
- * The space before the sign is a French convention, absent in English and
- * placed differently again in other locales. Intl knows the rule; hardcoding
- * one spelling would be wrong in five languages out of six.
+ * The space before the sign is a French and German convention, absent in
+ * English and placed differently again in other locales. Intl knows the rule;
+ * hardcoding one spelling would be wrong in most of the languages shipped.
  */
 const PERCENT_FORMAT = new Intl.NumberFormat(UI_LOCALE, { style: 'percent' });
 

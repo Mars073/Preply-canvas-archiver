@@ -54,12 +54,12 @@ live lesson:
 
 1. Add the key to **`_locales/en/messages.json`** — it is the reference and the
    `default_locale`.
-2. Mirror it into the five others: `fr`, `es`, `ru`, `pl`, `zh_CN`.
+2. Mirror it into the six others: `de`, `fr`, `es`, `ru`, `pl`, `zh_CN`.
 3. Use it: `data-i18n` / `-label` / `-title` / `-placeholder` in the markup,
    `t('key', [subs])` in code.
 
 For anything that varies with a count, use **`tn('key', n, [extra])`** and
-declare the forms each language needs: `_one`/`_other` for en, fr, es;
+declare the forms each language needs: `_one`/`_other` for en, de, fr, es;
 `_one`/`_few`/`_many`/`_other` for ru and pl; `_other` alone for zh_CN. The
 extension i18n API has no plural support — `tn()` asks `Intl.PluralRules` and
 falls back to `_other`, which every locale must define.
