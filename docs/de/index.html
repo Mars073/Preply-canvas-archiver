@@ -9,7 +9,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Preply Canvas exportieren und speichern — Preply Canvas Archiver</title>
-<meta name="description" content="Sichern Sie Ihre Notizen aus Preply Canvas, solange Sie noch Zugriff haben. Offline lesen, als PDF drucken oder als HTML exportieren. Kostenlos.">
+<meta name="description" content="Sichern Sie Ihre Notizen aus Preply Canvas, solange Sie noch Zugriff haben. Offline lesen, als PDF oder HTML speichern. Kostenlose Erweiterung.">
 <link rel="canonical" href="https://mars073.github.io/Preply-canvas-archiver/de/">
 <link rel="alternate" hreflang="en" href="https://mars073.github.io/Preply-canvas-archiver/">
 <link rel="alternate" hreflang="de" href="https://mars073.github.io/Preply-canvas-archiver/de/">
@@ -30,12 +30,12 @@
 <meta property="og:locale:alternate" content="ru_RU">
 <meta property="og:locale:alternate" content="zh_CN">
 <meta property="og:title" content="Notizen aus Preply Canvas exportieren und speichern">
-<meta property="og:description" content="Legen Sie eine lokale Kopie Ihres Preply Canvas an, solange Sie noch Zugriff haben: offline lesen, als PDF drucken, exportieren.">
+<meta property="og:description" content="Sichern Sie Ihr Preply Canvas, solange Sie noch Zugriff haben – zum Offline-Lesen, als PDF oder als HTML-Datei.">
 <meta property="og:url" content="https://mars073.github.io/Preply-canvas-archiver/de/">
 <meta property="og:image" content="https://mars073.github.io/Preply-canvas-archiver/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Die Archivansicht: die Seiten eines Klassenzimmers und eine archivierte Preply-Canvas-Seite.">
+<meta property="og:image:alt" content="Das Archiv eines Preply-Klassenzimmers mit einer gespeicherten Canvas-Seite.">
 <meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">
 {
@@ -46,7 +46,7 @@
       "name": "Preply Canvas Archiver",
       "applicationCategory": "BrowserApplication",
       "operatingSystem": "Firefox, Chrome, Edge",
-      "description": "Browsererweiterung, die die Canvas-Seiten von Preply-Stunden lokal speichert, um sie offline zu lesen, als PDF zu drucken oder als HTML zu exportieren – jede Version bleibt erhalten.",
+      "description": "Browsererweiterung, die die Canvas-Seiten Ihrer Preply-Stunden auf Ihrem Rechner speichert – zum Offline-Lesen, zum Drucken als PDF oder zum Exportieren als HTML, mit allen Versionen.",
       "url": "https://mars073.github.io/Preply-canvas-archiver/de/",
       "codeRepository": "https://github.com/Mars073/Preply-canvas-archiver",
       "license": "https://www.mozilla.org/MPL/2.0/",
@@ -75,7 +75,7 @@
           "name": "Wie exportiere ich ein Preply Canvas?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Installieren Sie die Erweiterung und öffnen Sie das Canvas der Stunde auf Preply. Klicken Sie auf die Archiv-Schaltfläche rechts in der Canvas-Symbolleiste, oder lassen Sie die Seite automatisch speichern. Öffnen Sie dann das Archiv über das Symbol der Erweiterung und wählen Sie Drucken / PDF oder im Menü ⋯ Als HTML exportieren."
+            "text": "Installieren Sie die Erweiterung und öffnen Sie das Canvas Ihrer Stunde auf Preply. Klicken Sie rechts in der Canvas-Symbolleiste auf die Archiv-Schaltfläche, oder überlassen Sie das dem automatischen Speichern. Öffnen Sie anschließend Ihr Archiv über das Symbol der Erweiterung und wählen Sie Drucken / PDF oder im Menü ⋯ Als HTML exportieren."
           }
         },
         {
@@ -88,10 +88,10 @@
         },
         {
           "@type": "Question",
-          "name": "Wie komme ich nach der Stunde an mein Preply Canvas?",
+          "name": "Wie komme ich nach der Stunde noch an mein Preply Canvas?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Jede Seite, die bei installierter Erweiterung erfasst wurde, bleibt in Ihrem Archiv: Ein Klick auf das Symbol der Erweiterung öffnet es jederzeit. Seiten, die nie bei installierter Erweiterung geöffnet wurden, kann sie nicht wiederherstellen."
+            "text": "Alle Seiten, die bei installierter Erweiterung gespeichert wurden, bleiben in Ihrem Archiv – ein Klick auf das Symbol der Erweiterung genügt. Eine Seite, die Sie nie mit installierter Erweiterung geöffnet haben, lässt sich allerdings nicht wiederherstellen."
           }
         },
         {
@@ -99,7 +99,7 @@
           "name": "Kann ich ein Preply Canvas als PDF speichern?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Ja, an zwei Stellen: über die Druck-Schaltfläche, die die Erweiterung während der Stunde in der Canvas-Symbolleiste ergänzt, und über Drucken / PDF im Archiv. Wählen Sie im Druckdialog des Browsers „Als PDF speichern“."
+            "text": "Ja, auf zwei Wegen: über die Druck-Schaltfläche, die während der Stunde in der Canvas-Symbolleiste erscheint, oder über Drucken / PDF in Ihrem Archiv. Wählen Sie im Druckdialog des Browsers „Als PDF speichern“."
           }
         },
         {
@@ -107,7 +107,7 @@
           "name": "Kann ich meine Preply-Notizen offline lesen?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Ja. Das Archiv liegt im Speicher Ihres Browsers, und die Ansicht geht nie online – Ihre Notizen öffnen sich auch ohne Verbindung."
+            "text": "Ja. Ihr Archiv liegt im Browser und geht nie ins Internet – Ihre Notizen öffnen sich also auch ohne Verbindung."
           }
         },
         {
@@ -115,7 +115,7 @@
           "name": "Wo werden meine Notizen gespeichert?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Nur im lokalen Speicher Ihres Browsers, auf Ihrem Gerät. Es wird nichts hochgeladen. Beim Deinstallieren der Erweiterung wird das Archiv gelöscht – exportieren Sie also vorher die Seiten, die Sie behalten möchten."
+            "text": "Ausschließlich im lokalen Speicher Ihres Browsers, auf Ihrem Rechner. Hochgeladen wird nichts. Aber Achtung: Beim Deinstallieren der Erweiterung wird das Archiv gelöscht – exportieren Sie vorher die Seiten, die Sie behalten möchten."
           }
         }
       ]
@@ -254,7 +254,7 @@ footer p{font-size:14px;color:var(--ink-3);margin:0 0 6px;max-width:none}
   <div class="w">
 
     <h1>Notizen aus <em>Preply Canvas</em> exportieren und speichern</h1>
-    <p class="sub">Ihr Canvas existiert vielleicht noch bei Preply. Es später wiederzufinden, ist eine andere Sache. Sichern Sie eine lokale Kopie, solange Sie noch Zugriff haben – und lesen Sie sie offline, drucken Sie sie als PDF oder exportieren Sie sie.</p>
+    <p class="sub">Ihr Canvas liegt vielleicht noch irgendwo bei Preply. Ob Sie es wiederfinden, steht auf einem anderen Blatt. Sichern Sie eine Kopie, solange Sie noch Zugriff haben – dann können Sie sie offline lesen, als PDF drucken oder exportieren.</p>
     <div class="actions">
       <a class="glossy" href="https://chromewebstore.google.com/detail/preply-canvas-archiver/clhcjjambcaodbnaenpimnbedlhohmdj">
         <img src="../icons/chrome.svg" width="32" height="32" alt="" aria-hidden="true">
@@ -274,88 +274,88 @@ footer p{font-size:14px;color:var(--ink-3);margin:0 0 6px;max-width:none}
 
     <div class="shot">
       <img src="../screenshots/archive-viewer.png" width="1916" height="1048" decoding="async"
-           alt="Die Archivansicht: links die Seiten eines Klassenzimmers, rechts das archivierte Dokument, darüber Zoom, Verlauf und Drucken.">
+           alt="Das Archiv: links die Seiten eines Klassenzimmers, rechts die gespeicherte Seite, darüber Zoom, Verlauf und Drucken.">
     </div>
-    <p class="cap">Ein Klassenzimmer pro Lehrkraft. Jede Seite steht nur einmal in der Liste, mit allen Versionen dahinter.</p>
+    <p class="cap">Ein Klassenzimmer pro Lehrkraft, jede Seite nur einmal – und alle Versionen nur einen Klick entfernt.</p>
 
     <section>
-      <h2>Preply Canvas sichern, solange Sie noch Zugriff haben.</h2>
-      <p>Während der Stunde fügt Preply Canvas Archiver der Canvas-Symbolleiste eine Archiv-Schaltfläche hinzu. Ein Klick, und die Seite ist in Ihrem Browser gespeichert. Und falls Sie es vergessen: Jede Seite, die Sie öffnen oder bearbeiten, speichert sich von selbst, sobald sie eine Minute lang unverändert war. Daneben sitzt eine Druck-Schaltfläche – für ein PDF, bevor Sie die Stunde verlassen.</p>
+      <h2>Preply Canvas sichern, solange Sie noch Zugriff haben</h2>
+      <p>Während der Stunde ergänzt Preply Canvas Archiver die Canvas-Symbolleiste um eine Archiv-Schaltfläche. Ein Klick genügt, und die Seite ist in Ihrem Browser gespeichert. Und falls Sie es vergessen: Jede Seite, die Sie öffnen oder bearbeiten, wird automatisch gespeichert, sobald sich eine Minute lang nichts mehr ändert. Direkt daneben liegt eine Druck-Schaltfläche, mit der Sie noch vor Stundenende ein PDF erstellen.</p>
       <div class="shot" style="margin-top:32px">
         <img src="../screenshots/toolbar-button.png" width="1461" height="772" loading="lazy" decoding="async"
-             alt="Die Canvas-Symbolleiste von Preply mit zwei zusätzlichen Schaltflächen rechts, Drucken und Archivieren, rosa umrahmt und mit Extra buttons beschriftet.">
+             alt="Die Canvas-Symbolleiste von Preply mit zwei zusätzlichen Schaltflächen rechts (Drucken und Archivieren), rosa umrandet und mit „Extra buttons“ beschriftet.">
       </div>
-      <p class="cap">Alles, was die Erweiterung in Preply hinzufügt, im Stil der vorhandenen Schaltflächen.</p>
+      <p class="cap">Mehr fügt die Erweiterung Preply nicht hinzu – und das im Stil der vorhandenen Schaltflächen.</p>
     </section>
 
     <section>
-      <h2>Ihre Unterrichtsnotizen – offline, als PDF oder HTML.</h2>
-      <p>Öffnen Sie das Archiv jederzeit über das Symbol der Erweiterung, auch ohne Internetverbindung: Es wird aus Ihrem Browser gelesen und kontaktiert Preply nie. Jede Version einer Seite bleibt erhalten, und der Verlauf zeigt, was Ihre Lehrkraft seit der vorherigen ergänzt oder korrigiert hat.</p>
-      <p>Jede Seite lässt sich als sauberes PDF drucken oder als einzelne HTML-Datei exportieren, die Sie aufbewahren, sichern oder weitergeben können. Die Suche durchsucht ein ganzes Klassenzimmer und ignoriert Akzente sowie Groß- und Kleinschreibung.</p>
+      <h2>Ihre Unterrichtsnotizen offline, als PDF oder HTML</h2>
+      <p>Öffnen Sie Ihr Archiv jederzeit über das Symbol der Erweiterung, auch ohne Internet: Alles liegt in Ihrem Browser, Preply wird dabei nie kontaktiert. Jede Version einer Seite bleibt erhalten, und im Verlauf sehen Sie, was Ihre Lehrkraft von Mal zu Mal ergänzt oder korrigiert hat.</p>
+      <p>Jede Seite lässt sich sauber als PDF drucken oder als einzelne HTML-Datei exportieren – leicht aufzubewahren, zu sichern oder weiterzugeben. Die Suche durchforstet ein ganzes Klassenzimmer und ignoriert dabei Akzente sowie Groß- und Kleinschreibung.</p>
     </section>
 
     <section>
-      <h2>Nichts verlässt Ihren Browser.</h2>
-      <p><strong>Kein Server, kein Konto, keine Analyse</strong> – es gibt schlicht nichts, wohin etwas gesendet werden könnte. Alles landet im lokalen Speicher Ihres eigenen Geräts, und eine Deinstallation löscht alles.</p>
-      <p>Netzwerkanfragen stellt sie nur auf der Preply-Stundenseite, die Sie ohnehin geöffnet haben, um die Bilder aus Ihrem Canvas zu kopieren.</p>
+      <h2>Nichts verlässt Ihren Browser</h2>
+      <p><strong>Kein Server, kein Konto, keine Statistiken</strong>: Es gibt schlicht keinen Ort, an den Ihre Daten gehen könnten. Alles bleibt auf Ihrem Rechner, und beim Deinstallieren wird alles gelöscht.</p>
+      <p>Ins Netz geht die Erweiterung nur auf der ohnehin geöffneten Preply-Seite Ihrer Stunde – um die Bilder aus Ihrem Canvas zu übernehmen.</p>
     </section>
 
     <section id="faq">
       <h2>Häufige Fragen</h2>
       <div class="faq">
         <h3>Wie exportiere ich ein Preply Canvas?</h3>
-        <p>Installieren Sie die Erweiterung und öffnen Sie das Canvas der Stunde auf Preply. Klicken Sie auf die Archiv-Schaltfläche rechts in der Canvas-Symbolleiste, oder lassen Sie die Seite automatisch speichern. Öffnen Sie dann das Archiv über das Symbol der Erweiterung und wählen Sie <strong>Drucken / PDF</strong> oder im Menü ⋯ <strong>Als HTML exportieren</strong>.</p>
+        <p>Installieren Sie die Erweiterung und öffnen Sie das Canvas Ihrer Stunde auf Preply. Klicken Sie rechts in der Canvas-Symbolleiste auf die Archiv-Schaltfläche, oder überlassen Sie das dem automatischen Speichern. Öffnen Sie anschließend Ihr Archiv über das Symbol der Erweiterung und wählen Sie <strong>Drucken / PDF</strong> oder im Menü ⋯ <strong>Als HTML exportieren</strong>.</p>
         <h3>Kann ich meine Notizen aus Preply Canvas herunterladen?</h3>
         <p>Ja. Jede archivierte Seite lässt sich als eigenständige HTML-Datei samt Bildern exportieren oder über den Druckdialog als PDF speichern.</p>
-        <h3>Wie komme ich nach der Stunde an mein Preply Canvas?</h3>
-        <p>Jede Seite, die bei installierter Erweiterung erfasst wurde, bleibt in Ihrem Archiv: Ein Klick auf das Symbol der Erweiterung öffnet es jederzeit. Seiten, die nie bei installierter Erweiterung geöffnet wurden, kann sie nicht wiederherstellen.</p>
+        <h3>Wie komme ich nach der Stunde noch an mein Preply Canvas?</h3>
+        <p>Alle Seiten, die bei installierter Erweiterung gespeichert wurden, bleiben in Ihrem Archiv – ein Klick auf das Symbol der Erweiterung genügt. Eine Seite, die Sie nie mit installierter Erweiterung geöffnet haben, lässt sich allerdings nicht wiederherstellen.</p>
         <h3>Kann ich ein Preply Canvas als PDF speichern?</h3>
-        <p>Ja, an zwei Stellen: über die Druck-Schaltfläche, die die Erweiterung während der Stunde in der Canvas-Symbolleiste ergänzt, und über <strong>Drucken / PDF</strong> im Archiv. Wählen Sie im Druckdialog des Browsers „Als PDF speichern“.</p>
+        <p>Ja, auf zwei Wegen: über die Druck-Schaltfläche, die während der Stunde in der Canvas-Symbolleiste erscheint, oder über <strong>Drucken / PDF</strong> in Ihrem Archiv. Wählen Sie im Druckdialog des Browsers „Als PDF speichern“.</p>
         <h3>Kann ich meine Preply-Notizen offline lesen?</h3>
-        <p>Ja. Das Archiv liegt im Speicher Ihres Browsers, und die Ansicht geht nie online – Ihre Notizen öffnen sich auch ohne Verbindung.</p>
+        <p>Ja. Ihr Archiv liegt im Browser und geht nie ins Internet – Ihre Notizen öffnen sich also auch ohne Verbindung.</p>
         <h3>Wo werden meine Notizen gespeichert?</h3>
-        <p>Nur im lokalen Speicher Ihres Browsers, auf Ihrem Gerät. Es wird nichts hochgeladen. Beim Deinstallieren der Erweiterung wird das Archiv gelöscht – exportieren Sie also vorher die Seiten, die Sie behalten möchten.</p>
+        <p>Ausschließlich im lokalen Speicher Ihres Browsers, auf Ihrem Rechner. Hochgeladen wird nichts. Aber Achtung: Beim Deinstallieren der Erweiterung wird das Archiv gelöscht – exportieren Sie vorher die Seiten, die Sie behalten möchten.</p>
       </div>
     </section>
 
     <section>
-      <h2>Was wirklich schwierig war.</h2>
+      <h2>Die eigentlichen technischen Hürden</h2>
       <div class="pair">
         <div>
-          <h3>Versionen bleiben vollständig</h3>
-          <p>Jede Speicherung wird vollständig und unabhängig abgelegt, nie als Kette von Unterschieden. Eine beschädigte Datei kostet eine Version, nicht den Verlauf dahinter.</p>
+          <h3>Jede Version vollständig</h3>
+          <p>Jede Speicherung wird vollständig und unabhängig abgelegt, nicht als Kette von Änderungen. Geht eine Datei kaputt, verlieren Sie eine Version – nicht den ganzen Verlauf.</p>
         </div>
         <div>
-          <h3>Eine Suche, die Polnisch kann</h3>
-          <p>Akzente sowie Groß- und Kleinschreibung werden im ganzen Klassenzimmer ignoriert – und <code>ł</code> ist ein Buchstabe, den keine Normalisierung zerlegt. Tippen Sie <code>slonce</code>, finden Sie <code>słońce</code>.</p>
+          <h3>Eine Suche, die Polnisch versteht</h3>
+          <p>Die Suche ignoriert Akzente sowie Groß- und Kleinschreibung im ganzen Klassenzimmer – auch beim <code>ł</code>, das keine Unicode-Normalisierung zerlegt. Wer <code>slonce</code> tippt, findet <code>słońce</code>.</p>
         </div>
         <div>
-          <h3>Zeilen brechen, wo sie brachen</h3>
-          <p>Die Ansicht übernimmt Breite, Schriftgröße und Schriftart des Preply-Editors, sodass eine archivierte Seite genau so umbricht wie im Unterricht.</p>
+          <h3>Originalgetreues Layout</h3>
+          <p>Das Archiv übernimmt Breite, Schriftgröße und Schriftart des Preply-Editors: Die Zeilen brechen genau dort um, wo sie es im Unterricht taten.</p>
         </div>
         <div>
-          <h3>Bilder, die überdauern</h3>
-          <p>Preply liefert sie über Links aus, die ablaufen. Sie werden beim Erfassen kopiert, sonst würde das Archiv unbemerkt verfallen.</p>
+          <h3>Bilder, die nicht verschwinden</h3>
+          <p>Preply liefert Bilder über Links aus, die ablaufen. Die Erweiterung kopiert sie beim Speichern mit – sonst würden Ihrem Archiv nach und nach die Bilder fehlen.</p>
         </div>
       </div>
     </section>
 
     <section>
-      <h2>Aus dem Quellcode ausführen.</h2>
-      <p>Die drei Store-Einträge sind der übliche Weg. Dies ist der andere – um den Code zu lesen, ihn zu ändern oder auszuführen, was auf <code>master</code> liegt, bevor ein Store es hat. Die Prüfung dauert Tage, ein Branch keine Minute.</p>
+      <h2>Aus dem Quellcode installieren</h2>
+      <p>Am einfachsten installieren Sie die Erweiterung über den Store Ihres Browsers. Wer aber den Code lesen, ändern oder die Version auf <code>master</code> schon vor der Veröffentlichung ausprobieren möchte, kann sie auch selbst laden – ohne die mehrtägige Prüfung der Stores abzuwarten.</p>
       <dl class="steps">
         <dt>Firefox</dt>
-        <dd><code>about:debugging</code> → Dieser Firefox → Temporäres Add-on laden… → <code>src/manifest.json</code> wählen. Nach einem Neustart von Firefox ist es weg: Eine dauerhafte Installation muss signiert sein.</dd>
+        <dd>Öffnen Sie <code>about:debugging</code>, dann „Dieser Firefox“ → „Temporäres Add-on laden…“, und wählen Sie <code>src/manifest.json</code>. Nach einem Neustart ist die Erweiterung wieder weg: Dauerhaft installiert Firefox nur signierte Erweiterungen.</dd>
         <dt>Chrome und Edge</dt>
-        <dd><code>bash tools/package.sh</code> ausführen, dann <code>chrome://extensions</code> (oder <code>edge://extensions</code>) → Entwicklermodus → Entpackte Erweiterung laden → <code>dist/chrome/</code> wählen</dd>
+        <dd>Führen Sie <code>bash tools/package.sh</code> aus, öffnen Sie <code>chrome://extensions</code> (oder <code>edge://extensions</code>), aktivieren Sie den „Entwicklermodus“, klicken Sie auf „Entpackte Erweiterung laden“ und wählen Sie den Ordner <code>dist/chrome/</code>.</dd>
       </dl>
-      <p style="margin-top:20px">Kein Build-Schritt, kein Bundler, kein Minifier: <code>src/</code> ist, was ausgeliefert wird. Was Sie lesen, ist, was läuft.</p>
-      <p>Erfasst werden können nur Seiten, die Sie bei installierter Erweiterung öffnen. Vergangene Stunden sind außer Reichweite.</p>
+      <p style="margin-top:20px">Kein Build-Schritt, keine Minifizierung: Der Ordner <code>src/</code> ist genau das, was veröffentlicht wird. Der Code, den Sie lesen, ist der Code, der läuft.</p>
+      <p>Die Erweiterung speichert nur Seiten, die nach ihrer Installation geöffnet werden – vergangene Stunden lassen sich nicht nachholen.</p>
     </section>
 
     <section>
-      <h2>Danke.</h2>
-      <p>An Paula – für den Polnischunterricht und ein beeindruckendes Wissen über Sękacz – und an Shuang laoshi für den Chinesischunterricht. Dieses Werkzeug gibt es, um zu bewahren, was ich in ihrem Unterricht lerne.</p>
+      <h2>Danke</h2>
+      <p>An Paula für den Polnischunterricht – und für alles Wissenswerte über Sękacz – sowie an Shuang laoshi für den Chinesischunterricht. Dieses Werkzeug ist entstanden, um festzuhalten, was ich in diesen Stunden lerne.</p>
     </section>
 
   </div>
@@ -366,8 +366,8 @@ footer p{font-size:14px;color:var(--ink-3);margin:0 0 6px;max-width:none}
     <p><a href="https://github.com/Mars073/Preply-canvas-archiver">Quellcode</a> ·
        <a href="https://github.com/Mars073/Preply-canvas-archiver/blob/master/LICENSE">MPL&nbsp;2.0</a> ·
        <a href="https://github.com/Mars073/Preply-canvas-archiver/blob/master/PRIVACY.md">Datenschutz</a> ·
-       Icons von <a href="https://phosphoricons.com">Phosphor</a></p>
-    <p>Inoffizielles Werkzeug, nicht mit Preply verbunden. Preply ist eine Marke ihres Inhabers.</p>
+       Icons: <a href="https://phosphoricons.com">Phosphor</a></p>
+    <p>Inoffizielles Werkzeug, ohne Verbindung zu Preply. Preply ist eine Marke ihres Inhabers.</p>
   </div>
 </footer>
 

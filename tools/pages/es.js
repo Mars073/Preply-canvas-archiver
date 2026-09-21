@@ -10,41 +10,41 @@ module.exports = {
   ogLocale: 'es_ES',
   label: 'Español',
 
-  title: 'Exportar y guardar Preply Canvas — Preply Canvas Archiver',
-  description: 'Guarda tus notas de clase de Preply Canvas mientras aún tienes acceso. Léelas sin conexión, expórtalas a PDF o HTML. Extensión gratuita.',
+  title: 'Exportar y guardar tu Preply Canvas — Preply Canvas Archiver',
+  description: 'Guarda las notas de tus clases de Preply Canvas mientras aún tengas acceso. Léelas sin conexión, en PDF o en HTML. Extensión gratuita.',
   ogTitle: 'Exporta y guarda tus notas de Preply Canvas',
-  ogDescription: 'Guarda una copia local de tu Preply Canvas mientras aún tienes acceso: léela sin conexión, imprímela en PDF, expórtala.',
-  ogImageAlt: 'El lector del archivo: las páginas de un aula y una página archivada de Preply Canvas.',
-  ldDescription: 'Extensión de navegador que guarda localmente las páginas del Canvas de las clases de Preply para leerlas sin conexión, imprimirlas en PDF o exportarlas en HTML, conservando cada versión.',
+  ogDescription: 'Guarda una copia de tu Preply Canvas mientras aún tengas acceso: para leerla sin conexión, imprimirla en PDF o exportarla.',
+  ogImageAlt: 'El archivo de un aula de Preply y una página del Canvas guardada.',
+  ldDescription: 'Extensión de navegador que guarda en tu equipo las páginas del Canvas de tus clases de Preply para leerlas sin conexión, imprimirlas en PDF o exportarlas en HTML, con todas sus versiones.',
 
-  skip: 'Saltar al contenido',
+  skip: 'Ir al contenido',
   navLabel: 'Idioma',
 
   h1: 'Exporta y guarda tus notas de <em>Preply Canvas</em>',
-  sub: 'Puede que tu Canvas siga existiendo en Preply. Volver a encontrarlo ya es otra historia. Guarda una copia local mientras aún tienes acceso y luego léela sin conexión, imprímela en PDF o expórtala.',
+  sub: 'Puede que tu Canvas siga en algún rincón de Preply. Otra cosa es volver a encontrarlo. Guarda una copia mientras aún tengas acceso: podrás leerla sin conexión, imprimirla en PDF o exportarla.',
   addChrome: 'Añadir a Chrome',
   addFirefox: 'Añadir a Firefox',
   addEdge: 'Añadir a MS Edge',
-  shotAlt: 'El lector del archivo: las páginas de un aula a la izquierda, el documento archivado a la derecha, con zoom, historial e impresión encima.',
-  shotCap: 'Un aula por profesor. Cada página aparece una sola vez, con todas sus versiones detrás.',
+  shotAlt: 'El archivo: a la izquierda, las páginas de un aula; a la derecha, la página guardada, con el zoom, el historial y la impresión.',
+  shotCap: 'Un aula por profesor, cada página una sola vez y todas sus versiones a un clic.',
 
   how: {
-    h2: 'Guarda un Preply Canvas mientras aún tienes acceso.',
-    p: 'Preply Canvas Archiver añade un botón de archivado a la barra de herramientas del Canvas durante la clase. Un clic y la página queda guardada en tu navegador. Si se te olvida, cada página que abres o editas se guarda sola tras un minuto sin cambios. A su lado hay un botón de impresión, para tener un PDF antes de salir de la clase.',
-    shotAlt: 'La barra de herramientas del Canvas de Preply con dos botones extra a la derecha, imprimir y archivar, enmarcados en rosa con el texto Extra buttons.',
-    cap: 'Todo lo que la extensión añade a Preply, con el estilo de los botones que ya estaban.',
+    h2: 'Guarda tu Preply Canvas mientras aún tengas acceso',
+    p: 'Durante la clase, Preply Canvas Archiver añade un botón de archivado a la barra de herramientas del Canvas. Con un clic, la página queda guardada en tu navegador. Y si se te olvida, no pasa nada: cada página que abres o editas se guarda sola en cuanto pasa un minuto sin cambios. Justo al lado tienes un botón de impresión para sacar un PDF antes de que termine la clase.',
+    shotAlt: 'La barra de herramientas del Canvas de Preply con dos botones nuevos a la derecha (imprimir y archivar), rodeados en rosa con el rótulo «Extra buttons».',
+    cap: 'Es todo lo que la extensión añade a Preply, con el mismo estilo que los botones que ya había.',
   },
 
   read: {
-    h2: 'Tus notas de clase, sin conexión, en PDF o HTML.',
-    p1: 'Abre el archivo desde el icono de la extensión cuando quieras, incluso sin conexión: se lee desde tu navegador y nunca contacta con Preply. Se conserva cada versión de una página, y el historial muestra lo que tu profesor añadió o corrigió desde la anterior.',
-    p2: 'Cualquier página se imprime en un PDF limpio o se exporta como un único archivo HTML que puedes guardar, copiar o enviar. La búsqueda recorre un aula entera, sin distinguir tildes ni mayúsculas.',
+    h2: 'Tus notas de clase sin conexión, en PDF o en HTML',
+    p1: 'Abre tu archivo cuando quieras desde el icono de la extensión, incluso sin internet: todo se guarda en tu navegador y nunca se conecta con Preply. Se conserva cada versión de cada página, y el historial te muestra qué ha añadido o corregido tu profesor de una vez a otra.',
+    p2: 'Cualquier página se imprime limpia en PDF o se exporta en un único archivo HTML, fácil de guardar, copiar o compartir. Y el buscador recorre toda el aula sin fijarse en tildes ni mayúsculas.',
   },
 
   privacy: {
-    h2: 'Nada sale de tu navegador.',
-    p1: '<strong>Sin servidor, sin cuenta, sin analíticas</strong>: no hay adónde enviar nada. Todo se guarda en el almacenamiento local de tu equipo, y al desinstalar se borra todo.',
-    p2: 'Sus únicas peticiones de red se hacen en la página de la clase de Preply que ya tienes abierta, para copiar las imágenes de tu Canvas.',
+    h2: 'Nada sale de tu navegador',
+    p1: '<strong>Sin servidor, sin cuenta y sin analíticas</strong>: sencillamente, no hay adónde enviar tus datos. Todo se queda en tu equipo, y al desinstalar la extensión se borra todo.',
+    p2: 'Las únicas peticiones de red que hace ocurren en la página de la clase de Preply que ya tienes abierta, para copiar las imágenes de tu Canvas.',
   },
 
   faq: {
@@ -52,72 +52,72 @@ module.exports = {
     items: [
       {
         q: '¿Cómo exportar un Canvas de Preply?',
-        a: 'Instala la extensión y abre el Canvas de la clase en Preply. Haz clic en el botón de archivado, a la derecha de la barra de herramientas del Canvas, o deja que se guarde solo. Después abre el archivo desde el icono de la extensión y elige <strong>Imprimir / PDF</strong>, o <strong>Exportar como HTML</strong> en el menú ⋯.',
+        a: 'Instala la extensión y abre el Canvas de tu clase en Preply. Pulsa el botón de archivado, a la derecha de la barra de herramientas del Canvas, o deja que el guardado automático se encargue. Después, abre tu archivo desde el icono de la extensión y elige <strong>Imprimir / PDF</strong>, o <strong>Exportar como HTML</strong> en el menú ⋯.',
       },
       {
-        q: '¿Puedo descargar mis notas de Preply Canvas?',
-        a: 'Sí. Cada página archivada se exporta como un archivo HTML autónomo, con sus imágenes, o se guarda en PDF desde el diálogo de impresión.',
+        q: '¿Se pueden descargar las notas de Preply Canvas?',
+        a: 'Sí. Cada página archivada se puede exportar como archivo HTML independiente, con sus imágenes, o guardar en PDF desde el diálogo de impresión.',
       },
       {
         q: '¿Cómo acceder a un Canvas de Preply después de la clase?',
-        a: 'Todas las páginas guardadas mientras la extensión estaba instalada siguen en tu archivo: haz clic en el icono de la extensión para abrirlo cuando quieras. No puede recuperar páginas que nunca se abrieron con la extensión instalada.',
+        a: 'Todas las páginas guardadas mientras la extensión estaba instalada siguen en tu archivo: basta con pulsar el icono de la extensión para abrirlo. Eso sí, una página que nunca abriste con la extensión instalada no se puede recuperar.',
       },
       {
-        q: '¿Puedo exportar un Preply Canvas a PDF?',
-        a: 'Sí, desde dos sitios: el botón de impresión que añade a la barra del Canvas durante la clase y <strong>Imprimir / PDF</strong> en el archivo. Elige «Guardar como PDF» en el diálogo de impresión del navegador.',
+        q: '¿Se puede exportar un Preply Canvas a PDF?',
+        a: 'Sí, de dos maneras: con el botón de impresión que aparece en la barra del Canvas durante la clase, o con <strong>Imprimir / PDF</strong> en tu archivo. En el diálogo de impresión del navegador, elige «Guardar como PDF».',
       },
       {
         q: '¿Puedo leer mis notas de Preply sin conexión?',
-        a: 'Sí. El archivo está en el almacenamiento de tu navegador y el lector nunca se conecta a internet, así que tus notas se abren sin conexión.',
+        a: 'Sí. Tu archivo vive en el navegador y nunca pasa por internet, así que tus notas se abren aunque no tengas conexión.',
       },
       {
         q: '¿Dónde se guardan mis notas?',
-        a: 'Solo en el almacenamiento local de tu navegador, en tu equipo. No se sube nada. Desinstalar la extensión borra el archivo, así que exporta antes las páginas que quieras conservar.',
+        a: 'Solo en el almacenamiento local de tu navegador, en tu equipo. No se sube nada a ningún sitio. Ojo: al desinstalar la extensión se borra el archivo, así que exporta antes las páginas que quieras conservar.',
       },
     ],
   },
 
   hard: {
-    h2: 'Lo que de verdad fue difícil.',
+    h2: 'Los verdaderos retos técnicos',
     items: [
       {
-        h3: 'Versiones completas',
-        p: 'Cada guardado se almacena completo e independiente, nunca como una cadena de diferencias. Un archivo dañado cuesta una versión, no el historial que hay detrás.',
+        h3: 'Cada versión, completa',
+        p: 'Cada guardado se conserva entero e independiente, no como una cadena de cambios. Si un archivo se estropea, pierdes una versión, no todo el historial.',
       },
       {
-        h3: 'Una búsqueda que sabe polaco',
-        p: 'Ignora tildes y mayúsculas en todo un aula, y <code>ł</code> es una letra que ninguna normalización descompone. Escribe <code>slonce</code> y encuentra <code>słońce</code>.',
+        h3: 'Un buscador que habla polaco',
+        p: 'Ignora tildes y mayúsculas en toda el aula, incluida la <code>ł</code>, una letra que ninguna normalización Unicode descompone. Escribe <code>slonce</code> y encontrarás <code>słońce</code>.',
       },
       {
-        h3: 'Las líneas se cortan donde se cortaban',
-        p: 'El lector reproduce el ancho, el tamaño y la tipografía del editor de Preply, así que una página archivada se ajusta igual que en clase.',
+        h3: 'Un diseño fiel al original',
+        p: 'El archivo reproduce el ancho, el tamaño y la tipografía del editor de Preply, así que las líneas se cortan exactamente igual que en clase.',
       },
       {
-        h3: 'Imágenes que sobreviven',
-        p: 'Preply las sirve desde enlaces que caducan. Se copian en el momento de la captura; si no, el archivo se iría deteriorando sin avisar.',
+        h3: 'Imágenes que no desaparecen',
+        p: 'Preply sirve las imágenes con enlaces que caducan. La extensión las copia al guardar la página; si no, tu archivo iría perdiendo sus imágenes poco a poco.',
       },
     ],
   },
 
   source: {
-    h2: 'Ejecutarlo desde el código fuente.',
-    intro: 'Las tres tiendas son la vía normal. Esta es la otra: para leer el código, cambiarlo o usar lo que hay en <code>master</code> antes de que llegue a una tienda. La revisión tarda días; una rama, nada.',
-    firefox: '<code>about:debugging</code> → Este Firefox → Cargar complemento temporal… → elige <code>src/manifest.json</code>. Desaparece al reiniciar Firefox: una instalación permanente tiene que estar firmada.',
+    h2: 'Instalar desde el código fuente',
+    intro: 'Lo más sencillo es instalarla desde la tienda de tu navegador. Pero si quieres leer el código, modificarlo o probar la versión de <code>master</code> antes de que se publique, puedes cargar la extensión por tu cuenta, sin esperar los días de revisión de las tiendas.',
+    firefox: 'Abre <code>about:debugging</code>, entra en «Este Firefox» → «Cargar complemento temporal…» y selecciona <code>src/manifest.json</code>. La extensión desaparece al reiniciar Firefox: solo las extensiones firmadas se instalan de forma permanente.',
     chromeTitle: 'Chrome y Edge',
-    chrome: 'ejecuta <code>bash tools/package.sh</code> y luego <code>chrome://extensions</code> (o <code>edge://extensions</code>) → Modo de desarrollador → Cargar descomprimida → elige <code>dist/chrome/</code>',
-    noBuild: 'Sin compilación, sin bundler, sin minificador: <code>src/</code> es lo que se publica. Lo que lees es lo que se ejecuta.',
-    past: 'Solo se pueden capturar las páginas que abras con la extensión instalada. Las clases ya pasadas quedan fuera de alcance.',
+    chrome: 'Ejecuta <code>bash tools/package.sh</code>, abre <code>chrome://extensions</code> (o <code>edge://extensions</code>), activa el «Modo de desarrollador», pulsa «Cargar descomprimida» y selecciona la carpeta <code>dist/chrome/</code>.',
+    noBuild: 'Sin compilación ni minificación: la carpeta <code>src/</code> es exactamente lo que se publica. El código que lees es el que se ejecuta.',
+    past: 'La extensión solo guarda las páginas que abras después de instalarla: las clases anteriores no se pueden recuperar.',
   },
 
   thanks: {
-    h2: 'Gracias.',
-    p: 'A Paula, que me enseña polaco y es toda una autoridad en sękacz, y a Shuang laoshi, que me enseña chino. Esta herramienta existe para conservar lo que aprendo en sus clases.',
+    h2: 'Gracias',
+    p: 'A Paula, que me enseña polaco y sabe de sękacz como nadie, y a Shuang laoshi, que me enseña chino. Esta herramienta nació para conservar lo que aprendo en sus clases.',
   },
 
   footer: {
     source: 'Código fuente',
     privacy: 'Privacidad',
-    icons: 'iconos de <a href="https://phosphoricons.com">Phosphor</a>',
+    icons: 'iconos: <a href="https://phosphoricons.com">Phosphor</a>',
     disclaimer: 'Herramienta no oficial, sin relación con Preply. Preply es una marca de su propietario.',
   },
 };

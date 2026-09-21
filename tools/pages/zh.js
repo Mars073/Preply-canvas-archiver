@@ -11,113 +11,113 @@ module.exports = {
   label: '简体中文',
 
   title: '导出并保存 Preply Canvas 课堂笔记 — Preply Canvas Archiver',
-  description: '趁还能访问时保存你的 Preply Canvas 课堂笔记：离线查看，打印为 PDF 或导出为 HTML。免费浏览器扩展。',
+  description: '趁还能访问，把 Preply Canvas 课堂笔记保存到本地：可以离线查看，也能打印成 PDF 或导出为 HTML。免费浏览器扩展。',
   ogTitle: '导出并保存你的 Preply Canvas 课堂笔记',
-  ogDescription: '趁还能访问时为 Preply Canvas 保存一份本地副本：离线查看、打印为 PDF、导出保存。',
-  ogImageAlt: '归档阅读界面：一个课堂的页面列表和一页已归档的 Preply Canvas。',
-  ldDescription: '将 Preply 课程的 Canvas 页面保存在本地的浏览器扩展，可离线查看、打印为 PDF 或导出为 HTML，并保留每个版本。',
+  ogDescription: '趁还能访问，给你的 Preply Canvas 留一份本地副本：离线查看、打印成 PDF 或导出都可以。',
+  ogImageAlt: 'Preply 课堂的归档，以及一页已保存的 Canvas。',
+  ldDescription: '一款浏览器扩展，把 Preply 课程的 Canvas 页面保存到本地，方便离线查看、打印成 PDF 或导出为 HTML，并保留所有版本。',
 
-  skip: '跳到内容',
+  skip: '跳到正文',
   navLabel: '语言',
 
   h1: '导出并保存你的 <em>Preply Canvas</em> 课堂笔记',
-  sub: '你的 Canvas 也许还留在 Preply 上，但要再找到它就是另一回事了。趁还能访问时保存一份本地副本，之后可以离线查看、打印为 PDF 或导出保存。',
+  sub: '你的 Canvas 也许还在 Preply 的某个角落，可要再找到它就难说了。趁还能访问，先存一份本地副本：之后离线查看、打印成 PDF 或导出都可以。',
   addChrome: '添加到 Chrome',
   addFirefox: '添加到 Firefox',
   addEdge: '添加到 MS Edge',
-  shotAlt: '归档阅读界面：左侧是课堂的页面列表，右侧是已归档的文档，上方有缩放、历史记录和打印按钮。',
-  shotCap: '每位老师一个课堂。每个页面只列出一次，它的所有版本都保留在后面。',
+  shotAlt: '归档界面：左边是一个课堂的页面列表，右边是已保存的页面，上方有缩放、历史记录和打印按钮。',
+  shotCap: '每位老师一个课堂，每个页面只列一次，所有版本随时可查。',
 
   how: {
-    h2: '趁还能访问，保存你的 Preply Canvas。',
-    p: '上课时，Preply Canvas Archiver 会在 Canvas 工具栏上添加一个归档按钮。点一下，页面就保存到你的浏览器里。忘了也没关系：你打开或编辑过的每个页面，在一分钟没有变化后都会自动保存。旁边还有一个打印按钮，下课前就能拿到 PDF。',
-    shotAlt: 'Preply Canvas 工具栏右侧多了两个按钮，分别是打印和归档，用粉色框标出，并标注 Extra buttons。',
-    cap: '扩展在 Preply 中添加的全部内容，样式沿用原有按钮。',
+    h2: '趁还能访问，保存你的 Preply Canvas',
+    p: '上课时，Preply Canvas Archiver 会在 Canvas 工具栏上加一个归档按钮，点一下就能把当前页面保存到浏览器里。就算忘了也不要紧：你打开或编辑过的页面，只要一分钟内没有变化，就会自动保存。旁边还有一个打印按钮，下课前就能导出 PDF。',
+    shotAlt: 'Preply 的 Canvas 工具栏右侧多了两个按钮（打印和归档），用粉色框圈出，标注为“Extra buttons”。',
+    cap: '扩展在 Preply 里加的就只有这些，样式和原有按钮保持一致。',
   },
 
   read: {
-    h2: '课堂笔记：离线查看，PDF 或 HTML。',
-    p1: '随时点击扩展图标打开归档，没有网络也可以：内容从浏览器中读取，从不连接 Preply。每个页面的所有版本都会保留，历史记录会显示老师相比上一版新增或修改了什么。',
-    p2: '任何页面都能打印成整洁的 PDF，或导出为单个 HTML 文件，方便保存、备份或发送。搜索覆盖整个课堂，不区分变音符号和大小写。',
+    h2: '课堂笔记随时看：离线、PDF 或 HTML',
+    p1: '随时点击扩展图标就能打开归档，没网也没关系：所有内容都存在浏览器里，完全不需要连接 Preply。每个页面的每个版本都会保留，历史记录里能看到老师每次新增或修改了什么。',
+    p2: '任何页面都可以打印成干净的 PDF，或导出成一个 HTML 文件，方便保存、备份或分享。搜索覆盖整个课堂，不区分变音符号和大小写。',
   },
 
   privacy: {
-    h2: '数据不会离开你的浏览器。',
-    p1: '<strong>没有服务器、没有账号、没有统计分析</strong>，根本没有可以发送数据的地方。所有内容都保存在你电脑的本地存储中，卸载扩展即全部删除。',
-    p2: '它只会在你已经打开的 Preply 课程页面上发出网络请求，用来复制 Canvas 中的图片。',
+    h2: '数据不出浏览器',
+    p1: '<strong>没有服务器、没有账号、没有统计分析</strong>，你的数据根本无处可传。所有内容都留在你的电脑上，卸载扩展就会全部删除。',
+    p2: '扩展只会在你已经打开的 Preply 课程页面上联网，用来复制 Canvas 里的图片。',
   },
 
   faq: {
     h2: '常见问题',
     items: [
       {
-        q: '如何导出 Preply Canvas？',
-        a: '安装扩展后，在 Preply 上打开课程的 Canvas。点击 Canvas 工具栏右侧的归档按钮，或者让它自动保存。之后点击扩展图标打开归档，选择<strong>打印 / PDF</strong>，或在 ⋯ 菜单中选择<strong>导出为 HTML</strong>。',
+        q: '怎样导出 Preply Canvas？',
+        a: '安装扩展后，在 Preply 上打开课程的 Canvas。点击 Canvas 工具栏右侧的归档按钮，或者交给自动保存。然后点击扩展图标打开归档，选择<strong>打印 / PDF</strong>，或在 ⋯ 菜单里选择<strong>导出为 HTML</strong>。',
       },
       {
-        q: '可以下载 Preply Canvas 笔记吗？',
-        a: '可以。每个已归档的页面都能导出为包含图片的独立 HTML 文件，也可以在打印对话框中保存为 PDF。',
+        q: '能下载 Preply Canvas 的笔记吗？',
+        a: '可以。每个归档页面都能导出为带图片的独立 HTML 文件，也可以在打印对话框里保存为 PDF。',
       },
       {
-        q: '下课后怎么查看 Preply Canvas？',
-        a: '安装扩展期间保存的页面都会留在归档里，随时点击扩展图标就能打开。没有在安装扩展后打开过的页面无法找回。',
+        q: '下课后还能看 Preply Canvas 吗？',
+        a: '安装扩展期间保存的页面都会留在归档里，点一下扩展图标就能打开。不过，从未在安装扩展后打开过的页面是找不回来的。',
       },
       {
-        q: '可以把 Preply Canvas 保存为 PDF 吗？',
-        a: '可以，有两个入口：上课时扩展在 Canvas 工具栏添加的打印按钮，以及归档中的<strong>打印 / PDF</strong>。在浏览器的打印对话框中选择“另存为 PDF”即可。',
+        q: '能把 Preply Canvas 保存成 PDF 吗？',
+        a: '可以，有两种方式：上课时用 Canvas 工具栏上新增的打印按钮，或者在归档里点<strong>打印 / PDF</strong>。在浏览器的打印对话框里选“另存为 PDF”即可。',
       },
       {
-        q: '可以离线查看 Preply 笔记吗？',
-        a: '可以。归档保存在浏览器中，阅读界面从不联网，没有网络也能打开笔记。',
+        q: '可以离线看 Preply 笔记吗？',
+        a: '可以。归档保存在浏览器里，从不联网，没有网络也能打开笔记。',
       },
       {
-        q: '我的笔记保存在哪里？',
-        a: '只保存在你电脑上浏览器的本地存储中，不会上传到任何地方。卸载扩展会删除归档，所以请先导出想保留的页面。',
+        q: '我的笔记存在哪里？',
+        a: '只存在你电脑上浏览器的本地存储里，不会上传到任何地方。注意：卸载扩展会删除归档，请先导出想保留的页面。',
       },
     ],
   },
 
   hard: {
-    h2: '真正困难的部分。',
+    h2: '真正的技术难点',
     items: [
       {
-        h3: '版本完整独立',
-        p: '每次保存都完整、独立地存储，而不是一串差异记录。某个文件损坏只会损失一个版本，不会牵连之前的历史。',
+        h3: '每个版本都完整保存',
+        p: '每次保存都是完整、独立的一份，而不是一串修改记录。就算某个文件损坏，也只丢一个版本，不会影响整个历史。',
       },
       {
         h3: '懂波兰语的搜索',
-        p: '在整个课堂中搜索时忽略变音符号和大小写，而 <code>ł</code> 是任何规范化都无法分解的字母。输入 <code>slonce</code>，就能找到 <code>słońce</code>。',
+        p: '在整个课堂里搜索时忽略变音符号和大小写，连 Unicode 规范化都拆不开的 <code>ł</code> 也能处理。输入 <code>slonce</code>，就能找到 <code>słońce</code>。',
       },
       {
-        h3: '换行位置与课上一致',
-        p: '阅读界面还原了 Preply 编辑器的宽度、字号和字体，归档页面的换行与上课时完全相同。',
+        h3: '版式和原来一样',
+        p: '归档还原了 Preply 编辑器的宽度、字号和字体，换行位置和上课时一模一样。',
       },
       {
-        h3: '图片不会失效',
-        p: 'Preply 通过会过期的链接提供图片。保存页面时会把图片一并复制下来，否则归档会悄悄损坏。',
+        h3: '图片不会丢',
+        p: 'Preply 的图片链接会过期。扩展在保存时就把图片复制下来，否则归档里的图片会慢慢失效。',
       },
     ],
   },
 
   source: {
-    h2: '从源代码运行。',
-    intro: '三个扩展商店是主要的安装途径，这里是另一条路：阅读代码、修改代码，或在商店上架之前运行 <code>master</code> 上的版本。商店审核要几天，分支则随时可用。',
-    firefox: '<code>about:debugging</code> → 此 Firefox → 临时载入附加组件… → 选择 <code>src/manifest.json</code>。重启 Firefox 后会消失：永久安装需要签名。',
+    h2: '从源代码安装',
+    intro: '最简单的方式是从浏览器的扩展商店安装。如果你想读代码、改代码，或者在发布前试用 <code>master</code> 上的版本，也可以自己加载扩展，不用等商店好几天的审核。',
+    firefox: '打开 <code>about:debugging</code>，进入“此 Firefox”→“临时载入附加组件…”，选择 <code>src/manifest.json</code>。重启 Firefox 后扩展会消失：只有签名过的扩展才能长期安装。',
     chromeTitle: 'Chrome 和 Edge',
-    chrome: '运行 <code>bash tools/package.sh</code>，然后打开 <code>chrome://extensions</code>（或 <code>edge://extensions</code>）→ 开发者模式 → 加载已解压的扩展程序 → 选择 <code>dist/chrome/</code>',
-    noBuild: '没有构建步骤、没有打包工具、没有压缩：<code>src/</code> 就是发布的内容。你读到的代码就是运行的代码。',
-    past: '只有在安装扩展后打开过的页面才能被保存，已经结束的课程无法找回。',
+    chrome: '运行 <code>bash tools/package.sh</code>，打开 <code>chrome://extensions</code>（或 <code>edge://extensions</code>），开启“开发者模式”，点击“加载已解压的扩展程序”，选择 <code>dist/chrome/</code> 文件夹。',
+    noBuild: '没有构建，也没有压缩：<code>src/</code> 文件夹就是发布的内容。你看到的代码，就是实际运行的代码。',
+    past: '扩展只能保存安装之后打开的页面，之前的课程无法找回。',
   },
 
   thanks: {
-    h2: '致谢。',
-    p: '感谢 Paula，我的波兰语老师，也是 sękacz（波兰树桩蛋糕）的权威；也感谢 Shuang 老师，我的中文老师。这个工具就是为了留住两位老师教给我的东西。',
+    h2: '致谢',
+    p: '感谢 Paula 的波兰语课，以及关于 sękacz（波兰树桩蛋糕）的无数知识；也感谢 Shuang 老师的中文课。做这个工具，就是为了留住我在这些课上学到的东西。',
   },
 
   footer: {
     source: '源代码',
     privacy: '隐私',
-    icons: '图标来自 <a href="https://phosphoricons.com">Phosphor</a>',
-    disclaimer: '非官方工具，与 Preply 无关联。Preply 是其所有者的商标。',
+    icons: '图标：<a href="https://phosphoricons.com">Phosphor</a>',
+    disclaimer: '非官方工具，与 Preply 无关。Preply 是其所有者的商标。',
   },
 };

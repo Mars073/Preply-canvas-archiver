@@ -11,40 +11,40 @@ module.exports = {
   label: 'Polski',
 
   title: 'Zapisz i pobierz notatki z Preply Canvas — Preply Canvas Archiver',
-  description: 'Zapisz notatki z lekcji w Preply Canvas, póki masz do nich dostęp. Czytaj je offline, pobierz jako PDF lub HTML. Darmowe rozszerzenie przeglądarki.',
+  description: 'Zapisz notatki z lekcji w Preply Canvas, póki jeszcze masz do nich dostęp. Czytaj offline, zapisuj jako PDF lub HTML. Darmowe rozszerzenie.',
   ogTitle: 'Zapisz i pobierz notatki z Preply Canvas',
-  ogDescription: 'Zachowaj lokalną kopię Preply Canvas, póki masz do niego dostęp: czytaj ją offline, drukuj do PDF, eksportuj.',
-  ogImageAlt: 'Czytnik archiwum: strony jednej klasy i zarchiwizowana strona Preply Canvas.',
-  ldDescription: 'Rozszerzenie przeglądarki, które zapisuje lokalnie strony Canvas z lekcji w Preply, żeby można je było czytać offline, drukować do PDF lub eksportować do HTML, z zachowaniem każdej wersji.',
+  ogDescription: 'Zrób kopię swojego Preply Canvas, póki masz do niego dostęp — i czytaj ją offline, drukuj do PDF albo eksportuj.',
+  ogImageAlt: 'Archiwum klasy w Preply i zapisana strona Canvas.',
+  ldDescription: 'Rozszerzenie przeglądarki, które zapisuje na twoim komputerze strony Canvas z lekcji w Preply, żeby można je było czytać offline, drukować do PDF albo eksportować do HTML — razem ze wszystkimi wersjami.',
 
   skip: 'Przejdź do treści',
   navLabel: 'Język',
 
   h1: 'Zapisz i pobierz notatki z <em>Preply Canvas</em>',
-  sub: 'Twój Canvas może wciąż istnieć w Preply. Gorzej z tym, żeby go potem odnaleźć. Zapisz lokalną kopię, póki masz do niego dostęp — i czytaj ją offline, drukuj do PDF albo eksportuj.',
+  sub: 'Twój Canvas może wciąż gdzieś w Preply być. Tylko spróbuj go potem znaleźć. Zrób kopię, póki masz do niego dostęp — a potem przeczytasz ją offline, wydrukujesz do PDF albo wyeksportujesz.',
   addChrome: 'Dodaj do Chrome',
   addFirefox: 'Dodaj do Firefoksa',
   addEdge: 'Dodaj do MS Edge',
-  shotAlt: 'Czytnik archiwum: strony klasy po lewej, zarchiwizowany dokument po prawej, a nad nim powiększenie, historia i drukowanie.',
-  shotCap: 'Jedna klasa na nauczyciela. Każda strona na liście tylko raz, a za nią wszystkie jej wersje.',
+  shotAlt: 'Archiwum: po lewej strony jednej klasy, po prawej zapisana strona, a nad nią powiększenie, historia i drukowanie.',
+  shotCap: 'Jedna klasa na nauczyciela, każda strona tylko raz, a wszystkie jej wersje na wyciągnięcie ręki.',
 
   how: {
-    h2: 'Zapisz Canvas z Preply, póki masz do niego dostęp.',
-    p: 'W trakcie lekcji Preply Canvas Archiver dodaje do paska narzędzi Canvas przycisk archiwizacji. Jedno kliknięcie i strona jest zapisana w przeglądarce. A jeśli zapomnisz, każda otwarta lub edytowana strona zapisze się sama po minucie bez zmian. Obok jest przycisk drukowania — żeby mieć PDF, zanim wyjdziesz z lekcji.',
-    shotAlt: 'Pasek narzędzi Canvas w Preply z dwoma dodatkowymi przyciskami po prawej, drukowania i archiwizacji, w różowej ramce z podpisem Extra buttons.',
-    cap: 'Wszystko, co rozszerzenie dodaje do Preply, w stylu przycisków, które już tam są.',
+    h2: 'Zapisz Preply Canvas, póki masz do niego dostęp',
+    p: 'W trakcie lekcji Preply Canvas Archiver dodaje do paska narzędzi Canvas przycisk archiwizacji. Wystarczy jedno kliknięcie, żeby zapisać stronę w przeglądarce. A jeśli zapomnisz — nic się nie stanie: każda strona, którą otworzysz lub edytujesz, zapisze się sama, gdy przez minutę nic się na niej nie zmieni. Tuż obok jest przycisk drukowania, żeby jeszcze przed końcem lekcji mieć PDF.',
+    shotAlt: 'Pasek narzędzi Canvas w Preply z dwoma nowymi przyciskami po prawej (drukowanie i archiwizacja), obwiedzionymi na różowo z podpisem „Extra buttons”.',
+    cap: 'To wszystko, co rozszerzenie dodaje do Preply — w tym samym stylu co istniejące przyciski.',
   },
 
   read: {
-    h2: 'Notatki z lekcji offline, w PDF albo HTML.',
-    p1: 'Archiwum otworzysz ikoną rozszerzenia, kiedy tylko chcesz, nawet bez internetu: dane są czytane z przeglądarki, a czytnik nigdy nie łączy się z Preply. Każda wersja strony zostaje zachowana, a historia pokazuje, co nauczyciel dodał lub poprawił od poprzedniej.',
-    p2: 'Każdą stronę wydrukujesz do czystego PDF albo wyeksportujesz jako jeden plik HTML, który możesz przechowywać, skopiować lub wysłać. Wyszukiwanie obejmuje całą klasę i nie zwraca uwagi na polskie znaki ani wielkość liter.',
+    h2: 'Notatki z lekcji offline, w PDF albo HTML',
+    p1: 'Archiwum otworzysz w każdej chwili ikoną rozszerzenia, nawet bez internetu: wszystko jest zapisane w przeglądarce, a z Preply nic się przy tym nie łączy. Każda wersja strony zostaje zachowana, a w historii widać, co nauczyciel dopisał albo poprawił od ostatniego razu.',
+    p2: 'Każdą stronę wydrukujesz do schludnego PDF albo wyeksportujesz jako jeden plik HTML, który łatwo przechować, skopiować czy komuś wysłać. A wyszukiwarka przeszukuje całą klasę i nie przejmuje się polskimi znakami ani wielkością liter.',
   },
 
   privacy: {
-    h2: 'Nic nie opuszcza twojej przeglądarki.',
-    p1: '<strong>Bez serwera, bez konta, bez analityki</strong> — nie ma dokąd niczego wysyłać. Wszystko trafia do lokalnej pamięci na twoim komputerze, a odinstalowanie usuwa to wszystko.',
-    p2: 'Jedyne zapytania sieciowe wykonuje na otwartej już stronie lekcji w Preply, żeby skopiować obrazy z twojego Canvas.',
+    h2: 'Nic nie wychodzi poza twoją przeglądarkę',
+    p1: '<strong>Bez serwera, bez konta, bez statystyk</strong> — po prostu nie ma dokąd wysyłać twoich danych. Wszystko zostaje na twoim komputerze, a odinstalowanie rozszerzenia wszystko usuwa.',
+    p2: 'Rozszerzenie łączy się z siecią tylko na otwartej już stronie lekcji w Preply, żeby skopiować obrazy z twojego Canvas.',
   },
 
   faq: {
@@ -52,72 +52,72 @@ module.exports = {
     items: [
       {
         q: 'Jak wyeksportować Canvas z Preply?',
-        a: 'Zainstaluj rozszerzenie i otwórz Canvas lekcji w Preply. Kliknij przycisk archiwizacji po prawej stronie paska narzędzi Canvas albo poczekaj, aż strona zapisze się sama. Potem otwórz archiwum ikoną rozszerzenia i wybierz <strong>Drukuj / PDF</strong> albo <strong>Eksportuj do HTML</strong> z menu ⋯.',
+        a: 'Zainstaluj rozszerzenie i otwórz Canvas swojej lekcji w Preply. Kliknij przycisk archiwizacji po prawej stronie paska narzędzi Canvas albo zdaj się na automatyczny zapis. Potem otwórz archiwum ikoną rozszerzenia i wybierz <strong>Drukuj / PDF</strong> albo, w menu ⋯, <strong>Eksportuj do HTML</strong>.',
       },
       {
-        q: 'Czy mogę pobrać notatki z Preply Canvas?',
-        a: 'Tak. Każdą zarchiwizowaną stronę można wyeksportować jako samodzielny plik HTML, razem z obrazami, albo zapisać jako PDF z okna drukowania.',
+        q: 'Czy da się pobrać notatki z Preply Canvas?',
+        a: 'Tak. Każdą zarchiwizowaną stronę możesz wyeksportować jako samodzielny plik HTML, razem z obrazami, albo zapisać jako PDF w oknie drukowania.',
       },
       {
-        q: 'Jak wrócić do Canvas z Preply po lekcji?',
-        a: 'Każda strona zapisana, gdy rozszerzenie było zainstalowane, zostaje w archiwum: otworzysz je w każdej chwili, klikając ikonę rozszerzenia. Nie da się odzyskać stron, których nie otwarto przy zainstalowanym rozszerzeniu.',
+        q: 'Jak dostać się do Canvas z Preply po lekcji?',
+        a: 'Wszystkie strony zapisane, gdy rozszerzenie było zainstalowane, zostają w archiwum — wystarczy kliknąć ikonę rozszerzenia. Strony, której nigdy nie otwarto przy zainstalowanym rozszerzeniu, nie da się jednak odzyskać.',
       },
       {
         q: 'Czy mogę zapisać Canvas z Preply jako PDF?',
-        a: 'Tak, na dwa sposoby: przyciskiem drukowania, który rozszerzenie dodaje do paska Canvas w trakcie lekcji, albo opcją <strong>Drukuj / PDF</strong> w archiwum. W oknie drukowania przeglądarki wybierz „Zapisz jako PDF”.',
+        a: 'Tak, na dwa sposoby: przyciskiem drukowania, który w trakcie lekcji pojawia się na pasku Canvas, albo opcją <strong>Drukuj / PDF</strong> w archiwum. W oknie drukowania przeglądarki wybierz „Zapisz jako PDF”.',
       },
       {
         q: 'Czy mogę czytać notatki z Preply offline?',
-        a: 'Tak. Archiwum jest przechowywane w przeglądarce, a czytnik nigdy nie łączy się z siecią, więc notatki otworzysz bez internetu.',
+        a: 'Tak. Archiwum jest przechowywane w przeglądarce i nigdy nie łączy się z internetem, więc notatki otworzysz także bez połączenia.',
       },
       {
         q: 'Gdzie są przechowywane moje notatki?',
-        a: 'Tylko w lokalnej pamięci przeglądarki, na twoim komputerze. Nic nie jest nigdzie wysyłane. Odinstalowanie rozszerzenia usuwa archiwum, więc najpierw wyeksportuj strony, które chcesz zachować.',
+        a: 'Wyłącznie w lokalnej pamięci przeglądarki, na twoim komputerze. Nic nie trafia do sieci. Uwaga: odinstalowanie rozszerzenia usuwa archiwum, więc najpierw wyeksportuj strony, które chcesz zachować.',
       },
     ],
   },
 
   hard: {
-    h2: 'To, co naprawdę było trudne.',
+    h2: 'Co naprawdę było trudne',
     items: [
       {
-        h3: 'Wersje w całości',
-        p: 'Każdy zapis jest przechowywany w całości i niezależnie, nigdy jako łańcuch różnic. Uszkodzony plik to strata jednej wersji, a nie całej historii.',
+        h3: 'Każda wersja w całości',
+        p: 'Każdy zapis jest przechowywany w całości i niezależnie od innych, a nie jako ciąg zmian. Jeśli jakiś plik się uszkodzi, tracisz jedną wersję, a nie całą historię.',
       },
       {
-        h3: 'Wyszukiwanie, które zna polski',
-        p: 'Pomija polskie znaki i wielkość liter w całej klasie — a <code>ł</code> to litera, której żadna normalizacja nie rozkłada. Wpisz <code>slonce</code>, znajdź <code>słońce</code>.',
+        h3: 'Wyszukiwarka, która zna polski',
+        p: 'Wyszukiwanie w całej klasie pomija polskie znaki i wielkość liter — łącznie z <code>ł</code>, którego żadna normalizacja Unicode nie rozkłada. Wpisz <code>slonce</code>, a znajdziesz <code>słońce</code>.',
       },
       {
-        h3: 'Wiersze łamią się tam, gdzie się łamały',
-        p: 'Czytnik odtwarza szerokość, rozmiar i krój pisma edytora Preply, więc zarchiwizowana strona łamie się dokładnie tak jak na lekcji.',
+        h3: 'Wierny układ strony',
+        p: 'Archiwum odtwarza szerokość, rozmiar i krój pisma edytora Preply, więc wiersze łamią się dokładnie tak jak na lekcji.',
       },
       {
-        h3: 'Obrazy, które przetrwają',
-        p: 'Preply udostępnia je przez linki, które wygasają. Są kopiowane w chwili zapisu — inaczej archiwum po cichu by niszczało.',
+        h3: 'Obrazy, które nie znikają',
+        p: 'Preply udostępnia obrazy przez linki, które wygasają. Rozszerzenie kopiuje je przy zapisie — inaczej z archiwum po cichu znikałyby kolejne ilustracje.',
       },
     ],
   },
 
   source: {
-    h2: 'Uruchamianie ze źródeł.',
-    intro: 'Trzy sklepy z rozszerzeniami to główna droga. To jest ta druga — żeby czytać kod, zmieniać go albo uruchomić to, co jest na <code>master</code>, zanim trafi do sklepu. Weryfikacja trwa dni, gałąź — ani chwili.',
-    firefox: '<code>about:debugging</code> → Ten Firefox → Wczytaj tymczasowy dodatek… → wybierz <code>src/manifest.json</code>. Znika po ponownym uruchomieniu Firefoksa: trwała instalacja wymaga podpisu.',
+    h2: 'Instalacja z kodu źródłowego',
+    intro: 'Najprościej zainstalować rozszerzenie ze sklepu twojej przeglądarki. Ale jeśli chcesz przejrzeć kod, coś w nim zmienić albo wypróbować wersję z <code>master</code> przed publikacją, możesz wczytać je samodzielnie — bez czekania kilku dni na weryfikację w sklepach.',
+    firefox: 'Otwórz <code>about:debugging</code>, przejdź do „Ten Firefox” → „Wczytaj tymczasowy dodatek…” i wybierz <code>src/manifest.json</code>. Po ponownym uruchomieniu Firefoksa rozszerzenie zniknie: na stałe można instalować tylko podpisane dodatki.',
     chromeTitle: 'Chrome i Edge',
-    chrome: 'uruchom <code>bash tools/package.sh</code>, potem <code>chrome://extensions</code> (albo <code>edge://extensions</code>) → Tryb dewelopera → Załaduj rozpakowane → wybierz <code>dist/chrome/</code>',
-    noBuild: 'Bez kroku budowania, bundlera i minifikacji: <code>src/</code> to dokładnie to, co trafia do użytkownika. Co czytasz, to się uruchamia.',
-    past: 'Zapisać można tylko strony otwarte przy zainstalowanym rozszerzeniu. Minione lekcje są poza zasięgiem.',
+    chrome: 'Uruchom <code>bash tools/package.sh</code>, otwórz <code>chrome://extensions</code> (albo <code>edge://extensions</code>), włącz „Tryb dewelopera”, kliknij „Załaduj rozpakowane” i wskaż folder <code>dist/chrome/</code>.',
+    noBuild: 'Żadnej kompilacji ani minifikacji: folder <code>src/</code> to dokładnie to, co trafia do sklepów. Kod, który czytasz, to kod, który działa.',
+    past: 'Rozszerzenie zapisuje tylko strony otwarte po jego instalacji — wcześniejszych lekcji nie da się odzyskać.',
   },
 
   thanks: {
-    h2: 'Podziękowania.',
-    p: 'Dla Pauli — za lekcje polskiego i niezrównaną wiedzę o sękaczu — oraz dla Shuang laoshi, za lekcje chińskiego. To narzędzie powstało, żeby zachować to, czego się od nich uczę.',
+    h2: 'Podziękowania',
+    p: 'Dla Pauli — za lekcje polskiego i niezrównaną wiedzę o sękaczu — oraz dla Shuang laoshi za lekcje chińskiego. To narzędzie powstało, żeby zachować to, czego uczę się na tych lekcjach.',
   },
 
   footer: {
     source: 'Kod źródłowy',
     privacy: 'Prywatność',
     icons: 'ikony: <a href="https://phosphoricons.com">Phosphor</a>',
-    disclaimer: 'Narzędzie nieoficjalne, niepowiązane z Preply. Preply jest znakiem towarowym swojego właściciela.',
+    disclaimer: 'Nieoficjalne narzędzie, niezwiązane z Preply. Preply jest znakiem towarowym swojego właściciela.',
   },
 };
