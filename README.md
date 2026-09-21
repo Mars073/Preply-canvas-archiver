@@ -13,14 +13,15 @@ Unofficial tool, not affiliated with Preply.
 >
 > Project page: <https://mars073.github.io/Preply-canvas-archiver/>
 
-![The archive viewer: classrooms, pages and the document](docs/screenshots/archive-viewer.png)
+![The archive viewer: a classroom's pages and the archived document](docs/screenshots/archive-viewer.png)
 
-![The archive button added to the Preply Canvas toolbar](docs/screenshots/toolbar-button.png)
+![The print and archive buttons added to the Preply Canvas toolbar](docs/screenshots/toolbar-button.png)
 
 ## What it does
 
 - Adds an **archive button** to the Canvas toolbar during a lesson. One click
-  stores the page; it also saves on its own a minute after the last edit.
+  stores the page; it also saves on its own every page you open or edit, once
+  it has been still for a minute.
 - Adds a **quick print** button beside it, for a PDF of the page on screen
   without leaving the lesson.
 - Keeps **every version** of a page, and shows what changed between two of them.
@@ -63,12 +64,13 @@ way to fetch past lessons retroactively.
 ## Development
 
 No toolchain, no dependencies, no build step for the code: plain DOM, plain CSS,
-plain JavaScript. Two scripts exist, both optional:
+plain JavaScript. Three scripts exist, all optional:
 
 | Command | Purpose |
 |---|---|
 | `bash tools/package.sh` | build `dist/firefox` and `dist/chrome`, plus their zips |
 | `bash tools/build-icons.sh` | regenerate `src/icons.js` from `assets/phosphor/*.svg` |
+| `bash tools/build-pages.sh` | regenerate the landing page in every language, in `docs/`, from `tools/pages/` (needs Docker) |
 
 `jsconfig.json` turns on `checkJs`, so an editor type-checks the JSDoc without
 anything being installed.

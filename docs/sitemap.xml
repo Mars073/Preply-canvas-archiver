@@ -1,6 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://mars073.github.io/Preply-canvas-archiver/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mars073.github.io/Preply-canvas-archiver/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://mars073.github.io/Preply-canvas-archiver/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://mars073.github.io/Preply-canvas-archiver/es/"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://mars073.github.io/Preply-canvas-archiver/pl/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://mars073.github.io/Preply-canvas-archiver/ru/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://mars073.github.io/Preply-canvas-archiver/zh/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mars073.github.io/Preply-canvas-archiver/"/>
+  </url>
+  <url>
+    <loc>https://mars073.github.io/Preply-canvas-archiver/fr/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mars073.github.io/Preply-canvas-archiver/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://mars073.github.io/Preply-canvas-archiver/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://mars073.github.io/Preply-canvas-archiver/es/"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://mars073.github.io/Preply-canvas-archiver/pl/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://mars073.github.io/Preply-canvas-archiver/ru/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://mars073.github.io/Preply-canvas-archiver/zh/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mars073.github.io/Preply-canvas-archiver/"/>
+  </url>
+  <url>
+    <loc>https://mars073.github.io/Preply-canvas-archiver/es/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mars073.github.io/Preply-canvas-archiver/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://mars073.github.io/Preply-canvas-archiver/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://mars073.github.io/Preply-canvas-archiver/es/"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://mars073.github.io/Preply-canvas-archiver/pl/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://mars073.github.io/Preply-canvas-archiver/ru/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://mars073.github.io/Preply-canvas-archiver/zh/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mars073.github.io/Preply-canvas-archiver/"/>
+  </url>
+  <url>
+    <loc>https://mars073.github.io/Preply-canvas-archiver/pl/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mars073.github.io/Preply-canvas-archiver/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://mars073.github.io/Preply-canvas-archiver/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://mars073.github.io/Preply-canvas-archiver/es/"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://mars073.github.io/Preply-canvas-archiver/pl/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://mars073.github.io/Preply-canvas-archiver/ru/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://mars073.github.io/Preply-canvas-archiver/zh/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mars073.github.io/Preply-canvas-archiver/"/>
+  </url>
+  <url>
+    <loc>https://mars073.github.io/Preply-canvas-archiver/ru/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mars073.github.io/Preply-canvas-archiver/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://mars073.github.io/Preply-canvas-archiver/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://mars073.github.io/Preply-canvas-archiver/es/"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://mars073.github.io/Preply-canvas-archiver/pl/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://mars073.github.io/Preply-canvas-archiver/ru/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://mars073.github.io/Preply-canvas-archiver/zh/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mars073.github.io/Preply-canvas-archiver/"/>
+  </url>
+  <url>
+    <loc>https://mars073.github.io/Preply-canvas-archiver/zh/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mars073.github.io/Preply-canvas-archiver/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://mars073.github.io/Preply-canvas-archiver/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://mars073.github.io/Preply-canvas-archiver/es/"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://mars073.github.io/Preply-canvas-archiver/pl/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://mars073.github.io/Preply-canvas-archiver/ru/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://mars073.github.io/Preply-canvas-archiver/zh/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mars073.github.io/Preply-canvas-archiver/"/>
   </url>
 </urlset>

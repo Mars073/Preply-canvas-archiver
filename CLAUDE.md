@@ -69,6 +69,7 @@ tag does not match them.
 |---|---|
 | `src/icons.js` | `bash tools/build-icons.sh` (sources: `assets/phosphor/*.svg`) |
 | `src/icons/logo-*.png` | one-off Docker run, see `context.md` |
+| `docs/index.html`, `docs/<lang>/index.html`, `docs/sitemap.xml` | `bash tools/build-pages.sh` (sources: `tools/pages/`) |
 | `dist/**` | `bash tools/package.sh` |
 
 ## Verification

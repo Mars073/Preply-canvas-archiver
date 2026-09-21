@@ -49,27 +49,24 @@ download images already displayed on the page being archived.
 
 ### Linter warnings
 
-The validator reports four `UNSAFE_VAR_ASSIGNMENT` warnings in `viewer.js`.
-They are inherent to the add-on: it archives an HTML document and shows it
-again, so it writes HTML.
+Since 0.4.0 the validator reports no `UNSAFE_VAR_ASSIGNMENT`. The two remaining
+warnings concern `data_collection_permissions`, which Firefox before 140 does
+not know and ignores; the add-on still supports Firefox 115 ESR.
 
-Three of the four build a **detached** `<div>` that is never inserted into any
-document — two read `textContent` back for the page list and the search
-excerpts, one serialises a standalone HTML export. Only `showSnapshot()`
-writes into the live page.
-
+The add-on archives an HTML document and shows it again, so it handles HTML.
 The content originates from the Preply Canvas, so a tutor could in principle
-paste an inline event handler into it. Three things close that, in order.
+paste hostile markup into it. `sanitize.js` holds the one rule, applied at
+capture and again before anything is displayed or exported: elements,
+attributes and URL schemes are kept only if allowlisted — no script, style,
+frame, object, SVG, form or event handler, links limited to `http`, `https` and
+`mailto`, and no inline style that positions content or fetches a resource. The
+viewer parses stored markup with `DOMParser`, which is inert, and never assigns
+it to `innerHTML`.
 
-Every snapshot passes through `stripWidgets()` before it is displayed or
-exported: `script`, `style`, `link`, `meta`, `base`, `iframe`, `object` and
-`embed` are removed, along with every `on*` attribute. The same runs at capture
-time, so nothing of the sort is stored in the first place.
-
-Beyond that, `innerHTML` never executes a `<script>`, and the extension declares
-**no** `content_security_policy`, so the default MV3 policy (`script-src
-'self'`) applies to extension pages and blocks inline handlers. No `eval`, no
-remote script, no inline script anywhere — `viewer.html` loads four local files.
+Beyond that, the extension declares **no** `content_security_policy`, so the
+default MV3 policy (`script-src 'self'`) applies to extension pages. No `eval`,
+no remote script, no inline script anywhere — `viewer.html` loads five local
+files.
 
 The metadata also lists `content.js` and `viewer.js` under
 `unknownMinifiedFiles`. Neither is minified or generated: both are the
@@ -273,7 +270,7 @@ rather than being compacted into fragile delta chains.
 
 **No, I am not using remote code.** Every line of JavaScript that runs ships
 inside the package. There is no bundler, no CDN, no eval, no remotely hosted
-script and no inline script; viewer.html loads four local files. The images
+script and no inline script; viewer.html loads five local files. The images
 fetched from preply.com are data, not code: they are inlined as `data:` URIs and
 never executed. The extension declares no `content_security_policy`, so the
 default MV3 policy (`script-src 'self'`) applies unchanged.
