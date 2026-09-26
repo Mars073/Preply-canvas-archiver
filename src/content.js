@@ -484,6 +484,209 @@ async function printCanvas() {
   setTimeout(() => frame.remove(), 1000);
   return true;
 }
+/* ------------------------------------------------------------- tooltip */
+
+const SEL_TOOLTIP = '[data-preply-ds-component="Tooltip"]';
+/** Where Preply portals its own tooltips; empty while none is open. */
+const SEL_TIP_HOST = '#root > [data-preply-ds-theme]';
+
+/** Delay before a hovered button explains itself, as Preply's own tooltips take. */
+const TIP_DELAY_MS = 400;
+/** Gap between the button and the tooltip, and half the arrow's width. */
+const TIP_GAP = 6;
+const TIP_ARROW_HALF = 5;
+
+/**
+ * Skin of Preply's own tooltip, read off one of theirs the first time it opens.
+ *
+ * Their tooltip is a Radix component driven by React: the markup exists only
+ * while React says it is open, and its trigger is wired through React's own
+ * event system, so a button injected from here can never be one. The look is
+ * reproducible, though — the classes carrying it are taken from the live DOM,
+ * never hardcoded, because they are hashed per build like every other class
+ * Preply emits.
+ *
+ * Null until a tooltip of theirs has been seen; until then the buttons keep a
+ * plain `title`.
+ *
+ * @type {{theme: string, content: string, arrow: string}|null}
+ */
+let tipSkin = null;
+
+/**
+ * Takes the skin from a tooltip of theirs, if one is on screen.
+ *
+ * @returns {void}
+ */
+function captureTipSkin() {
+  const tip = document.querySelector(SEL_TOOLTIP);
+  if (!tip || !tip.className) return;
+
+  const arrow = tip.querySelector('svg[class]');
+  const themed = tip.closest('[data-preply-ds-theme]');
+  tipSkin = {
+    theme: themed ? themed.getAttribute('data-preply-ds-theme') : '',
+    content: tip.className,
+    arrow: arrow ? arrow.getAttribute('class') : '',
+  };
+
+  // The native tooltip would otherwise sit under ours, saying the same thing.
+  for (const btn of document.querySelectorAll(`#${BTN_GROUP_ID} button[title]`)) {
+    btn.removeAttribute('title');
+  }
+}
+
+/** @type {HTMLElement|null} */
+let tipBox = null;
+/** @type {Text|null} */
+let tipLabel = null;
+/** @type {HTMLElement|null} */
+let tipArrow = null;
+/** Button the tooltip currently belongs to. @type {Element|null} */
+let tipFor = null;
+/** @type {number|undefined} */
+let tipTimer;
+
+/**
+ * Puts the tooltip where Preply puts its own.
+ *
+ * Their portal host already carries the theme, so nothing of ours is added at
+ * the root of their page. It belongs to React, which may empty it when it
+ * re-renders a tooltip of its own — hence the mount check on every open rather
+ * than once at build time. Without the host, a themed wrapper of ours goes on
+ * the body instead.
+ *
+ * @returns {void}
+ */
+function mountTip() {
+  const host = document.querySelector(SEL_TIP_HOST);
+  if (host) host.append(tipBox);
+  else document.body.append(tipTheme);
+}
+
+/** @type {HTMLElement|null} */
+let tipTheme = null;
+
+/**
+ * Builds the tooltip, once, in Preply's own clothes.
+ *
+ * @returns {void}
+ */
+function buildTip() {
+  tipTheme = document.createElement('div');
+  tipTheme.setAttribute('data-preply-ds-theme', tipSkin.theme);
+  tipTheme.style.display = 'contents';
+
+  tipBox = document.createElement('div');
+  tipBox.style.cssText = 'position:fixed;left:0;top:0;z-index:101;'
+    + 'min-width:max-content;pointer-events:none';
+  tipBox.hidden = true;
+
+  const content = document.createElement('div');
+  content.className = tipSkin.content;
+  content.setAttribute('data-preply-ds-component', 'Tooltip');
+  content.setAttribute('data-side', 'bottom');
+  content.setAttribute('data-align', 'center');
+  content.setAttribute('data-state', 'delayed-open');
+  // The button's own aria-label already carries this text: announced again as a
+  // description, a screen reader would read it twice.
+  content.setAttribute('aria-hidden', 'true');
+
+  tipLabel = document.createTextNode('');
+  content.append(tipLabel);
+
+  tipArrow = document.createElement('span');
+  tipArrow.style.cssText = 'position:absolute;top:0;transform-origin:center 0 0;'
+    + 'transform:rotate(180deg)';
+
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('class', tipSkin.arrow);
+  svg.setAttribute('width', '10');
+  svg.setAttribute('height', '6');
+  svg.setAttribute('viewBox', '0 0 30 10');
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.style.display = 'block';
+  const polygon = document.createElementNS(ns, 'polygon');
+  polygon.setAttribute('points', '0,0 30,0 15,10');
+  svg.append(polygon);
+  tipArrow.append(svg);
+
+  content.append(tipArrow);
+  tipBox.append(content);
+  tipTheme.append(tipBox);
+  mountTip();
+}
+
+/**
+ * Shows the tooltip under a button, kept inside the window.
+ *
+ * @param {Element} btn
+ * @returns {void}
+ */
+function showTip(btn) {
+  if (!tipSkin) return;
+  if (!tipBox) buildTip();
+  else if (!tipBox.isConnected) mountTip();
+
+  tipLabel.nodeValue = btn.getAttribute('aria-label') || '';
+  tipFor = btn;
+  tipBox.hidden = false;
+
+  const anchor = btn.getBoundingClientRect();
+  const box = tipBox.getBoundingClientRect();
+  const centre = anchor.left + anchor.width / 2;
+  const left = Math.max(TIP_GAP, Math.min(centre - box.width / 2,
+    document.documentElement.clientWidth - box.width - TIP_GAP));
+
+  tipBox.style.transform = `translate(${Math.round(left)}px, ${Math.round(anchor.bottom + TIP_GAP)}px)`;
+  tipArrow.style.left = `${Math.round(centre - left - TIP_ARROW_HALF)}px`;
+}
+
+/** @returns {void} */
+function hideTip() {
+  clearTimeout(tipTimer);
+  tipFor = null;
+  if (tipBox) tipBox.hidden = true;
+}
+
+/**
+ * Gives a button the tooltip, with the native one as the fallback.
+ *
+ * @param {HTMLButtonElement} btn
+ * @returns {void}
+ */
+function attachTip(btn) {
+  btn.addEventListener('pointerenter', () => {
+    clearTimeout(tipTimer);
+    tipTimer = setTimeout(() => showTip(btn), TIP_DELAY_MS);
+  });
+  btn.addEventListener('focus', () => showTip(btn));
+  for (const event of ['pointerleave', 'blur', 'click']) {
+    btn.addEventListener(event, hideTip);
+  }
+}
+
+// Not stopped from propagating: this is a hint, not a layer the reader opened,
+// and an Escape meant for Preply's own interface has to reach it.
+addEventListener('keydown', (e) => { if (e.key === 'Escape') hideTip(); }, true);
+addEventListener('scroll', hideTip, { capture: true, passive: true });
+addEventListener('resize', hideTip, { passive: true });
+
+/**
+ * Names a button, in the tooltip and to assistive technology.
+ *
+ * @param {HTMLButtonElement} btn
+ * @param {string} label
+ * @returns {void}
+ */
+function setButtonLabel(btn, label) {
+  btn.setAttribute('aria-label', label);
+  if (tipSkin) btn.removeAttribute('title');
+  else btn.title = label;
+  if (tipFor === btn) tipLabel.nodeValue = label;
+}
+
 /**
  * Builds one toolbar button, modelled on the ones Preply already has there.
  *
@@ -524,9 +727,9 @@ function makeButton(spec) {
   btn.id = spec.id;
   btn.type = 'button';
   // Icon-only button: without an accessible name it is announced as "button"
-  // and nothing else. The title doubles as a mouse tooltip.
-  btn.setAttribute('aria-label', spec.label);
-  btn.title = spec.label;
+  // and nothing else.
+  setButtonLabel(btn, spec.label);
+  attachTip(btn);
 
   // icons.js is loaded before content.js in the manifest. `icon()` builds an SVG
   // with no intrinsic size, so we reuse the computed size of the one being
@@ -589,14 +792,12 @@ function makeButton(spec) {
    */
   const flash = (color, label) => {
     btn.style.color = color;
-    btn.setAttribute('aria-label', label);
-    btn.title = label;
+    setButtonLabel(btn, label);
     setTimeout(() => {
       // Empty string, not 'inherit': removing the inline override hands control
       // back to Preply's classes, hover states included.
       btn.style.color = '';
-      btn.setAttribute('aria-label', spec.label);
-      btn.title = spec.label;
+      setButtonLabel(btn, spec.label);
       btn.disabled = false;
     }, 2000);
   };
@@ -623,6 +824,9 @@ function makeButton(spec) {
 function sync() {
   const toolbar = document.querySelector(SEL_TOOLBAR);
   const editor = document.querySelector(SEL_EDITOR);
+
+  // One selector per batch until a tooltip of theirs has been seen, none after.
+  if (!tipSkin) captureTipSkin();
 
   // Injected into the bar's parent, not the bar itself: that parent is a flex
   // container with `justify-content: space-between`, so what we add settles on

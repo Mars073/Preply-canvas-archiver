@@ -48,6 +48,8 @@ live lesson:
 | `[data-qa-id="canvas-thumbnail"]` | page order, via the ancestor's `data-index` |
 | `[data-qa-id="canvas-thumbnail"] a[data-active="true"]` | current page number |
 | `[data-preply-ds-component="IconButton"]` | button cloned for its styling |
+| `[data-preply-ds-component="Tooltip"]` | tooltip skin: theme, content and arrow classes, read off the first one Preply opens |
+| `#root > [data-preply-ds-theme]` | where Preply portals its tooltips, and where ours goes too; empty while none is open |
 | `[data-preply-ds-component="Avatar"] img` | tutor avatar |
 
 ## Adding or changing a string

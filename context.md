@@ -99,6 +99,19 @@ principle covers colours, the archive button's styling — cloned from a live
 Preply button rather than copied by class name — and images, inlined as data
 URIs because Preply's asset URLs are presigned and expire.
 
+**The toolbar tooltip is reproduced, not borrowed.** Preply's is a Radix
+component: its markup exists only while React holds it open, and its trigger is
+wired through React's own event system, so an injected button can never be one —
+and a content script, in its isolated world, could not drive it anyway. The
+content script therefore draws its own, wearing the classes taken from the first
+tooltip of theirs that opens, inside the very container they portal theirs into
+(`#root > [data-preply-ds-theme]`, empty while none is open) so that nothing of
+ours is added at the root of their page. That container is React's, and a
+re-render can empty it, so the tooltip checks it is still mounted each time it
+opens. Until a tooltip of theirs has been seen, the buttons keep a native
+`title`, which is also where they land if those classes ever stop meaning
+anything.
+
 **An archived document is allowlisted, not scrubbed.** `sanitize.js` is the
 one definition, loaded by the content script and the viewer alike, and applied
 at capture and again on display, so archives taken under an older rule are
